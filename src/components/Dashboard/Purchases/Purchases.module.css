@@ -1,0 +1,305 @@
+.longform {
+  max-width: 350px !important;
+  min-width: 320px !important;
+  margin-bottom: 20px;
+}
+.longform label {
+  width: 140px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.longform input,
+.longform select {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-size: 15px;
+  font-weight: 500;
+}
+.longform span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 16.26px;
+  letter-spacing: 1.5%;
+}
+.tableform input,
+.tableform select {
+  width: 100%;
+  height: 25px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.tableform {
+  max-width: 200px !important;
+}
+
+.errorinput {
+  outline: 1px solid #ff2020 !important;
+  color: #ff2020 !important;
+}
+.head {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.addbtn {
+  min-width: 80px;
+  height: 27px;
+  padding: 4px 10px;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 15.94px;
+  letter-spacing: 1.5%;
+  border-radius: 4px;
+  margin-right: 20px;
+  /* box-shadow: 1px 1px 3px #333; */
+  /* background-color: #d9d9d9; */
+}
+.del {
+  position: relative;
+}
+.del button {
+  position: absolute;
+  left: 110%;
+  top: -4px;
+  background-color: #e1e1e1 !important;
+  width: 40px !important;
+  height: 25px;
+  color: #333 !important;
+  border-radius: 3px;
+  border: 1px solid #bfbfbf !important;
+}
+
+.longformmdl {
+  max-width: 300px !important;
+  min-width: 260px !important;
+  margin-bottom: 8px;
+}
+.longformmdl label {
+  width: 120px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.longformmdl input,
+.longformmdl select {
+  width: 110px;
+  height: 25px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-size: 12px;
+  font-weight: 500;
+}
+.longformmdl span {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.26px;
+  letter-spacing: 1.5%;
+}
+.headmdl {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.mdltable thead th {
+  font-size: 12px !important;
+  padding: 3px;
+}
+.mdltable tbody td {
+  font-size: 12px !important;
+  padding: 3px;
+}
+
+.xls {
+  width: 150px;
+  height: 40px;
+  padding-left: 30px;
+  border-radius: 6px;
+  margin-right: 15px;
+  margin-bottom: 20px;
+  /* box-shadow: 1px 1px 3px black; */
+  color: #555;
+}
+.xls:hover {
+  outline: 1px solid #555;
+}
+.xls p {
+  float: left;
+  margin-bottom: 0;
+  font-size: 16px;
+  font-weight: 500;
+  padding-top: 6px;
+}
+.xls img {
+  width: 35px;
+  height: 35px;
+}
+.errorField {
+  outline: 1px solid #ff2727;
+}
+
+.removebtn {
+  background-color: #ff2727 !important;
+}
+
+.taxes {
+  font-size: 14px;
+}
+.taxes strong {
+  margin-right: 15px;
+  color: #333;
+}
+
+.total strong {
+  color: var(--primary-color);
+  font-size: 18px;
+  margin-right: 15px;
+}
+.total {
+  font-weight: 600;
+  font-size: 18px;
+}
+.bluebtn {
+  background-color: #208fff;
+}
+.bluebtn:hover {
+  background-color: #1d7cdc;
+}
+
+.delcol {
+  position: relative;
+}
+.delcol .deletebtn {
+  position: absolute;
+  left: 110%;
+  background-color: transparent;
+  color: black;
+  font-size: 14px;
+}
+.deletebtn:hover {
+  color: #ff2020;
+}
+.deltext {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+}
+.deltext span {
+  font-weight: 600;
+}
+
+/*  */
+
+/*  */
+.buttonbox {
+  width: 80px;
+  height: auto;
+}
+.buttonbox button {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600px;
+  transition: 0.2s ease;
+}
+
+.buttonbox button span {
+  padding-top: 3px;
+}
+.buttonbox button:hover {
+  color: #555;
+  transform: scale(1.05);
+}
+
+.entity {
+  width: 200px !important;
+  height: 40px;
+  position: relative;
+  top: 20px;
+}
+.entity label {
+  color: black;
+  font-size: 15px;
+  font-weight: bold;
+
+}
+.entity select {
+  width: 60px;
+  height: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid gray;
+  border-radius: 6px;
+  margin-left: 10px;
+}
+
+/* Tighter rows for Damaged Goods modal table only */
+.damagedGoodsTable th,
+.damagedGoodsTable td {
+  padding: 4px 8px !important;  /* Less vertical space */
+  font-size: 14px !important;   /* Slightly smaller text if needed */
+  line-height: 1.1;
+}
+
+.xls {
+  width: 150px;
+  height: 40px;
+  padding-left: 30px;
+  border-radius: 6px;
+  margin-right: 15px;
+  margin-bottom: 20px;
+  /* box-shadow: 1px 1px 3px black; */
+  color: #555;
+  background: white;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.xls:hover {
+  outline: 1px solid #555;
+}
+.xls p {
+  float: left;
+  margin-bottom: 0;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 0;
+}
+.xls img {
+  width: 35px;
+  height: 35px;
+}
+

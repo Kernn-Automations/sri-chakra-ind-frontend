@@ -1,0 +1,51 @@
+.store-employees-home {
+  width: 100%;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .store-employees-home {
+    padding: 12px !important;
+  }
+
+  .store-employees-home h2 {
+    font-size: 22px !important;
+  }
+
+  .store-employees-home p {
+    font-size: 13px !important;
+  }
+
+  .store-employees-home .homebtn {
+    width: 100%;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* Adjust ReusableCard spacing on mobile */
+  .store-employees-home .chakra-ui-reset {
+    flex-basis: calc(50% - 5px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .store-employees-home {
+    padding: 8px !important;
+  }
+
+  .store-employees-home h2 {
+    font-size: 20px !important;
+  }
+
+  .store-employees-home .homebtn {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  /* Make cards full width on very small screens */
+  .store-employees-home .chakra-ui-reset {
+    flex-basis: 100% !important;
+  }
+}
+
+

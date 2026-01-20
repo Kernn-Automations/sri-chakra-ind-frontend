@@ -1,0 +1,611 @@
+.mdlp {
+  text-align: right;
+  margin-bottom: 0;
+}
+
+/* Fix z-index issues for alert messages */
+.alert {
+  position: relative;
+  z-index: 1 !important;
+}
+
+/* Ensure alert containers don't overlay on modals/popups */
+.container-fluid .alert,
+.row .alert,
+.col .alert {
+  position: relative;
+  z-index: 1 !important;
+}
+
+/* Fix for division alert messages */
+.divisionAlert .alert {
+  position: relative;
+  z-index: 1 !important;
+}
+.mdlclose {
+  background-color: transparent !important;
+  color: white;
+  font-size: 18px;
+}
+.notification-container {
+  position: relative;
+  display: inline;
+  margin-right: 20px;
+  margin-top: 10px;
+}
+.notdropdown-color {
+  /* background-color: var(--primary-light) !important; */
+  color: var(--primary-light) !important;
+}
+.css-1n2kn1 {
+  --arrow-size: var(--chakra-sizes-3);
+  --arrow-background: var(--primary-light);
+}
+
+.notification-icon {
+  background: none;
+  border: none;
+  font-size: 25px;
+  position: relative;
+  cursor: pointer;
+  color: black;
+  float: left;
+  margin: 8px 20px 10px 10px;
+  /* text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white; */
+}
+/* .notification-icon i{
+  outline: 1px solid white;
+} */
+
+.notbadge {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+
+  width: 15px;
+  height: 18px;
+}
+
+.notdropdown {
+  /* background: white; */
+  background-color: var(--primary-light);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 350px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.noth5 {
+  margin: 8px auto 10px 15px;
+  /* font-family: Montserrat; */
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 21.94px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  color: var(--primary-color);
+}
+
+.notdropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.notdropdown-list svg {
+  width: 18px;
+}
+
+.notdropdown-item {
+  padding: 10px;
+  border-bottom: 1px solid #e1e1e1 !important;
+}
+
+.notdropdown-item:last-child {
+  border-bottom: none;
+}
+
+.notdropdown-item h6 {
+  margin: 0;
+  /* font-family: Montserrat; */
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.notdropdown-item p {
+  color: gray;
+  font-size: 10px;
+  /* font-family: Montserrat; */
+  font-weight: 500;
+  text-align: right;
+  margin: 0;
+}
+.emptynot {
+  font-size: 15px;
+  /* font-family: Montserrat; */
+  font-weight: 500;
+  text-align: center;
+  margin: 20px auto;
+}
+
+input:disabled,
+select:disabled {
+  background: #f1f1f1;
+  color: black;
+}
+
+input,
+select,
+textarea {
+  background-color: white;
+}
+
+.mdl {
+  background-color: var(--primary-light);
+  padding: 20px;
+  /* z-index handled by global hierarchy system */
+}
+
+/* ========================================
+   COMPREHENSIVE Z-INDEX HIERARCHY SYSTEM
+   ======================================== */
+
+/* Z-Index Hierarchy:
+   - Toasts/Notifications: 999999
+   - Modals/Dialogs: 100000-199999
+   - Overlays/Backdrops: 50000-99999
+   - Dropdowns/Popovers: 10000-49999
+   - Fixed elements: 1000-9999
+*/
+
+/* BOOTSTRAP MODALS - Highest Priority */
+.modal {
+  z-index: 150000 !important;
+}
+
+.modal-dialog {
+  z-index: 150001 !important;
+}
+
+.modal-content {
+  z-index: 150002 !important;
+}
+
+.modal-backdrop {
+  z-index: 149999 !important;
+}
+
+.modal-backdrop.fade.show {
+  z-index: 149999 !important;
+}
+
+/* CHAKRA UI DIALOGS - High Priority */
+[data-chakra-component="DialogRoot"],
+[data-scope="dialog"][data-part="root"] {
+  z-index: 140000 !important;
+}
+
+[data-chakra-component="DialogPositioner"],
+[data-scope="dialog"][data-part="positioner"] {
+  z-index: 140001 !important;
+}
+
+[data-chakra-component="DialogContent"],
+[data-scope="dialog"][data-part="content"] {
+  z-index: 140002 !important;
+  position: relative;
+}
+
+[data-chakra-component="DialogBackdrop"],
+[data-scope="dialog"][data-part="backdrop"] {
+  z-index: 139999 !important;
+  background-color: rgba(0, 0, 0, 0.6) !important; /* Dark backdrop like logout modal */
+}
+
+/* Target the portal container */
+#chakra-portal,
+[data-chakra-portal],
+[data-portal] {
+  z-index: 140000 !important;
+}
+
+.chakra-portal,
+[class*="chakra-portal"] {
+  z-index: 140000 !important;
+}
+
+/* CUSTOM MODAL CLASSES */
+.mdl {
+  z-index: 140003 !important;
+}
+
+/* POPOVER AND DROPDOWN ELEMENTS */
+[data-chakra-component="PopoverContent"],
+[data-chakra-component="PopoverPositioner"] {
+  z-index: 120000 !important;
+}
+
+.dropdown-menu {
+  z-index: 110000 !important;
+}
+
+/* OVERLAYS AND BACKDROPS - Lower than modals */
+div[style*="background-color: rgba(0, 0, 0, 0.5)"],
+div[style*="background-color: rgba(0, 0, 0, 0.7)"],
+div[style*="background-color: rgba(0, 0, 0, 0.4)"],
+div[style*="background: rgba(0, 0, 0, 0.5)"],
+div[style*="background: rgba(0, 0, 0, 0.7)"],
+div[style*="background: rgba(0, 0, 0, 0.4)"] {
+  z-index: 50000 !important;
+}
+
+/* Target any fixed positioned overlay */
+div[style*="position: fixed"][style*="background"]:not([role="dialog"]):not([data-chakra-component]) {
+  z-index: 50000 !important;
+}
+
+/* SPECIFIC DIALOG ROLES */
+div[role="dialog"] {
+  z-index: 140000 !important;
+}
+
+/* ENSURE MODAL BUTTONS AND CONTENT ARE CLICKABLE */
+.modal-header,
+.modal-body,
+.modal-footer,
+.modal button,
+[data-chakra-component="DialogContent"] *,
+.mdl * {
+  position: relative;
+  z-index: inherit;
+}
+
+/* TOAST AND NOTIFICATION OVERRIDES */
+.toast,
+.alert {
+  z-index: 200000 !important;
+}
+
+/* SPECIFIC COMPONENT OVERRIDES */
+.role-choice-overlay {
+  z-index: 160000 !important;
+}
+
+.error-modal-override {
+  z-index: 180000 !important;
+}
+
+.inputcolumn-mdl {
+  width: 500px !important;
+  margin-bottom: 3px;
+}
+
+/* Targets Create Modal - shrink field widths */
+.targets-create-modal {
+  padding: 12px;
+}
+.targets-create-modal [data-scope="dialog"][data-part="content"],
+.targets-create-modal.mdl {
+  max-height: 70vh;
+  overflow: auto;
+  width: 90vw;
+  max-width: 700px;
+}
+.targets-create-modal .inputcolumn-mdl {
+  width: 100% !important;
+  margin-bottom: 8px;
+}
+.targets-create-modal .inputcolumn-mdl label {
+  display: block;
+  text-align: left;
+  width: auto;
+  padding-right: 0;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.targets-create-modal .inputcolumn-mdl input,
+.targets-create-modal .inputcolumn-mdl select,
+.targets-create-modal .inputcolumn-mdl textarea {
+  height: 32px;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.targets-create-modal .inputcolumn-mdl textarea {
+  height: 60px;
+  resize: vertical;
+}
+
+/* Prevent overflow by stacking to one column on narrower modals */
+@media (max-width: 992px) {
+  .targets-create-modal .col-6 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+.inputcolumn-mdl label {
+  width: 220px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 21.94px;
+  letter-spacing: 0.015em;
+  color: var(--primary-color);
+  padding-right: 40px;
+  margin-bottom: 10px;
+}
+.inputcolumn-mdl input,
+.inputcolumn-mdl select,
+.inputcolumn-mdl textarea {
+  width: 100%;
+  height: 24px;
+  font-size: 15px;
+  padding-left: 4px;
+  border-radius: 5px;
+  box-shadow: 1px 1px 2px black;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: black;
+}
+.inputcolumn-mdl textarea {
+  width: 400px;
+  height: 80px;
+  font-size: 15px;
+  padding-left: 10px;
+  border-radius: 5px;
+  box-shadow: 1px 1px 2px black;
+  margin-bottom: 20px;
+  margin-left: 25px;
+}
+
+.inputcolumn-mdl-close {
+  background-color: transparent;
+  color: black;
+  font-size: 20px !important;
+}
+.inputcolumn-mdl-close svg:hover {
+  height: 20px !important;
+  stroke-width: 3px;
+}
+
+.mdl-title {
+  color: black;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 29.26px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  padding-top: 10px;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 300px;
+  height: 80px;
+  resize: none !important;
+  scrollbar-width: 5px;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  /* background: #c4c4c4; */
+  background: var(--primary-active-opacity);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  /* background: #626262; */
+  background: var(--primary-hover-opacity);
+  cursor: context-menu;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background-color: transparent !important;
+  color: #333 !important;
+  cursor: pointer;
+}
+
+.homebtn {
+  min-width: 160px;
+  height: 36px;
+  padding: 3px 15px;
+  margin: 10px 25px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  /* font-family: Montserrat;  */
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 26.82px;
+  text-align: center;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  /* box-shadow: 1px 1px 3px black; */
+  background: transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.homebtn:hover {
+  background: var(--primary-hover-opacity);
+  color: var(--primary-color);
+
+  /* background: #a92426;
+  color: white; */
+
+  /* --to move upside-- */
+  transition: 0.25s ease;
+  transform: translateY(-2px);
+
+  /* -- to increase size */
+  /* transition: 0.25s ease;
+  transform: scale(1.05); */
+
+  box-shadow: 0 6px 8px #00000040;
+}
+.homebtn:active {
+  background: var(--primary-active-opacity);
+  color: var(--primary-color);
+}
+
+.path {
+  /* font-family: Montserrat; */
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24.38px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  margin: 20px;
+  padding-top: 8px;
+  color: #555;
+}
+.path span:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+}
+a {
+  text-decoration: none !important;
+  color: rgb(23, 23, 23);
+}
+
+.bi-chat path {
+  stroke: rgb(23, 23, 23);
+}
+/* added generate report button of customerreports module */
+
+.submitbtn,.generatebtn,
+.cancelbtn {
+  min-width: 80px;
+  height: 27px;
+  padding: 6px 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 15.94px;
+  letter-spacing: 1.5%;
+  border-radius: 4px;
+  margin-right: 20px;
+  /* box-shadow: 1px 1px 3px #333; */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.generatebtn{
+  align-items: center;
+  display: flex;
+  align-items: center;
+  padding: 20px 50px;
+}
+
+.submitbtn {
+  background-color: #2fa924;
+}
+.cancelbtn {
+  background-color: #fd3b3b !important;
+}
+.generatebtn {
+  background-color: #2fa924;
+}
+
+.submitbtn:hover {
+  background-color: #24821c;
+}
+.cancelbtn:hover {
+  background-color: #ce3030;
+}
+.submitbtn:disabled {
+  background-color: #97ef8f;
+}
+
+
+.submitbtn:active, .cancelbtn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.borderedtable thead th {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 17.5px;
+  letter-spacing: 1.5%;
+  color: white;
+  background-color: var(--primary-color);
+  text-align: center;
+}
+.borderedtable tbody td {
+  font-size: 13px;
+  line-height: 17.5px;
+  letter-spacing: 1.5%;
+  font-weight: 500;
+  padding: 4px;
+  text-align: center;
+}
+.borderedtable button {
+  width: fit-content;
+  height: 25px;
+  font-size: 12px;
+  padding: 0px 10px;
+  border: none;
+  color: white;
+  margin: 0;
+  border-radius: 3px;
+  background-color: #34b233;
+}
+
+.formcontent {
+  max-width: 340px !important;
+  min-width: fit-content !important;
+  margin-bottom: 20px;
+}
+.formcontent label {
+  width: fit-content;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: left;
+  padding-right: 15px;
+  font-weight: 600;
+  /* color: var(--primary-color); */
+}
+.formcontent input,
+.formcontent select {
+  width: 160px;
+  height: 32px;
+  outline: 1.5px solid var(--primary-color);
+  padding: 2px 10px;
+  border-radius: 16px;
+  box-shadow: 2px 2px 4px #333;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animated-row {
+  opacity: 0;
+  animation: rowFadeIn 0.5s ease forwards;
+}
+
+

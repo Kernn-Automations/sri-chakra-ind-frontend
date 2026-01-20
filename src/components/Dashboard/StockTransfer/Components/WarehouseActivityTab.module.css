@@ -1,0 +1,105 @@
+.activityContainer {
+  padding: 12px;
+}
+
+.dateGroup {
+  margin-bottom: 20px;
+}
+
+.dateHeader {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.activityList {
+  list-style: none;
+  padding: 0;
+}
+
+.activityItem {
+  border: 1px solid #ddd;
+  border-left: 4px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #fafafa;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time {
+  font-size: 13px;
+  color: #666;
+}
+
+.body {
+  margin-top: 6px;
+}
+
+.body div {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* warehouse Headers */
+.warehouseIcon {
+  color: var(--primary-color);
+}
+.graytext {
+  font-weight: 500;
+}
+.updateDetailsBtn {
+  border: none;
+  display: flex;
+  background: #2fa924;
+  color: white;
+  border-radius: 4px;
+  padding: 5px 15px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.updateDetailsBtn svg {
+  height: 20px;
+}
+.managerRow {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.managerRow svg {
+  height: 25px !important;
+}
+
+.updateFelids input,
+.updateFelids select {
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+.updateFelids label {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}

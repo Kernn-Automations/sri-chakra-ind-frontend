@@ -1,0 +1,253 @@
+.delsec {
+  width: 90% !important;
+  height: 40px !important;
+  margin: 5%;
+  margin-top: 10px;
+  /* font-family: Montserrat; */
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 29.26px;
+  text-align: left;
+  color: var(--primary-color);
+}
+
+.mapContainer {
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+/* Force the map to accept clicks and stay on top */
+.mdl [class*="gm-style"] {
+  pointer-events: auto !important;
+}
+
+/* Ensure the modal content doesn't eat the clicks */
+.mdl {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.intacc {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  border-radius: none !important;
+  /* font-family: Montserrat; */
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 21.94px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  border-radius: 10px !important;
+}
+.intbody {
+  box-shadow: 2px 2px 4px var(--primary-color);
+  width: 60% !important;
+  margin-left: 40%;
+  border-radius: 0 0 10px 10px;
+}
+
+.box {
+  width: 95%;
+  margin: 4px 2.5%;
+  box-shadow: 2px 2px 4px var(--primary-color);
+  padding: 7px 20px;
+  /* font-family: Montserrat; */
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 15.85px;
+  letter-spacing: 0.015em;
+  text-align: center;
+  background-color: white;
+  color: var(--primary-color) !important;
+}
+
+.box > button {
+  width: fit-content;
+  padding: 4px 8px;
+  background-color: #34b233;
+  color: white;
+  border: none;
+}
+
+.locate {
+  width: 120px;
+  height: 25px;
+  border: none;
+  padding: 3px !important;
+  border-radius: 3px;
+  box-shadow: 1px 1px 4px gray;
+  font-size: 14px;
+  color: white;
+  background-color: #fd3b3b;
+}
+.lant {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 14.82px;
+  letter-spacing: 0%;
+  text-align: left;
+  margin-bottom: 15px;
+}
+.lant span {
+  color: #a92726;
+  padding-right: 10px;
+}
+
+.selectmode select {
+  width: 100px;
+  border-radius: 3px;
+  color: white;
+  /* padding-right: 10px; */
+}
+.selectmode select option {
+  background-color: white;
+  color: black;
+}
+.selectmode select:focus {
+  outline: none;
+}
+
+.enable {
+  background-color: #2fa924;
+}
+.disable {
+  background-color: #ff2727;
+}
+
+.errorField {
+  outline: 1px solid #ff2727;
+}
+
+/* xl modal */
+
+.longformmdl {
+  max-width: 300px !important;
+  min-width: 280px !important;
+  margin-bottom: 8px;
+}
+.longformmdl label,
+.textform label {
+  width: 140px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.longformmdl input,
+.longformmdl select {
+  width: 120px;
+  height: 25px;
+  padding-left: 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 12px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.longformmdl span {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.26px;
+  letter-spacing: 1.5%;
+}
+
+.textform textarea {
+  width: 350px;
+  height: 80px;
+  padding-left: 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 12px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+
+.headmdl {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.mdltable thead th {
+  font-size: 12px !important;
+  padding: 3px;
+  letter-spacing: 1.5%;
+  color: white;
+  background-color: var(--primary-color);
+  text-align: center;
+}
+.mdltable tbody td {
+  font-size: 12px !important;
+  padding: 3px;
+}
+.mdltable button {
+  width: fit-content;
+  height: 20px;
+  font-size: 11px;
+  padding: 0px 10px;
+  border: none;
+  color: white;
+  margin: 0;
+  border-radius: 3px;
+  background-color: #fd3b3b;
+}
+
+.longform {
+  max-width: 360px !important;
+  min-width: 350px !important;
+  margin-bottom: 20px;
+}
+.longform label,
+.location label {
+  max-width: 160px;
+  min-width: 150px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.changedField {
+  border: 2px solid #198754 !important; /* green border */
+  background-color: #e7f9f0; /* light green background */
+  transition: all 0.3s ease;
+}
+.longform input,
+.longform select {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+.longform span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 16.26px;
+  letter-spacing: 1.5%;
+}
+
+.head {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}

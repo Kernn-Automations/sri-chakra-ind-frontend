@@ -1,0 +1,673 @@
+.longformmdl {
+  max-width: 340px !important;
+  min-width: 310px !important;
+  margin-bottom: 15px;
+}
+.longformmdl label {
+  width: 145px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 14.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.paymentProofThumbnail {
+  width: 100px; /* Adjust as needed for your desired thumbnail size */
+  height: 100px;
+  object-fit: cover; /* Ensures image covers the area without distortion */
+  cursor: zoom-in; /* Indicates it's clickable for zoom */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.paymentProofThumbnail:hover {
+  transform: scale(1.05);
+}
+
+
+/* New styles for the ImageZoomModal */
+.imageZoomBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker backdrop */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000; /* Ensure this is higher than your DialogRoot's backdrop */
+}
+
+.imageZoomContent {
+  position: relative;
+  background: white; /* Or transparent if you just want the image */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageZoomCloseButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  z-index: 10002; /* Ensure close button is above everything */
+}
+
+.imageZoomCloseButton:hover {
+  color: #f00;
+}
+
+.zoomableImage {
+  max-width: 100%;
+  max-height: 70vh; /* Adjust as needed to prevent overflow */
+  display: block; /* Important for react-medium-image-zoom */
+}
+
+/* Ensure react-medium-image-zoom's overlay is styled correctly */
+/* You might need to inspect the generated HTML to target the exact classes */
+.rmiz-modal-content {
+  background-color: transparent !important; /* To prevent double backdrop */
+}
+.rmiz-overlay {
+  background-color: transparent !important; /* To prevent double backdrop */
+  z-index: 10000; /* Match the .imageZoomBackdrop if needed, but react-medium-image-zoom uses its own */
+}
+.longformmdl input,
+.longformmdl select {
+  width: 130px;
+  height: 25px;
+  padding-left: 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 13px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.longformmdl span {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.26px;
+  letter-spacing: 1.5%;
+}
+.headmdl {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.mdltable thead th {
+  font-size: 12px !important;
+  padding: 3px;
+}
+.mdltable tbody td {
+  font-size: 12px !important;
+  padding: 3px;
+}
+
+.search {
+  position: relative;
+  display: inline-block;
+}
+.search input {
+  width: 240px;
+  height: 35px;
+  border: 1px solid var(--primary-color);
+  border-radius: 5px;
+  padding-left: 4px;
+  font-size: 15px;
+  padding-right: 32px; /* Leave space for the icon */
+  box-shadow: 1px 1px 4px gray;
+}
+
+.search input:focus {
+  border: 1px solid var(--primary-color);
+  outline: none;
+}
+.searchicon {
+  position: absolute;
+  left: 225px;
+  top: 18px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #555;
+  pointer-events: none; /* Makes the icon unclickable */
+}
+
+.xls {
+  width: 150px;
+  height: 40px;
+  padding-left: 30px;
+  border-radius: 6px;
+  margin-right: 15px;
+  margin-bottom: 20px;
+  /* box-shadow: 1px 1px 3px black; */
+  color: #555;
+}
+.xls:hover {
+  outline: 1px solid #555;
+}
+.xls p {
+  float: left;
+  margin-bottom: 0;
+  font-size: 16px;
+  font-weight: 500;
+  padding-top: 6px;
+}
+.xls img {
+  width: 35px;
+  height: 35px;
+}
+.images {
+  width: 200px;
+}
+
+/*  */
+.buttonbox {
+  width: 80px;
+  height: auto;
+}
+.buttonbox button {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600px;
+  transition: 0.2s ease;
+}
+
+.buttonbox button span {
+  padding-top: 3px;
+}
+.buttonbox button:hover {
+  color: #555;
+  transform: scale(1.05);
+}
+
+.entity {
+  /* width: 200px !important; */
+  height: 40px;
+  position: relative;
+  /* top: 20px; */
+}
+.entity label {
+  color: black;
+  font-size: 15px;
+  font-weight: 600;
+}
+.entity select {
+  width: 60px;
+  height: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid gray;
+  border-radius: 6px;
+  margin-left: 10px;
+}
+
+.custDetails {
+  margin-bottom: 10px;
+}
+.custDetails h5 {
+  margin-bottom: 3px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.custDetails p {
+  margin-bottom: 3px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* xl modal */
+
+.longformmdl {
+  max-width: 300px !important;
+  min-width: 280px !important;
+  margin-bottom: 8px;
+}
+.longformmdl label,
+.textform label {
+  width: 140px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.longformmdl input,
+.longformmdl select {
+  width: 120px;
+  height: 25px;
+  padding-left: 2px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 12px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.longformmdl span {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14.26px;
+  letter-spacing: 1.5%;
+}
+
+.textform textarea {
+  width: 350px;
+  height: 80px;
+  padding-left: 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 12px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+
+.headmdl {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.mdltable thead th {
+  font-size: 12px !important;
+  padding: 3px;
+  letter-spacing: 1.5%;
+  color: white;
+  background-color: var(--primary-color);
+  text-align: center;
+}
+.mdltable tbody td {
+  font-size: 12px !important;
+  padding: 3px;
+}
+.mdltable button {
+  width: fit-content;
+  height: 20px;
+  font-size: 11px;
+  padding: 0px 10px;
+  border: none;
+  color: white;
+  margin: 0;
+  border-radius: 3px;
+  background-color: #fd3b3b;
+}
+
+/* credit note details */
+.creditDetails {
+  margin: 20px;
+}
+.creditDetails p {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary-color);
+  padding-left: 40px;
+  margin: 3px;
+}
+.creditDetails p span {
+  color: #333;
+  font-weight: 600;
+  font-size: 15px;
+  padding-right: 20px;
+}
+
+.select input {
+  background: #ffffff !important;
+}
+.selectall {
+  width: 15px;
+  height: 15px;
+}
+
+.select label {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 30.38px;
+  letter-spacing: 0.015em;
+  padding: 6px 10px;
+}
+
+/* Fix z-index issue for payment approvals modal - Use global hierarchy */
+
+
+/* Payment-specific modal styling without z-index conflicts */
+.mdl-title {
+  position: relative;
+}
+
+/* Ensure dialog content has a visible background and padding */
+.dialogContent {
+  background: #ffffff !important;
+  padding: 16px !important;
+  border-radius: 8px;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative !important;
+  z-index: 140002 !important; /* Higher than backdrop */
+}
+
+/* Payment Cards Styling */
+.paymentsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  max-width: 100%;
+}
+
+/* Ensure maximum 4 cards per row */
+@media (min-width: 1200px) {
+  .paymentsContainer {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+  .paymentsContainer {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .paymentsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  .paymentsContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.paymentCard {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+  min-height: 300px;
+  width: 100%;
+}
+
+.paymentCard:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.paymentCard > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentImageSection {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.paymentImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.paymentImage:hover {
+  transform: scale(1.05);
+}
+
+.paymentDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paymentDetailRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paymentDetailLabel {
+  font-weight: 600;
+  color: #333;
+  min-width: 120px;
+}
+
+.paymentDetailValue {
+  color: #555;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.statusBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusPending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.statusApproved {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.statusRejected {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.approveBtn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  flex: 1;
+}
+
+.approveBtn:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.approveBtn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.rejectBtn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  flex: 1;
+}
+
+.rejectBtn:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.rejectBtn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* create creidt note  */
+.longform {
+  max-width: 360px !important;
+  min-width: 350px !important;
+  margin-bottom: 20px;
+}
+.longform label {
+  max-width: 160px;
+  min-width: 150px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.changedField {
+  border: 2px solid #198754 !important; /* green border */
+  background-color: #e7f9f0; /* light green background */
+  transition: all 0.3s ease;
+}
+.longform input,
+.longform select {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+.longform span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 16.26px;
+  letter-spacing: 1.5%;
+}
+
+.taxform textarea{
+  width: 300px;
+  height: 80px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  position: relative;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+
+.tableform input,
+.tableform select {
+  width: 100%;
+  height: 25px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.tableform {
+  max-width: 200px !important;
+}
+
+.errorinput {
+  outline: 1px solid #ff2020 !important;
+  color: #ff2020 !important;
+}
+.head {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.addbtn {
+  min-width: 80px;
+  height: 27px;
+  padding: 4px 10px;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 15.94px;
+  letter-spacing: 1.5%;
+  border-radius: 4px;
+  margin-right: 20px;
+  /* box-shadow: 1px 1px 3px #333; */
+  /* background-color: #d9d9d9; */
+}
+.del {
+  position: relative;
+}
+.del button {
+  position: absolute;
+  left: 110%;
+  top: -4px;
+  background-color: #e1e1e1 !important;
+  width: 40px !important;
+  height: 25px;
+  color: #333 !important;
+  border-radius: 3px;
+  border: 1px solid #bfbfbf !important;
+}
+

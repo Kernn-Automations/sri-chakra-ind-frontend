@@ -1,0 +1,12 @@
+.delsec {
+  width: 90% !important;
+  height: 40px !important;
+  margin: 5%;
+  margin-top: 10px;
+  /* font-family: Montserrat; */
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 29.26px;
+  text-align: left;
+  color: var(--primary-color);
+}

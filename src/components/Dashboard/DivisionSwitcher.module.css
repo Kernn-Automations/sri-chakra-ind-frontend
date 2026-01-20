@@ -1,0 +1,207 @@
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+.selector {
+  position: relative;
+}
+
+.divisionDisplay {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  min-width: 180px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.divisionDisplay:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
+}
+
+.divisionName {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.backArrowButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backArrowButton:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.backArrowButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.backArrow {
+  color: #666;
+  font-size: 16px;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.backArrowButton:hover .backArrow {
+  color: #333;
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdownItem:last-child {
+  border-bottom: none;
+}
+
+.dropdownItem:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdownDivisionName {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.dropdownDivisionState {
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.noDivisions {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.goToDivs {
+  padding: 12px 16px;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+  text-align: center;
+}
+
+.goToDivs:hover {
+  background-color: #e9ecef;
+}
+
+.goToDivs span {
+  color: #007bff;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.loadingText {
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .divisionDisplay {
+    min-width: 150px;
+    padding: 8px 12px;
+  }
+  
+  .divisionName {
+    font-size: 13px;
+  }
+  
+  .backArrow {
+    font-size: 14px;
+  }
+  
+  .backArrowButton {
+    padding: 3px 6px;
+  }
+  
+  .dropdown {
+    min-width: 200px;
+    left: auto;
+    right: 0;
+  }
+}
+
+/* Locked division styles for regular users */
+.lockedDivision {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  opacity: 0.9;
+}
+
+.lockedDivision .divisionName {
+  color: #6c757d;
+}
+
+.lockIcon {
+  font-size: 14px;
+  color: #6c757d;
+  opacity: 0.7;
+  cursor: help;
+  user-select: none;
+  transition: opacity 0.3s ease;
+}
+
+.lockIcon:hover {
+  opacity: 1;
+} 

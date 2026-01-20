@@ -1,0 +1,116 @@
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pageHeader h2 {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--primary-color);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.cardWrapper {
+  margin-top: -12px;
+}
+
+.cardDescription {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #5f6c7b;
+}
+
+.statusLegend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.statusPill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.pendingPill {
+  background-color: rgba(242, 153, 74, 0.1);
+  color: #b25a00;
+  border-color: rgba(242, 153, 74, 0.3);
+}
+
+.completedPill {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #0c7041;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.filtersRow {
+  margin: 0;
+}
+
+.buttonsRow {
+  margin-top: 24px;
+}
+
+.exportSection {
+  margin: 24px 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.exportButtons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.entityOverride {
+  position: static !important;
+  top: 0 !important;
+}
+
+.tableContainer {
+  margin-top: 12px;
+}
+
+.statusBadge {
+  display: inline-block;
+  min-width: 82px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.pending {
+  background-color: #fff4e5;
+  color: #b25a00;
+  border: 1px solid #f7c58a;
+}
+
+.completed {
+  background-color: #e8f8f0;
+  color: #0c7041;
+  border: 1px solid #79c9a3;
+}
+

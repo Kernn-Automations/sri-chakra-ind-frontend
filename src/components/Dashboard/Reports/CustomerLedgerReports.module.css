@@ -1,0 +1,398 @@
+/* Customer Ledger Reports Styles */
+
+.ledgerReportsContainer {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.breadcrumbPath {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.breadcrumbPath span {
+  cursor: pointer;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbPath span:hover {
+  text-decoration: underline;
+  color: #002654;
+}
+
+.breadcrumbPath i {
+  margin: 0 8px;
+  color: #6c757d;
+}
+
+/* Filter styles now use global .formcontent class from App.css */
+/* No custom filter card styling needed as we're using invoice-style layout */
+
+/* Button styles now use global .submitbtn and .cancelbtn classes from App.css */
+
+.btnDanger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btnDanger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}
+
+/* PDF Download Button */
+.pdfDownloadContainer {
+  margin-bottom: 20px;
+}
+
+.pdfDownloadBtn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdfDownloadBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+  background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+}
+
+.pdfDownloadBtn:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Table Container */
+.tableCard {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+}
+
+.tableCard .card-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+}
+
+.tableCard .card-header h5 {
+  margin: 0;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.tableCard .card-header small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Balance Summary */
+.balanceSummary {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1.5rem;
+}
+
+.balanceCard {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.balanceCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.balanceCard small {
+  color: #6c757d;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.balanceCard strong {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.balanceCard .text-danger {
+  color: #dc3545 !important;
+}
+
+.balanceCard .text-success {
+  color: #28a745 !important;
+}
+
+/* Table Filter Bar */
+.filterBar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+}
+
+.filterBar .form-control,
+.filterBar .form-select {
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 13px;
+  box-shadow: 1px 1px 3px rgba(51, 51, 51, 0.1);
+}
+
+.filterBar .btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Export Buttons */
+.exportButtons {
+  display: flex;
+  gap: 5px;
+}
+
+.exportBtn {
+  background: white;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.exportBtn:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
+.exportBtn.success:hover {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.exportBtn.info:hover {
+  background: #17a2b8;
+  color: white;
+  border-color: #17a2b8;
+}
+
+/* Data Table */
+.dataTable {
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.dataTable th {
+  background: #f8f9fa;
+  border-top: none;
+  border-bottom: 2px solid #dee2e6;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 8px;
+}
+
+.dataTable th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.dataTable th.sortable-header:hover {
+  background: #e9ecef;
+}
+
+.dataTable td {
+  padding: 10px 8px;
+  border-top: 1px solid #dee2e6;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.dataTable tbody tr:hover {
+  background: #f8f9fa;
+}
+
+/* Transaction Type Badges */
+.dataTable .badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  font-weight: 500;
+}
+
+/* Balance Display */
+.balanceDisplay {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.balanceDisplay.debit {
+  color: #dc3545;
+}
+
+.balanceDisplay.credit {
+  color: #28a745;
+}
+
+/* Currency Display */
+.currencyDisplay {
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.currencyDisplay.debit {
+  color: #dc3545;
+}
+
+.currencyDisplay.credit {
+  color: #28a745;
+}
+
+/* Footer Summary */
+.tableSummary {
+  background: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.tableSummary small {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.tableSummary strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.emptyState i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #dee2e6;
+}
+
+.emptyState p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Loading State */
+.loadingState {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.loadingState .spinner-border {
+  color: var(--primary-color);
+}
+
+.loadingState p {
+  margin-top: 1rem;
+  color: #6c757d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ledgerReportsContainer {
+    padding: 10px;
+  }
+  
+  .filtersCard .card-body {
+    padding: 1rem;
+  }
+  
+  .balanceSummary {
+    padding: 1rem;
+  }
+  
+  .balanceCard {
+    margin-bottom: 10px;
+  }
+  
+  .dataTable {
+    font-size: 0.8rem;
+  }
+  
+  .dataTable th,
+  .dataTable td {
+    padding: 8px 4px;
+  }
+  
+  .exportButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .filterBar {
+    padding: 1rem;
+  }
+  
+  .filterBar .row > div {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .breadcrumbPath {
+    font-size: 0.8rem;
+  }
+  
+  .pdfDownloadBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .balanceCard {
+    padding: 0.75rem;
+  }
+  
+  .balanceCard strong {
+    font-size: 1rem;
+  }
+}

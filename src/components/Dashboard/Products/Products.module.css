@@ -1,0 +1,257 @@
+.longform {
+  max-width: 360px !important;
+  min-width: 350px !important;
+  margin-bottom: 20px;
+}
+.longform label {
+  max-width: 160px;
+  min-width: 150px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.changedField {
+  border: 2px solid #198754 !important; /* green border */
+  background-color: #e7f9f0; /* light green background */
+  transition: all 0.3s ease;
+}
+.longform input,
+.longform select {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+.longform span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 16.26px;
+  letter-spacing: 1.5%;
+}
+
+.taxform {
+  max-width: 170px !important;
+  min-width: 150px !important;
+  margin-bottom: 20px;
+  position: relative;
+}
+.taxform select, .taxform input {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  position: relative;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.taxform textarea{
+  width: 300px;
+  height: 80px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  position: relative;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* 
+.taxform button {
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  font-size: 18px;
+  font-weight: 800;
+  width: fit-content;
+  padding: 2px 4px;
+  background-color: transparent;
+  color: #ff2727;
+} */
+
+.head {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 29.26px;
+  letter-spacing: 1.5%;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: Auto;
+  color: #555;
+}
+.addbtn {
+  min-width: 80px;
+  height: 27px;
+  padding: 4px 10px;
+  color: #555;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 15.94px;
+  letter-spacing: 1.5%;
+  border-radius: 4px;
+  margin-right: 20px;
+  /* box-shadow: 1px 1px 3px #333; */
+  /* background-color: #d9d9d9; */
+}
+
+.upload {
+  max-width: 200px !important;
+  min-width: 180px !important;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.uploadbutton {
+  width: 150px;
+  height: 100px;
+  background-color: transparent;
+  border: 2px solid #555;
+  border-radius: 4px;
+  font-size: 30px;
+  text-align: center;
+  overflow: hidden;
+}
+.upload p {
+  padding-left: 55px;
+  margin: 0;
+}
+
+.deletebtn {
+  position: absolute;
+  top: -8px;
+  right: 23px;
+  font-size: 13px;
+  width: fit-content;
+  padding: 2px 4px;
+  border-radius: 0.5px solid gray;
+  background-color: #ff2727;
+  color: white;
+  border-radius: 4px;
+}
+.imglabel {
+  width: 150px;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: center;
+  color: var(--primary-color);
+  padding: 0 !important;
+}
+.upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.selectside {
+  width: 150px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  margin: 15px auto;
+}
+
+.delsec {
+  width: 90% !important;
+  height: 40px !important;
+  margin: 5%;
+  margin-top: 10px;
+  /* font-family: Montserrat; */
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 29.26px;
+  text-align: left;
+  color: var(--primary-color);
+}
+
+.selectmode select {
+  width: 100px;
+  border-radius: 3px;
+  color: white;
+  /* padding-right: 10px; */
+}
+.selectmode select option {
+  background-color: white;
+  color: black;
+}
+.selectmode select:focus {
+  outline: none;
+}
+
+.enable {
+  background-color: #2fa924;
+}
+.disable {
+  background-color: #ff2727;
+}
+
+.leavesfield {
+  max-width: 1000px !important;
+}
+.leavesfield input,
+.leavesfield select,
+.leavesfield label {
+  width: 160px;
+  margin-right: 20px;
+  padding-left: 4px;
+}
+
+.leavesfield input,
+.leavesfield select {
+  height: 30px;
+  border: none;
+  border-radius: 3px;
+  box-shadow: 1px 1px 4px black;
+  border: 1px solid var(--primary-color);
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.leavesfield label {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 24.38px;
+  letter-spacing: 0.015em;
+  color: var(--primary-color);
+}
+
+.switch {
+  width: 60px !important;
+}
+.bin {
+  padding-left: 15px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.bin:hover {
+  color: #fd3b3b;
+}
+.errorinput {
+  outline: 1px solid #ff2020 !important;
+  color: #ff2020 !important;
+}
+
+.errorField {
+  outline: 1px solid #ff2727;
+}

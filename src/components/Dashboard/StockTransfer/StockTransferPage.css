@@ -1,0 +1,41 @@
+.borderedtable th, .borderedtable td {
+  vertical-align: middle;
+  text-align: center;
+}
+.text-danger {
+  color: red;
+}
+.text-success {
+  color: green;
+}
+
+
+.dateForms label {
+  width: fit-content;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: left;
+  padding-right: 15px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+.dateForms input,
+.dateForms select {
+  /* width: 160px; */
+  height: 32px;
+  outline: 1.5px solid var(--primary-color);
+  padding: 2px 10px;
+  border-radius: 16px;
+  box-shadow: 2px 2px 4px #333;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.dateForms input:focus,
+.dateForms select:focus {
+  outline: 1.5px solid var(--primary-color);
+  border: none;
+  box-shadow: 2px 2px 4px #333;
+}

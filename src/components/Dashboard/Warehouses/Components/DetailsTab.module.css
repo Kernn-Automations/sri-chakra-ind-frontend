@@ -1,0 +1,82 @@
+.container {
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.icon {
+  color: var(--secondary-color);
+}
+.address{
+  font-size: 14px;
+  font-weight: 500;
+   margin: 4px 0;
+  color: #555;
+}
+
+.titleBlock h4 {
+  margin: 0;
+}
+
+.mapLink {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  gap: 5px;
+}
+
+
+.section {
+  margin: 20px 0;
+  font-size: 16px;
+  
+}
+.section p span{
+  font-weight: 600;
+}
+.section p{
+  margin: 0;
+  padding-left: 30px;
+  margin-bottom: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1 1 250px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #dee2e6;
+}
+
+.cardIcon {
+  font-size: 24px;
+  color: var(--secondary-color);
+}
+
+.card h6 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.card p {
+  margin: 2px 0 0 0;
+  font-size: 14px;
+  color: #666;
+}

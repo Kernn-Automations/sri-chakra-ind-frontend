@@ -1,0 +1,228 @@
+.activityContainer {
+  padding: 12px;
+}
+
+/* Filter Styles */
+.filterContainer {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.filterField label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 4px;
+}
+
+.filterField input,
+.filterField select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filterField input:focus,
+.filterField select:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.filterActions {
+  display: flex;
+  align-items: end;
+}
+
+.submitButton {
+  background-color: #2fa924;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  margin-right: 8px;
+}
+
+.submitButton:hover {
+  background-color: #26991e;
+}
+
+.submitButton:active {
+  background-color: #1f7a18;
+}
+
+.cancelButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.cancelButton:hover {
+  background-color: #c82333;
+}
+
+.cancelButton:active {
+  background-color: #bd2130;
+}
+
+/* Loading Styles */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingContainer p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.dateGroup {
+  margin-bottom: 20px;
+}
+
+.dateHeader {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.activityList {
+  list-style: none;
+  padding: 0;
+}
+
+.activityItem {
+  border: 1px solid #ddd;
+  border-left: 4px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #fafafa;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time {
+  font-size: 13px;
+  color: #666;
+}
+
+.body {
+  margin-top: 6px;
+}
+
+.body div {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* warehouse Headers */
+.warehouseIcon {
+  color: var(--primary-color);
+}
+.graytext {
+  font-weight: 500;
+}
+.updateDetailsBtn {
+  border: none;
+  display: flex;
+  background: #2fa924;
+  color: white;
+  border-radius: 4px;
+  padding: 5px 15px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.updateDetailsBtn svg {
+  height: 20px;
+}
+.managerRow {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.managerRow svg {
+  height: 25px !important;
+}
+
+.updateFelids input,
+.updateFelids select {
+  padding-left: 4px;
+  border-radius: 4px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+.updateFelids label {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}

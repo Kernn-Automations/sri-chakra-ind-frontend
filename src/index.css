@@ -1,0 +1,97 @@
+@import url("https://fonts.googleapis.com/css2?family=Jacquarda+Bastarda+9&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+  /* Primary – Deep Navy (from logo ring) */
+  --primary-color: #0f2a44;
+  --primary-hover: #123457;
+  --primary-active: #0b1f33;
+
+  /* Primary Opacity States */
+  --primary-hover-opacity: #0f2a441a;
+  --primary-active-opacity: #0f2a4433;
+
+  /* Light Backgrounds (industrial neutral) */
+  --primary-light: #eef2f6;
+  --primary-light-hover: #dde5ee;
+
+  /* Secondary – Highway Ribbon Red */
+  --secondary-color: #c01818;
+}
+
+/* BOOTSTRAP MODAL Z-INDEX OVERRIDES */
+.modal {
+  --bs-modal-zindex: 150000 !important;
+}
+
+/* Ensure all Bootstrap modal components follow hierarchy */
+.modal-dialog {
+  z-index: 150001 !important;
+}
+
+.modal-content {
+  z-index: 150002 !important;
+}
+
+.modal-backdrop {
+  z-index: 149999 !important;
+}
+
+/* Override any potential conflicts with Bootstrap's own backdrop */
+.modal.show {
+  z-index: 150000 !important;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Poppins;
+}
+body {
+  min-height: 100vh;
+  max-height: auto;
+  background-color: white !important;
+}
+#root {
+  min-height: 100vh;
+  background: white;
+}
+html {
+  color-scheme: light !important;
+  --chakra-colors-bg: white;
+}
+html.dark {
+  color-scheme: light !important;
+  --chakra-colors-bg: white;
+}
+
+.css-stllmd:is(
+  :checked,
+  [data-checked],
+  [aria-checked="true"],
+  [data-state="checked"]
+) {
+  background: var(--primary-color);
+}
+
+.accordion-button::after {
+  content: "\F282" !important; /* Custom icon - \F229 "\23F7" */
+  font-size: 15px;
+  padding-left: 3px;
+  /* padding-top: 3px; */
+  font-family: "bootstrap-icons";
+  background-image: none !important;
+}
+.red-accordion-button::after {
+  color: white !important;
+}
+.accordion-button:not(.collapsed)::after {
+  background-image: none !important;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

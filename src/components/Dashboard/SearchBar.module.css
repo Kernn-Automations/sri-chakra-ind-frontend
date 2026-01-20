@@ -1,0 +1,122 @@
+/* search */
+
+.searchbar {
+  margin-top: 5px !important;
+  position: relative;
+  display: inline-block;
+  width: 260px !important;
+}
+.searchbar input {
+  width: 100%;
+  height: 35px;
+  border: 2px solid var(--primary-color);
+  border-radius: 17px;
+  padding-left: 15px;
+  font-size: 17px;
+  padding-right: 32px; /* Leave space for the icon */
+  font-family: sans-serif;
+  line-height: 0;
+  box-shadow: 2px 2px 4px gray;
+  box-sizing: border-box;
+}
+
+/* Mobile responsive styles for searchbar */
+@media (max-width: 768px) {
+  .searchbar {
+    width: 100% !important;
+    max-width: 150px !important;
+    margin-top: 0 !important;
+  }
+
+  .searchbar input {
+    width: 100% !important;
+    max-width: 100%;
+    height: 32px;
+    font-size: 14px;
+    padding-left: 12px;
+    padding-right: 32px !important;
+  }
+
+  .searchicon {
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchbar {
+    max-width: 100px !important;
+  }
+
+  .searchbar input {
+    height: 30px;
+    font-size: 13px;
+    padding-left: 10px;
+    padding-right: 32px !important;
+  }
+
+  .searchicon {
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 14px;
+  }
+}
+
+.searchbar input:focus {
+  border: 2px solid var(--primary-color);
+  outline: none;
+}
+.searchicon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #555;
+  pointer-events: none; /* Makes the icon unclickable */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown {
+  position: absolute;
+  width: 100%;
+  background: var(--primary-light);
+  border: 1px solid #b8b8b8;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+}
+.dropdown li {
+  border-bottom: 0.5px solid #b3b3b3;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dropdown li p {
+  font-size: 10px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0;
+}
+
+.dropdownItem {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover,
+.active {
+  padding: 10px;
+  cursor: pointer;
+  background: var(--primary-light-hover);
+}

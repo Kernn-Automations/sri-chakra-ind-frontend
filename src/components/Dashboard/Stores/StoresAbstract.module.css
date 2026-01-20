@@ -1,0 +1,341 @@
+.container {
+  padding: 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.header h1 {
+  color: #333;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.errorBanner {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.errorBanner button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.errorBanner button:hover {
+  background: #c82333;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.abstractTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.abstractTable thead {
+  background-color: #f8f9fa;
+}
+
+.abstractTable th {
+  padding: 10px 8px;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.abstractTable td {
+  padding: 10px 8px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.storeColumn,
+.codeColumn,
+.typeColumn {
+  min-width: 120px;
+  background-color: #e9ecef;
+  font-weight: 700;
+}
+
+.divisionColumn,
+.zoneColumn {
+  min-width: 150px;
+  background-color: #e9ecef;
+  font-weight: 700;
+}
+
+.addressColumn {
+  min-width: 200px;
+  background-color: #e9ecef;
+  font-weight: 700;
+}
+
+.sectionHeader {
+  background-color: #003176;
+  color: white;
+  font-weight: 700;
+  min-width: 150px;
+}
+
+.subHeader {
+  background-color: #495057;
+  color: white;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.storeNameCell {
+  font-weight: 600;
+  text-align: left;
+  padding-left: 12px;
+}
+
+.addressCell {
+  text-align: left;
+  padding-left: 12px;
+  max-width: 200px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badgeOwn {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badgeRented {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.ifscCell,
+.accountCell {
+  font-family: "Courier New", monospace;
+  font-weight: 500;
+}
+
+.panCell {
+  font-family: "Courier New", monospace;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.agreementCell {
+  text-align: center;
+}
+
+.viewButton {
+  background: #003176;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.3s ease;
+}
+
+.viewButton:hover {
+  background: #00205a;
+}
+
+.viewButton i {
+  font-size: 14px;
+}
+
+.warningBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #ffc107;
+  white-space: nowrap;
+}
+
+.warningBadge i {
+  font-size: 12px;
+}
+
+.noData {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Modal Styles - Full Page */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 0;
+}
+
+.modalContent {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+.modalHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px;
+  z-index: 10001;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modalCloseButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 28px;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.modalCloseButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.modalBody {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.agreementImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.abstractTable tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.abstractTable tbody tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+.abstractTable tbody tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .tableContainer {
+    padding: 15px;
+  }
+
+  .abstractTable {
+    font-size: 11px;
+  }
+
+  .abstractTable th,
+  .abstractTable td {
+    padding: 8px 4px;
+  }
+}

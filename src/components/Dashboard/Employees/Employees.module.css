@@ -1,0 +1,190 @@
+.longform {
+  max-width: 400px !important;
+  min-width: 370px !important;
+  margin-bottom: 20px;
+}
+.longform label {
+  width: 160px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 26.82px;
+  letter-spacing: 0%;
+  text-align: right;
+  padding-right: 15px;
+  color: var(--primary-color);
+}
+.longform input,
+.longform select {
+  width: 180px;
+  height: 27px;
+  padding-left: 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+  /* background-color: #d9d9d9; */
+  border: 1px solid #d9d9d9;
+  box-shadow: 1px 1px 3px #333;
+}
+.longform span {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 16.26px;
+  letter-spacing: 1.5%;
+}
+.btnscol {
+  width: 230px !important;
+}
+
+.label {
+  width: 170px;
+  /* font-family: Montserrat; */
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 24.38px;
+  letter-spacing: 0.015em;
+  text-align: right;
+  padding-right: 15px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--primary-color);
+}
+
+.h3 {
+  /* font-family: Montserrat; */
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 36.57px;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--primary-color);
+  padding-left: 30px;
+  margin-top: 15px;
+}
+
+.inputcol {
+  min-width: 500px !important;
+  max-width: 470px !important;
+  margin-bottom: 15px;
+}
+.formcols {
+  width: 500px !important;
+}
+
+
+.dp {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid var(--primary-color);
+  justify-self: center;
+  margin-bottom: 20px;
+}
+.dp img {
+  width: 100%;
+  height: 100%;
+}
+
+.editbtns {
+  width: 300px;
+  height: auto;
+  justify-self: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.editbtns button {
+  width: fit-content;
+  padding: 5px 10px;
+  background-color: transparent;
+  /* font-family: Montserrat; */
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14.63px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--primary-color);
+  border: none;
+  border-bottom: 1px solid black;
+}
+
+.enbtns button {
+  margin-top: 30px;
+  font-size: 13px;
+  margin-right: 15px;
+}
+
+.label label {
+  width: 250px !important;
+  /* font-family: Montserrat; */
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 15.85px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: var(--primary-color);
+}
+.value input {
+  width: 170px;
+  height: 25px;
+  border: none;
+  box-shadow: 1px 1px 2px black, 1px 1px 2px gray inset;
+}
+.h6 {
+  /* font-family: Montserrat; */
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 15.85px;
+  letter-spacing: 0.015em;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.details {
+  min-width: 350px !important;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 21.94px;
+  letter-spacing: 0.015em;
+  text-align: center;
+  margin-top: 30px !important;
+  padding: 15px;
+}
+.roles{
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+
+
+
+.delcol{
+  position: relative;
+}
+.delcol .deletebtn{
+  position: absolute;
+  left: 110%;
+  background-color: transparent;
+  color: black;
+  font-size: 14px;
+}
+.deletebtn:hover{
+  color: #ff2020;
+}
+.deltext{
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+}
+.deltext span{
+  font-weight: 600;
+}
