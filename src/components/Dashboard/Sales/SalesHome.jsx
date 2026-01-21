@@ -23,7 +23,7 @@ function SalesHome({ navigate }) {
       } catch (err) {
         console.error("Sales dashboard fetch error:", err);
         setError(
-          err?.response?.data?.message || "Failed to load sales dashboard"
+          err?.response?.data?.message || "Failed to load sales dashboard",
         );
       } finally {
         setLoading(false);
@@ -51,10 +51,10 @@ function SalesHome({ navigate }) {
     }
 
     const labels = salesData.salesTrend.map(
-      (item) => item.month || item.label || item.date || ""
+      (item) => item.month || item.label || item.date || "",
     );
     const data = salesData.salesTrend.map(
-      (item) => item.amount ?? item.value ?? item.sales ?? 0
+      (item) => item.amount ?? item.value ?? item.sales ?? 0,
     );
 
     return {
@@ -91,10 +91,10 @@ function SalesHome({ navigate }) {
     }
 
     const labels = salesData.salesByProduct.map(
-      (item) => item.product || item.name || ""
+      (item) => item.product || item.name || "",
     );
     const data = salesData.salesByProduct.map(
-      (item) => item.amount ?? item.sales ?? 0
+      (item) => item.amount ?? item.sales ?? 0,
     );
 
     return {
@@ -121,27 +121,31 @@ function SalesHome({ navigate }) {
   }, [salesData?.salesByProduct]);
 
   // Check if error is token-related
-  const isTokenError = error && (() => {
-    const errorMessage = error.toString().toLowerCase();
-    return (
-      errorMessage.includes('invalid or expired token') ||
-      errorMessage.includes('authentication failed') ||
-      errorMessage.includes('unauthorized') ||
-      errorMessage.includes('token may be expired') ||
-      errorMessage.includes('please log in again') ||
-      errorMessage.includes('please login again')
-    );
-  })();
+  const isTokenError =
+    error &&
+    (() => {
+      const errorMessage = error.toString().toLowerCase();
+      return (
+        errorMessage.includes("invalid or expired token") ||
+        errorMessage.includes("authentication failed") ||
+        errorMessage.includes("unauthorized") ||
+        errorMessage.includes("token may be expired") ||
+        errorMessage.includes("please log in again") ||
+        errorMessage.includes("please login again")
+      );
+    })();
 
   // Auto-logout when token error is detected
   useEffect(() => {
     if (error && isTokenError) {
-      console.log('Token-related error detected in sales dashboard, automatically logging out...');
+      console.log(
+        "Token-related error detected in sales dashboard, automatically logging out...",
+      );
       // Delay logout slightly to show the error message
       const timeoutId = setTimeout(() => {
         removeLogin();
       }, 1000); // 1 second delay
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [error, isTokenError, removeLogin]);
@@ -150,7 +154,10 @@ function SalesHome({ navigate }) {
     <>
       {/* Error Display */}
       {error && (
-        <div className="container-fluid" style={{ position: 'relative', zIndex: 1 }}>
+        <div
+          className="container-fluid"
+          style={{ position: "relative", zIndex: 1 }}
+        >
           <div className="row m-0 p-3">
             <div className="col text-center">
               <div className="alert alert-danger">
@@ -158,7 +165,14 @@ function SalesHome({ navigate }) {
                 <br />
                 <small>{error}</small>
                 {isTokenError && (
-                  <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', fontWeight: 'bold' }}>
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      fontSize: "14px",
+                      color: "#ff6b6b",
+                      fontWeight: "bold",
+                    }}
+                  >
                     You will be automatically logged out...
                   </div>
                 )}
@@ -176,6 +190,21 @@ function SalesHome({ navigate }) {
             onClick={() => navigate("/sales/orders/new")}
           >
             + New Sales Order
+          </button>
+          {/* 🆕 Quotations Button */}
+          <button
+            style={{
+              background: "#f8fafc",
+              color: "#003176",
+              padding: "8px 16px",
+              borderRadius: "6px",
+              border: "1px solid #003176",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            onClick={() => navigate("/sales/quotations")}
+          >
+            Quotations
           </button>
           <button className="homebtn" onClick={() => navigate("/sales/orders")}>
             Sales Orders

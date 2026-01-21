@@ -17,29 +17,34 @@ function ProductHome({ navigate, isAdmin }) {
     async function fetchProductDashboard() {
       try {
         setLoading(true);
-        
+
         // ✅ Get division ID from localStorage for division filtering
-        const currentDivisionId = localStorage.getItem('currentDivisionId');
-        const currentDivisionName = localStorage.getItem('currentDivisionName');
-        
+        const currentDivisionId = localStorage.getItem("currentDivisionId");
+        const currentDivisionName = localStorage.getItem("currentDivisionName");
+
         // ✅ Add division parameters to endpoint
         let endpoint = "/dashboard/products";
-        if (currentDivisionId && currentDivisionId !== '1') {
+        if (currentDivisionId && currentDivisionId !== "1") {
           endpoint += `?divisionId=${currentDivisionId}`;
-        } else if (currentDivisionId === '1') {
+        } else if (currentDivisionId === "1") {
           endpoint += `?showAllDivisions=true`;
         }
-        
-        console.log('ProductHome - Fetching product dashboard with endpoint:', endpoint);
-        console.log('ProductHome - Division ID:', currentDivisionId);
-        console.log('ProductHome - Division Name:', currentDivisionName);
-        
+
+        console.log(
+          "ProductHome - Fetching product dashboard with endpoint:",
+          endpoint,
+        );
+        console.log("ProductHome - Division ID:", currentDivisionId);
+        console.log("ProductHome - Division Name:", currentDivisionName);
+
         const res = await axiosAPI.get(endpoint);
         console.log("Product Dashboard Response:", res.data);
         setProductData(res.data);
       } catch (err) {
         console.error("Product dashboard fetch error:", err);
-        setError(err?.response?.data?.message || "Failed to load product dashboard");
+        setError(
+          err?.response?.data?.message || "Failed to load product dashboard",
+        );
       } finally {
         setLoading(false);
       }
@@ -49,7 +54,10 @@ function ProductHome({ navigate, isAdmin }) {
 
   // Transform backend data for Chart.js format
   const trendData = React.useMemo(() => {
-    if (!productData?.productsAddedTrend || !Array.isArray(productData.productsAddedTrend)) {
+    if (
+      !productData?.productsAddedTrend ||
+      !Array.isArray(productData.productsAddedTrend)
+    ) {
       return {
         labels: ["Feb", "Mar", "Apr", "May", "Jun", "Jul"],
         datasets: [
@@ -65,8 +73,8 @@ function ProductHome({ navigate, isAdmin }) {
       };
     }
 
-    const labels = productData.productsAddedTrend.map(item => item.month);
-    const data = productData.productsAddedTrend.map(item => item.count);
+    const labels = productData.productsAddedTrend.map((item) => item.month);
+    const data = productData.productsAddedTrend.map((item) => item.count);
 
     return {
       labels,
@@ -84,7 +92,10 @@ function ProductHome({ navigate, isAdmin }) {
   }, [productData?.productsAddedTrend]);
 
   const topStockData = React.useMemo(() => {
-    if (!productData?.topProductsByStock || !Array.isArray(productData.topProductsByStock)) {
+    if (
+      !productData?.topProductsByStock ||
+      !Array.isArray(productData.topProductsByStock)
+    ) {
       return {
         labels: ["No Products"],
         datasets: [
@@ -97,8 +108,8 @@ function ProductHome({ navigate, isAdmin }) {
       };
     }
 
-    const labels = productData.topProductsByStock.map(item => item.product);
-    const data = productData.topProductsByStock.map(item => item.stock);
+    const labels = productData.topProductsByStock.map((item) => item.product);
+    const data = productData.topProductsByStock.map((item) => item.stock);
 
     return {
       labels,
@@ -116,7 +127,7 @@ function ProductHome({ navigate, isAdmin }) {
             "#ff6384",
             "#36a2eb",
             "#cc65fe",
-            "#ffce56"
+            "#ffce56",
           ],
         },
       ],
@@ -145,12 +156,12 @@ function ProductHome({ navigate, isAdmin }) {
           >
             Ongoing
           </button>
-          <button
+          {/*<button
             className="homebtn"
             onClick={() => navigate("/products/pricing-list")}
           >
             Pricing List
-          </button>
+          </button>*/}
           <button
             className="homebtn"
             onClick={() => navigate("/products/taxes")}
@@ -162,46 +173,57 @@ function ProductHome({ navigate, isAdmin }) {
 
       {/* Cards */}
       <Flex wrap="wrap" justify="space-between" px={4}>
-        <ReusableCard 
-          title="Total Products" 
-          value={productData?.totalProducts ?? (loading ? <Loading /> : "0")} 
+        <ReusableCard
+          title="Total Products"
+          value={productData?.totalProducts ?? (loading ? <Loading /> : "0")}
         />
-        <ReusableCard 
-          title="Active Products" 
-          value={productData?.activeProducts ?? (loading ? <Loading /> : "0")} 
-          color="green.500" 
+        <ReusableCard
+          title="Active Products"
+          value={productData?.activeProducts ?? (loading ? <Loading /> : "0")}
+          color="green.500"
         />
-        <ReusableCard 
-          title="Warehouses Stocking Products" 
-          value={productData?.warehousesStockingProducts ?? (loading ? <Loading /> : "0")} 
-          color="blue.500" 
+        <ReusableCard
+          title="Warehouses Stocking Products"
+          value={
+            productData?.warehousesStockingProducts ??
+            (loading ? <Loading /> : "0")
+          }
+          color="blue.500"
         />
-        <ReusableCard 
-          title="Low Stock Alerts" 
-          value={productData?.lowStockAlerts ?? (loading ? <Loading /> : "0")} 
-          color="red.500" 
+        <ReusableCard
+          title="Low Stock Alerts"
+          value={productData?.lowStockAlerts ?? (loading ? <Loading /> : "0")}
+          color="red.500"
         />
       </Flex>
 
       {/* Charts */}
       <div className={styles["charts-grid"]}>
-        {trendData && trendData.datasets && trendData.datasets[0] && trendData.datasets[0].data && trendData.datasets[0].data.length > 0 && (
-          <ChartComponent
-            type="line"
-            title="Products Added Trend"
-            data={trendData}
-            options={{ responsive: true }}
-          />
-        )}
-        {topStockData && topStockData.datasets && topStockData.datasets[0] && topStockData.datasets[0].data && topStockData.datasets[0].data.length > 0 && (
-          <ChartComponent
-            type="doughnut"
-            title="Top Products by Stock"
-            data={topStockData}
-            options={{ responsive: true }}
-            legendPosition="left"
-          />
-        )}
+        {trendData &&
+          trendData.datasets &&
+          trendData.datasets[0] &&
+          trendData.datasets[0].data &&
+          trendData.datasets[0].data.length > 0 && (
+            <ChartComponent
+              type="line"
+              title="Products Added Trend"
+              data={trendData}
+              options={{ responsive: true }}
+            />
+          )}
+        {topStockData &&
+          topStockData.datasets &&
+          topStockData.datasets[0] &&
+          topStockData.datasets[0].data &&
+          topStockData.datasets[0].data.length > 0 && (
+            <ChartComponent
+              type="doughnut"
+              title="Top Products by Stock"
+              data={topStockData}
+              options={{ responsive: true }}
+              legendPosition="left"
+            />
+          )}
       </div>
     </>
   );

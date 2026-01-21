@@ -74,7 +74,7 @@ function ProfileAvthar({ user, setTab }) {
                 </p>
               </div>
             </Link>
-
+            {/*
             {showStoreOption && (
               <div onClick={() => navigate("/store-selector")}>
                 <p>
@@ -113,7 +113,7 @@ function ProfileAvthar({ user, setTab }) {
                 </p>
               </div>
             )}
-
+*/}
             <div onClick={() => setIsModalOpen(true)}>
               <p>
                 <span>

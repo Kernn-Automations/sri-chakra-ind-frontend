@@ -11,11 +11,18 @@ const SalesHome = lazy(() => import("./SalesHome"));
 const Orders = lazy(() => import("./Orders"));
 const Dispaches = lazy(() => import("./Dispaches"));
 const Deliveries = lazy(() => import("./Deliveries"));
-const CancelledOrders = lazy(() => import("./CancelledOrders")); 
+const QuotationList = lazy(() => import("./QuotationsList"));
+const ViewQuotation = lazy(() => import("./ViewQuotation"));
+const CreateQuotation = lazy(() => import("./CreateQuotation"));
+const CancelledOrders = lazy(() => import("./CancelledOrders"));
 const NewSalesOrder = lazy(() => import("./NewSalesOrder"));
 const PartialDispatchRequests = lazy(() => import("./PartialDispatchRequests"));
-const CreatePartialDispatchRequest = lazy(() => import("./CreatePartialDispatchRequest"));
-const PartialDispatchRequestDetail = lazy(() => import("./PartialDispatchRequestDetail"));
+const CreatePartialDispatchRequest = lazy(
+  () => import("./CreatePartialDispatchRequest"),
+);
+const PartialDispatchRequestDetail = lazy(
+  () => import("./PartialDispatchRequestDetail"),
+);
 
 function SalesRoutes() {
   const navigate = useNavigate();
@@ -23,23 +30,25 @@ function SalesRoutes() {
   const [customers, setCustomers] = useState();
   const [warehouses, setWarehouses] = useState();
   const [orderId, setOrderId] = useState(null);
-    const [managers, setManagers] = useState();
+  const [managers, setManagers] = useState();
 
   const { axiosAPI } = useAuth();
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const roles = user?.roles;
   const isAdmin = Array.isArray(roles)
     ? roles.includes("Admin")
-    : (typeof roles === "string" ? roles.includes("Admin") : false);
+    : typeof roles === "string"
+      ? roles.includes("Admin")
+      : false;
 
   const date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-     .toISOString()
-     .slice(0, 10);
- 
-   const today = new Date(Date.now()).toISOString().slice(0, 10);
- 
-   const [from, setFrom] = useState(date);
-   const [to, setTo] = useState(today);
+    .toISOString()
+    .slice(0, 10);
+
+  const today = new Date(Date.now()).toISOString().slice(0, 10);
+
+  const [from, setFrom] = useState(date);
+  const [to, setTo] = useState(today);
 
   useEffect(() => {
     async function fetch() {
@@ -62,14 +71,18 @@ function SalesRoutes() {
 
   return (
     <Routes>
-      <Route index element={<Suspense fallback={<PageSkeleton />}>
+      <Route
+        index
+        element={
+          <Suspense fallback={<PageSkeleton />}>
             <SalesHome
               navigate={navigate}
               warehouses={warehouses}
               customers={customers}
             />
-            </Suspense>}
-            />
+          </Suspense>
+        }
+      />
       <Route
         path="/orders"
         element={
@@ -92,9 +105,17 @@ function SalesRoutes() {
           </Suspense>
         }
       />
-     <Route
+      <Route
         path="/orders/new"
-        element={<Suspense fallback={<PageSkeleton />}><NewSalesOrder navigate={navigate} warehouses={warehouses} customers={customers} /></Suspense>}
+        element={
+          <Suspense fallback={<PageSkeleton />}>
+            <NewSalesOrder
+              navigate={navigate}
+              warehouses={warehouses}
+              customers={customers}
+            />
+          </Suspense>
+        }
       />
       <Route
         path="/tracking"
@@ -108,15 +129,19 @@ function SalesRoutes() {
           </Suspense>
         }
       />
+      <Route path="/quotations" element={<QuotationList />} />
+      <Route path="/quotations/new" element={<CreateQuotation />} />
+      <Route path="/quotations/:id" element={<ViewQuotation />} />
+
       <Route
-          path="/order-transfer"
-          element={
-            <Suspense fallback={<PageSkeleton />}>
-              <OrderTransferPage navigate={navigate} managers={managers} />
-            </Suspense>
-          }
-        />
-        <Route
+        path="/order-transfer"
+        element={
+          <Suspense fallback={<PageSkeleton />}>
+            <OrderTransferPage navigate={navigate} managers={managers} />
+          </Suspense>
+        }
+      />
+      <Route
         path="/cancelled-order"
         element={
           <Suspense fallback={<PageSkeleton />}>

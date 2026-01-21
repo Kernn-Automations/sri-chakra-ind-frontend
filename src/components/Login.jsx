@@ -442,7 +442,7 @@ function Login() {
                   justifyContent: "space-between",
                 }}
               >
-                <button
+                {/*<button
                   className="btn btn-primary"
                   onClick={async () => {
                     localStorage.setItem("activeView", "staff");
@@ -552,7 +552,7 @@ function Login() {
                   style={{ flex: 1 }}
                 >
                   Store Management
-                </button>
+                </button>*/}
                 <button
                   className="btn btn-outline-secondary"
                   onClick={() => {

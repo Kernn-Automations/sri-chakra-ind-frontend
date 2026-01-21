@@ -1,323 +1,1139 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Products.module.css";
 import { useAuth } from "@/Auth";
-import ImageUpload from "./ImageUpload";
 import TaxSelector from "./TaxSelector";
-import PricingSlabs from "./PricingSlabs";
-import Loading from "@/components/Loading";
+import ImageUpload from "./ImageUpload";
 import ErrorModal from "@/components/ErrorModal";
+import Loading from "@/components/Loading";
+import axios from "axios";
+import { CheckCircle, X, AlertCircle, ArrowLeft } from "lucide-react";
 
 function ModifyProductForm({ onViewClick, productId, isAdmin }) {
   const { axiosAPI } = useAuth();
 
-  const [original, setOriginal] = useState({});
-  const [fields, setFields] = useState({});
-  const [modified, setModified] = useState({});
-  const [categories, setCategories] = useState([]);
-  const [pricingList, setPricingList] = useState([]);
-  const [taxesList, setTaxesList] = useState([]);
-  const [images, setImages] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState(null);
+  /* -------------------------
+   * UI STATE
+   * ------------------------- */
   const [loading, setLoading] = useState(false);
-  const [successful, setSuccessful] = useState(null);
-  const [showPurchasePrice, setShowPurchasePrice] = useState(false);
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [successful, setSuccessful] = useState("");
 
+  /* -------------------------
+   * PRODUCT FIELDS
+   * ------------------------- */
+  const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [thresholdValue, setThresholdValue] = useState("");
+  const [productType, setProductType] = useState("");
+  const [measurementType, setMeasurementType] = useState("");
+  const [unit, setUnit] = useState("");
+  const [packageWeight, setPackageWeight] = useState("");
+  const [packageWeightUnit, setPackageWeightUnit] = useState("");
+  const [unitPrices, setUnitPrices] = useState([]);
+  const [selectedTaxes, setSelectedTaxes] = useState([]);
+  const [images, setImages] = useState([null]);
+  const [categories, setCategories] = useState([]);
+  const [taxeslist, setTaxeslist] = useState([]);
+  const [taxSearch, setTaxSearch] = useState("");
+
+  /* -------------------------
+   * UNIT MAPS
+   * ------------------------- */
+  const MEASUREMENT_UNITS = {
+    weight: ["mg", "g", "kg", "ton", "mt"],
+    length: ["mm", "cm", "m", "ft", "inch", "yard", "rmt"],
+    area: ["sq_mm", "sq_cm", "sq_m", "sq_ft", "sq_yd"],
+    count: ["nos", "pcs", "bundle", "sheet", "coil", "panel", "set"],
+  };
+
+  const ALL_UNITS = [
+    "mg",
+    "g",
+    "kg",
+    "ton",
+    "mt",
+    "sq_mm",
+    "sq_cm",
+    "sq_m",
+    "sq_ft",
+    "sq_yd",
+    "mm",
+    "cm",
+    "m",
+    "ft",
+    "inch",
+    "yard",
+    "rmt",
+    "nos",
+    "pcs",
+    "bundle",
+    "sheet",
+    "coil",
+    "panel",
+    "set",
+  ];
+
+  const filteredTaxes = taxeslist.filter(
+    (t) =>
+      t.name.toLowerCase().includes(taxSearch.toLowerCase()) ||
+      String(t.percentage).includes(taxSearch),
+  );
+
+  const totalTaxPercentage = selectedTaxes.reduce((total, taxId) => {
+    const tax = taxeslist.find((t) => t.id === taxId);
+    if (!tax) return total;
+
+    let percent = parseFloat(tax.percentage || 0);
+
+    if (tax.isCess && tax.cessPercentage) {
+      percent += parseFloat(tax.cessPercentage);
+    }
+
+    return total + percent;
+  }, 0);
+
+  /* -------------------------
+   * INDIAN NUMBER FORMATTING
+   * ------------------------- */
+  const formatIndianNumber = (num) => {
+    if (!num) return "";
+    const number = parseFloat(num);
+    if (isNaN(number)) return "";
+    return number.toLocaleString("en-IN", {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    });
+  };
+
+  const parseIndianNumber = (str) => {
+    if (!str) return "";
+    return str.replace(/,/g, "");
+  };
+
+  /* -------------------------
+   * AUTO-HIDE SUCCESS MESSAGE
+   * ------------------------- */
   useEffect(() => {
-    const fetchData = async () => {
+    if (successful) {
+      const timer = setTimeout(() => {
+        setSuccessful("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successful]);
+
+  /* -------------------------
+   * FETCH PRODUCT DATA
+   * ------------------------- */
+  useEffect(() => {
+    async function fetchProduct() {
       try {
         setLoading(true);
 
-        // Fetch product details by ID
+        // Fetch categories
+        const catRes = await axiosAPI.get("/categories/list");
+        setCategories(catRes.data.categories || []);
+
+        // Fetch taxes
+        const taxRes = await axiosAPI.get("/tax");
+        setTaxeslist(taxRes.data.taxes || []);
+
+        // Fetch product
         const res = await axiosAPI.get(`/products/fetch/${productId}`);
         const p = res.data.product;
 
-        // Populate base state
-        setOriginal(p);
-        setFields({
-          name: p.name || "",
-          SKU: p.SKU || "",
-          categoryId: p.category?.id || "",
-          unit: p.unit || "",
-          description: p.description || "",
-          basePrice: p.basePrice || "",
-          purchasePrice: p.purchasePrice || "",
-          thresholdValue: p.thresholdValue || "",
-          pricingListId: p.pricingListId || "",
-          productType: p.productType || "loose",
-          packageWeight: p.packageWeight || "",
-          packageWeightUnit: p.packageWeightUnit || "",
-          selectedTaxes: p.taxes?.map((t) => t.id) || [],
-          pricingSlabs: p.pricingSlabs || [],
-        });
-
-        // Handle existing image previews
-        const mapped = p.imageUrls.map((url) => ({ preview: url }));
-        setImages(mapped.length < 6 ? [...mapped, null] : mapped);
-
-        // Fetch dropdowns
-        const [catRes, priceRes, taxRes] = await Promise.all([
-          axiosAPI.get("/categories/list"),
-          axiosAPI.get("/pricing/lists/fetch"),
-          axiosAPI.get("/tax"),
-        ]);
-        setCategories(catRes.data.categories);
-        setPricingList(priceRes.data.pricingLists);
-        setTaxesList(taxRes.data.taxes);
-      } catch (err) {
-        setError(err.response?.data?.message || "Error fetching product details");
+        setName(p.name || "");
+        setSku(p.SKU || "");
+        setCategory(p.category?.id || "");
+        setDescription(p.description || "");
+        setPurchasePrice(p.purchasePrice || "");
+        setThresholdValue(p.thresholdValue || "");
+        setProductType(p.productType || "");
+        setMeasurementType(p.measurementType || "");
+        setUnit(p.unit || "");
+        setPackageWeight(p.packageWeight || "");
+        setPackageWeightUnit(p.packageWeightUnit || "");
+        setUnitPrices(p.unitPrices || []);
+        setSelectedTaxes(p.taxes?.map((t) => t.id) || []);
+      } catch (e) {
+        setError("Failed to load product");
         setIsModalOpen(true);
       } finally {
         setLoading(false);
       }
-    };
-
-    if (productId) fetchData();
+    }
+    fetchProduct();
   }, [productId, axiosAPI]);
 
-  const handleChange = (field, value) => {
-    // 🛡️ Always ensure selectedTaxes is an array
-    if (field === "selectedTaxes" && !Array.isArray(value)) {
-      value = [];
-    }
-  
-    setFields((prev) => ({ ...prev, [field]: value }));
-  
-    // If original[field] is an array, compare using JSON.stringify to detect deep changes
-    const isModified = Array.isArray(value) && Array.isArray(original[field])
-      ? JSON.stringify(value) !== JSON.stringify(original[field])
-      : value !== original[field];
-  
-    setModified((prev) => ({
-      ...prev,
-      [field]: isModified,
-    }));
+  /* -------------------------
+   * VALIDATION
+   * ------------------------- */
+  const validate = () => {
+    if (!name || !sku || !category)
+      return "Name, SKU and Category are required";
+
+    if (!purchasePrice || !thresholdValue)
+      return "Purchase price and min stock are required";
+
+    if (!productType || !measurementType)
+      return "Product type and measurement type are required";
+
+    if (productType === "loose" && !unit)
+      return "Base unit is required for loose products";
+
+    if (productType === "packed" && (!packageWeight || !packageWeightUnit))
+      return "Package weight and unit are required";
+
+    if (!unitPrices.length) return "At least one unit price must be added";
+
+    const defaults = unitPrices.filter((u) => u.isDefault);
+    if (defaults.length !== 1)
+      return "Exactly one unit price must be marked as default";
+
+    return null;
   };
-  
 
-  const changedFields = Object.values(modified).filter((v) => v).length > 0;
+  /* -------------------------
+   * UNIT PRICE HANDLERS
+   * ------------------------- */
+  const addUnitPrice = () => {
+    setUnitPrices((p) => [...p, { unit: "", price: "", isDefault: false }]);
+  };
 
-  const updateProduct = async () => {
-    const formData = new FormData();
-    
-    // Add all form fields (excluding images and selectedTaxes which are handled separately)
-    Object.entries(fields).forEach(([key, value]) => {
-      if (key === "selectedTaxes") {
-        // Handle tax IDs array - append each tax ID individually
-        (value || []).forEach((taxId) => {
-          formData.append("taxIds", taxId);
-        });
-      } else if (key === "pricingSlabs") {
-        // Handle pricing slabs JSON
-        if (value && Array.isArray(value) && value.length > 0) {
-          formData.append("pricingSlabs", JSON.stringify(value));
-        }
-      } else if (key !== "images") {
-        // Handle regular fields - don't append empty strings for optional fields
-        if (value !== "" || ["name", "SKU", "description", "basePrice", "purchasePrice", "productType"].includes(key)) {
-          formData.append(key, value || "");
-        }
-      }
-    });
-  
-    // Handle images - CRITICAL FIX: Only append new file objects, not existing URLs
-    console.log("🖼️ Processing images for upload:");
-    console.log("🖼️ Images array:", images);
-    
-    let fileCount = 0;
-    let hasNewFiles = false;
-    
-    images.forEach((img, i) => {
-      // Only append if it's a new file (has both file property and it's a File instance)
-      if (img && img.file && img.file instanceof File) {
-        formData.append("images", img.file);
-        console.log(`📦 Appended image[${i}]:`, img.file.name, `(${img.file.size} bytes)`);
-        fileCount++;
-        hasNewFiles = true;
-      } else if (img && img.preview && !img.file) {
-        // This is an existing image (preview URL only) - don't append to FormData
-        console.log(`⏭️ Skipping existing image[${i}]: ${img.preview}`);
-      } else {
-        console.log(`⏭️ Skipping empty slot[${i}]`);
-      }
-    });
-    
-    console.log(`📊 Total new files to upload: ${fileCount}`);
-    console.log(`📊 Has new files: ${hasNewFiles}`);
-  
-    // Debug: Log all FormData entries
-    console.log("📦 FormData contents:");
-    for (let pair of formData.entries()) {
-      if (pair[1] instanceof File) {
-        console.log(`📦 ${pair[0]}: File(${pair[1].name}, ${pair[1].size} bytes)`);
-      } else {
-        console.log(`📦 ${pair[0]}: ${pair[1]}`);
-      }
+  const updateUnitPrice = (index, key, value) => {
+    setUnitPrices((prev) =>
+      prev.map((u, i) =>
+        i === index
+          ? {
+              ...u,
+              [key]: value,
+              ...(key === "isDefault" && { isDefault: true }),
+            }
+          : key === "isDefault"
+            ? { ...u, isDefault: false }
+            : u,
+      ),
+    );
+  };
+
+  const removeUnitPrice = (index) => {
+    setUnitPrices((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  /* -------------------------
+   * SUBMIT
+   * ------------------------- */
+  const onUpdate = async () => {
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      setIsModalOpen(true);
+      return;
     }
-  
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("SKU", sku);
+    formData.append("description", description);
+    formData.append("categoryId", category);
+    formData.append("purchasePrice", purchasePrice);
+    formData.append("thresholdValue", thresholdValue);
+    formData.append("productType", productType);
+    formData.append("measurementType", measurementType);
+
+    if (productType === "loose") formData.append("unit", unit);
+    if (productType === "packed") {
+      formData.append("packageWeight", packageWeight);
+      formData.append("packageWeightUnit", packageWeightUnit);
+    }
+
+    formData.append("unitPrices", JSON.stringify(unitPrices));
+    selectedTaxes.forEach((t) => formData.append("taxIds[]", t));
+    images.forEach((img) => img && formData.append("images", img.file));
+
     try {
       setLoading(true);
-      const res = await axiosAPI.put(`/products/update/${productId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/products/${productId}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
-      console.log("✅ Update response:", res.data);
-      setSuccessful("Updated Successfully");
+      );
+
+      if (res.status === 200) {
+        setSuccessful(res.data.message || "Product updated successfully");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     } catch (e) {
-      console.error("❌ Update error:", e.response?.data || e.message);
-      setError(e.response?.data?.message || "Error updating product");
+      setError(e.response?.data?.message || "Failed to update product");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderInput = (label, field, type = "text", options = null) => (
-    <div className={`col-3 ${styles.longform}`}>
-      <label>{label}</label>
-      {options ? (
-        <select
-          value={fields[field] || ""}
-          onChange={(e) => handleChange(field, e.target.value)}
-          className={modified[field] ? styles.changedField : ""}
-        >
-          <option value="">--select--</option>
-          {options.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          value={fields[field]}
-          onChange={(e) => handleChange(field, e.target.value)}
-          className={modified[field] ? styles.changedField : ""}
-        />
-      )}
-    </div>
-  );
-
+  /* -------------------------
+   * RENDER
+   * ------------------------- */
   return (
-    <>
-      <div className="row m-0 p-3">
-        <h5 className={styles.head}>Modify Product</h5>
-        {renderInput("Product Name", "name")}
-        {renderInput("SKU", "SKU")}
-        {renderInput("Category", "categoryId", "select", categories)}
-        {renderInput("Unit", "unit", "select", 
-          fields.productType === "packed" 
-            ? [
-                { id: "bags", name: "bags" },
-                { id: "packets", name: "packets" },
-              ]
-            : [
-                { id: "mg", name: "mg" },
-                { id: "g", name: "g" },
-                { id: "kg", name: "kg" },
-                { id: "ton", name: "ton" },
-                { id: "ml", name: "ml" },
-                { id: "l", name: "litre" },
-                { id: "gal", name: "gallons" },
-              ]
-        )}
-        {renderInput("Product Type", "productType", "select", [
-          { id: "packed", name: "Packed" },
-          { id: "loose", name: "Loose" },
-        ])}
-        {fields.productType === "packed" && (
-          <>
-            {renderInput("Package Weight", "packageWeight")}
-            {renderInput("Package Weight Unit", "packageWeightUnit", "select", [
-              { id: "mg", name: "mg" },
-              { id: "g", name: "g" },
-              { id: "kg", name: "kg" },
-              { id: "ton", name: "ton" },
-              { id: "ml", name: "ml" },
-              { id: "litre", name: "litre" },
-            ])}
-          </>
-        )}
-        {renderInput("Base Price", "basePrice")}
-        {isAdmin && (
-          <div className={`col-3 ${styles.longform}`}>
-            <label>Purchase Price</label>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <input
-                type={showPurchasePrice ? "text" : "password"}
-                value={fields.purchasePrice}
-                onChange={(e) => handleChange("purchasePrice", e.target.value)}
-                className={modified.purchasePrice ? styles.changedField : ""}
-                style={{ flex: 1 }}
-              />
-              <span
-                onClick={() => setShowPurchasePrice(!showPurchasePrice)}
-                style={{ marginLeft: "8px", cursor: "pointer" }}
+    <div style={styles.page}>
+      {/* SUCCESS NOTIFICATION */}
+      {successful && (
+        <div style={styles.successBanner}>
+          <div style={styles.successContent}>
+            <CheckCircle size={20} />
+            <span>{successful}</span>
+          </div>
+          <button style={styles.closeBtn} onClick={() => setSuccessful("")}>
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* BACK BUTTON */}
+      <button style={styles.backBtn} onClick={() => onViewClick(null)}>
+        <ArrowLeft size={18} />
+        <span>Back to Products</span>
+      </button>
+
+      <div style={styles.header}>
+        <h2 style={styles.title}>Edit Product</h2>
+        <p style={styles.subtitle}>Update product details and configuration</p>
+      </div>
+
+      {/* PRODUCT DETAILS */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Product Details</h4>
+          <span style={styles.badge}>Required</span>
+        </div>
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Product Name *</label>
+            <input
+              style={styles.input}
+              placeholder="Enter product name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>SKU *</label>
+            <input
+              style={styles.input}
+              placeholder="Enter SKU code"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Category *</label>
+            <select
+              style={styles.input}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Description</label>
+          <textarea
+            style={styles.textarea}
+            placeholder="Enter product description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+      </section>
+
+      {/* CONFIG */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Product Configuration</h4>
+          <span style={styles.badge}>Required</span>
+        </div>
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Product Type *</label>
+            <select
+              style={styles.input}
+              value={productType}
+              onChange={(e) => {
+                setProductType(e.target.value);
+                setMeasurementType("");
+                setUnit("");
+                setUnitPrices([]);
+              }}
+            >
+              <option value="">Select type</option>
+              <option value="loose">Loose</option>
+              <option value="packed">Packed</option>
+            </select>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Measurement Type *</label>
+            <select
+              style={{
+                ...styles.input,
+                ...(!productType && styles.inputDisabled),
+              }}
+              value={measurementType}
+              disabled={!productType}
+              onChange={(e) => {
+                setMeasurementType(e.target.value);
+                setUnit("");
+                setUnitPrices([]);
+              }}
+            >
+              <option value="">Select measurement</option>
+              {Object.keys(MEASUREMENT_UNITS).map((m) => (
+                <option key={m} value={m}>
+                  {m.charAt(0).toUpperCase() + m.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {productType === "loose" && measurementType && (
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Base Unit *</label>
+              <select
+                style={styles.input}
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
               >
-                {showPurchasePrice ? <i className="bi bi-eye-slash"></i> : <i className="bi bi-eye"></i>}
-              </span>
+                <option value="">Select unit</option>
+                {MEASUREMENT_UNITS[measurementType].map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* UNIT PRICING */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Unit-wise Pricing</h4>
+          <span style={styles.infoText}>
+            <AlertCircle size={14} style={{ marginRight: 4 }} />
+            Exactly one default unit required
+          </span>
+        </div>
+
+        {unitPrices.length > 0 ? (
+          <div style={styles.tableContainer}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Unit</th>
+                  <th style={styles.th}>Price (₹)</th>
+                  <th style={styles.th}>Default</th>
+                  <th style={styles.th}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {unitPrices.map((u, i) => (
+                  <tr key={i} style={styles.tr}>
+                    <td style={styles.td}>
+                      <select
+                        style={styles.tableInput}
+                        value={u.unit}
+                        onChange={(e) =>
+                          updateUnitPrice(i, "unit", e.target.value)
+                        }
+                      >
+                        <option value="">Select unit</option>
+                        {ALL_UNITS.map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td style={styles.td}>
+                      <div style={styles.priceInputWrapper}>
+                        <span style={styles.rupeeSymbol}>₹</span>
+                        <input
+                          style={styles.priceInput}
+                          type="text"
+                          placeholder="0.00"
+                          value={u.price ? formatIndianNumber(u.price) : ""}
+                          onChange={(e) => {
+                            const value = parseIndianNumber(e.target.value);
+                            updateUnitPrice(i, "price", value);
+                          }}
+                          onBlur={(e) => {
+                            const value = parseIndianNumber(e.target.value);
+                            if (value) {
+                              updateUnitPrice(i, "price", value);
+                            }
+                          }}
+                        />
+                      </div>
+                    </td>
+                    <td style={styles.tdCenter}>
+                      <input
+                        type="radio"
+                        checked={u.isDefault}
+                        onChange={() => updateUnitPrice(i, "isDefault", true)}
+                        style={styles.radio}
+                      />
+                    </td>
+                    <td style={styles.tdCenter}>
+                      <button
+                        style={styles.removeBtn}
+                        onClick={() => removeUnitPrice(i)}
+                        title="Remove unit"
+                      >
+                        <X size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={styles.emptyState}>
+            <AlertCircle size={32} color="#94a3b8" />
+            <p style={styles.emptyText}>No unit prices added yet</p>
+          </div>
+        )}
+
+        <button style={styles.addBtn} onClick={addUnitPrice}>
+          + Add Unit Price
+        </button>
+      </section>
+
+      {/* TAX LINKING */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Tax Linking</h4>
+          <span style={styles.infoText}>
+            <AlertCircle size={14} style={{ marginRight: 4 }} />
+            Multiple taxes can be applied
+          </span>
+        </div>
+
+        {/* SEARCH */}
+        <input
+          style={styles.taxSearch}
+          placeholder="Search tax by name or rate…"
+          value={taxSearch}
+          onChange={(e) => setTaxSearch(e.target.value)}
+        />
+
+        {/* TAX LIST */}
+        <div style={styles.taxScrollArea}>
+          {filteredTaxes.map((tax) => {
+            const selected = selectedTaxes.includes(tax.id);
+
+            return (
+              <div
+                key={tax.id}
+                onClick={() =>
+                  selected
+                    ? setSelectedTaxes(
+                        selectedTaxes.filter((id) => id !== tax.id),
+                      )
+                    : setSelectedTaxes([...selectedTaxes, tax.id])
+                }
+                style={{
+                  ...styles.taxRow,
+                  ...(selected && styles.taxRowSelected),
+                }}
+              >
+                <div style={styles.taxContent}>
+                  <div style={styles.taxHeader}>
+                    <span style={styles.taxName}>{tax.name}</span>
+                    <span style={styles.taxRate}>{tax.percentage}%</span>
+                  </div>
+
+                  <div style={styles.taxMeta}>
+                    <span>HSN: {tax.hsnCode}</span>
+                    <span>• Applicable on: {tax.applicableOn}</span>
+                  </div>
+
+                  <div style={styles.taxBadges}>
+                    <span style={styles.badgeNeutral}>{tax.taxNature}</span>
+
+                    {tax.isCess && (
+                      <span style={styles.badgeWarning}>
+                        Cess {tax.cessPercentage}%
+                      </span>
+                    )}
+
+                    {tax.isAdditionalDuty && (
+                      <span style={styles.badgeWarning}>Additional Duty</span>
+                    )}
+
+                    <span
+                      style={
+                        tax.status === "Active"
+                          ? styles.badgeSuccess
+                          : styles.badgeDisabled
+                      }
+                    >
+                      {tax.status}
+                    </span>
+                  </div>
+                </div>
+
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  readOnly
+                  style={styles.taxCheckbox}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SELECTED SUMMARY */}
+        {selectedTaxes.length > 0 && (
+          <div style={styles.selectedBar}>
+            <div>
+              <strong>
+                {selectedTaxes.length} tax
+                {selectedTaxes.length > 1 ? "es" : ""} selected
+              </strong>
+              <div style={{ fontSize: "13px", marginTop: "4px" }}>
+                Total Tax: <strong>{totalTaxPercentage.toFixed(2)}%</strong>
+              </div>
+            </div>
+
+            <button
+              style={styles.clearTaxesBtn}
+              onClick={() => setSelectedTaxes([])}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* INVENTORY */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Inventory Settings</h4>
+          <span style={styles.badge}>Required</span>
+        </div>
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Purchase Price *</label>
+            <div style={styles.priceInputWrapper}>
+              <span style={styles.rupeeSymbol}>₹</span>
+              <input
+                style={styles.priceInput}
+                type="text"
+                placeholder="0.00"
+                value={purchasePrice ? formatIndianNumber(purchasePrice) : ""}
+                onChange={(e) => {
+                  const value = parseIndianNumber(e.target.value);
+                  setPurchasePrice(value);
+                }}
+                onBlur={(e) => {
+                  const value = parseIndianNumber(e.target.value);
+                  if (value) {
+                    setPurchasePrice(value);
+                  }
+                }}
+              />
             </div>
           </div>
-        )}
-        {renderInput("Threshold", "thresholdValue")}
-        <div className={`col-6 ${styles.taxform}`}>
-          <textarea
-            value={fields.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            className={modified.description ? styles.changedField : ""}
-            placeholder="Description"
-          ></textarea>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Minimum Stock *</label>
+            <input
+              style={styles.input}
+              type="number"
+              placeholder="0"
+              value={thresholdValue}
+              onChange={(e) => setThresholdValue(e.target.value)}
+            />
+          </div>
         </div>
+      </section>
+
+      {/* ACTIONS */}
+      <div style={styles.actions}>
+        <button style={styles.primaryBtn} onClick={onUpdate} disabled={loading}>
+          {loading ? "Updating..." : "Update Product"}
+        </button>
+        <button
+          style={styles.secondaryBtn}
+          onClick={() => onViewClick(null)}
+          disabled={loading}
+        >
+          Cancel
+        </button>
       </div>
 
-      <div className="row m-0 p-3">
-        <ImageUpload images={images} setImages={setImages} />
-      </div>
-
-      <div className="row m-0 p-3">
-      <div className="col-4">
-              <TaxSelector
-          selectedTaxes={fields.selectedTaxes || []}
-          setSelectedTaxes={(v) => handleChange("selectedTaxes", v)}
-        />
-      </div>
-    </div>
-
-      <div className="row m-0 p-3">
-        <PricingSlabs
-          pricingSlabs={fields.pricingSlabs}
-          setPricingSlabs={(v) => handleChange("pricingSlabs", v)}
-        />
-      </div>
-
-      <div className="row m-0 justify-content-center p-3">
-        {!loading && !successful && (
-          <div className="col-4">
-            <button className="submitbtn" onClick={updateProduct}>
-              Update
-            </button>
-            <button className="cancelbtn" onClick={onViewClick}>
-              Cancel
-            </button>
-          </div>
-        )}
-        {successful && (
-          <div className="col-6">
-            <button className="submitbtn" onClick={onViewClick}>
-              {successful}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {isModalOpen && (
-        <ErrorModal isOpen={isModalOpen} message={error} onClose={() => setIsModalOpen(false)} />
-      )}
       {loading && <Loading />}
-    </>
+      {isModalOpen && (
+        <ErrorModal
+          isOpen
+          message={error}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </div>
   );
 }
+
+/* -------------------------
+ * STYLES (Same as AddProduct)
+ * ------------------------- */
+const styles = {
+  page: {
+    padding: "32px",
+    background: "linear-gradient(to bottom, #f8fafc, #f1f5f9)",
+    minHeight: "100vh",
+    maxWidth: "1200px",
+    margin: "0 auto",
+  },
+  backBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "10px 16px",
+    background: "#fff",
+    border: "2px solid #e2e8f0",
+    borderRadius: "10px",
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#475569",
+    cursor: "pointer",
+    marginBottom: "24px",
+    transition: "all 0.2s",
+  },
+  header: {
+    marginBottom: "32px",
+  },
+  title: {
+    fontSize: "28px",
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: "8px",
+  },
+  subtitle: {
+    fontSize: "14px",
+    color: "#64748b",
+    margin: 0,
+  },
+  successBanner: {
+    position: "fixed",
+    top: "20px",
+    right: "20px",
+    background: "#10b981",
+    color: "white",
+    padding: "16px 20px",
+    borderRadius: "12px",
+    boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "16px",
+    zIndex: 1000,
+    minWidth: "320px",
+  },
+  successContent: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    fontSize: "14px",
+    fontWeight: "500",
+  },
+  closeBtn: {
+    background: "rgba(255, 255, 255, 0.2)",
+    border: "none",
+    borderRadius: "6px",
+    padding: "4px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  card: {
+    background: "#fff",
+    padding: "24px",
+    marginBottom: "24px",
+    borderRadius: "16px",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08)",
+    border: "1px solid #e2e8f0",
+  },
+  cardHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "20px",
+    paddingBottom: "16px",
+    borderBottom: "2px solid #f1f5f9",
+  },
+  cardTitle: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#1e293b",
+    margin: 0,
+  },
+  badge: {
+    background: "#fee2e2",
+    color: "#dc2626",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+  infoText: {
+    display: "flex",
+    alignItems: "center",
+    fontSize: "13px",
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "20px",
+  },
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  label: {
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: "4px",
+  },
+  input: {
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "2px solid #e2e8f0",
+    fontSize: "14px",
+    transition: "all 0.2s",
+    outline: "none",
+    background: "#fff",
+  },
+  inputDisabled: {
+    background: "#f8fafc",
+    cursor: "not-allowed",
+    color: "#94a3b8",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "100px",
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "2px solid #e2e8f0",
+    fontSize: "14px",
+    fontFamily: "inherit",
+    resize: "vertical",
+    transition: "all 0.2s",
+    outline: "none",
+  },
+  tableContainer: {
+    overflowX: "auto",
+    marginBottom: "16px",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "separate",
+    borderSpacing: 0,
+  },
+  th: {
+    padding: "12px",
+    textAlign: "left",
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#64748b",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    background: "#f8fafc",
+    borderBottom: "2px solid #e2e8f0",
+  },
+  tr: {
+    transition: "background 0.2s",
+  },
+  td: {
+    padding: "12px",
+    borderBottom: "1px solid #f1f5f9",
+  },
+  tdCenter: {
+    padding: "12px",
+    borderBottom: "1px solid #f1f5f9",
+    textAlign: "center",
+  },
+  tableInput: {
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "1px solid #e2e8f0",
+    fontSize: "14px",
+    width: "100%",
+    outline: "none",
+  },
+  priceInputWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  rupeeSymbol: {
+    position: "absolute",
+    left: "12px",
+    color: "#64748b",
+    fontSize: "14px",
+    fontWeight: "600",
+    pointerEvents: "none",
+    zIndex: 1,
+  },
+  priceInput: {
+    padding: "12px 16px 12px 28px",
+    borderRadius: "10px",
+    border: "2px solid #e2e8f0",
+    fontSize: "14px",
+    transition: "all 0.2s",
+    outline: "none",
+    background: "#fff",
+    width: "100%",
+  },
+  radio: {
+    width: "18px",
+    height: "18px",
+    cursor: "pointer",
+    accentColor: "#003176",
+  },
+  emptyState: {
+    textAlign: "center",
+    padding: "48px 24px",
+    color: "#94a3b8",
+  },
+  emptyText: {
+    marginTop: "16px",
+    fontSize: "14px",
+    color: "#64748b",
+  },
+  addBtn: {
+    padding: "10px 20px",
+    background: "#003176",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    boxShadow: "0 2px 8px rgba(0, 49, 118, 0.2)",
+  },
+  removeBtn: {
+    background: "#fee2e2",
+    border: "none",
+    color: "#dc2626",
+    padding: "6px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actions: {
+    display: "flex",
+    gap: "16px",
+    justifyContent: "center",
+    marginTop: "32px",
+    paddingTop: "24px",
+  },
+  primaryBtn: {
+    background: "#003176",
+    color: "#fff",
+    padding: "14px 32px",
+    border: "none",
+    borderRadius: "12px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    boxShadow: "0 4px 12px rgba(0, 49, 118, 0.3)",
+  },
+  secondaryBtn: {
+    background: "#f1f5f9",
+    color: "#475569",
+    padding: "14px 32px",
+    border: "2px solid #e2e8f0",
+    borderRadius: "12px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  /* =========================
+   * TAX LINKING STYLES
+   * ========================= */
+
+  taxSearch: {
+    padding: "12px 16px",
+    borderRadius: "10px",
+    border: "2px solid #e2e8f0",
+    fontSize: "14px",
+    marginBottom: "16px",
+    outline: "none",
+    transition: "border-color 0.2s",
+  },
+
+  taxScrollArea: {
+    maxHeight: "360px",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    paddingRight: "6px",
+  },
+
+  taxRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "16px",
+    padding: "16px",
+    borderRadius: "14px",
+    border: "1px solid #e2e8f0",
+    background: "#f8fafc",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+
+  taxRowSelected: {
+    background: "#eff6ff",
+    borderColor: "#60a5fa",
+    boxShadow: "0 6px 18px rgba(59, 130, 246, 0.15)",
+  },
+
+  taxContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flex: 1,
+  },
+
+  taxHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "12px",
+  },
+
+  taxName: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#1e293b",
+    lineHeight: 1.3,
+  },
+
+  taxRate: {
+    fontSize: "15px",
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+
+  taxMeta: {
+    fontSize: "12px",
+    color: "#64748b",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+  },
+
+  taxBadges: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    marginTop: "4px",
+  },
+
+  taxCheckbox: {
+    width: "18px",
+    height: "18px",
+    accentColor: "#003176",
+    marginTop: "4px",
+    pointerEvents: "none",
+  },
+
+  badgeNeutral: {
+    background: "#e2e8f0",
+    color: "#334155",
+    padding: "3px 10px",
+    borderRadius: "999px",
+    fontSize: "11px",
+    fontWeight: "600",
+  },
+
+  badgeSuccess: {
+    background: "#dcfce7",
+    color: "#166534",
+    padding: "3px 10px",
+    borderRadius: "999px",
+    fontSize: "11px",
+    fontWeight: "600",
+  },
+
+  badgeWarning: {
+    background: "#ffedd5",
+    color: "#9a3412",
+    padding: "3px 10px",
+    borderRadius: "999px",
+    fontSize: "11px",
+    fontWeight: "600",
+  },
+
+  badgeDisabled: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    padding: "3px 10px",
+    borderRadius: "999px",
+    fontSize: "11px",
+    fontWeight: "600",
+  },
+
+  selectedBar: {
+    marginTop: "16px",
+    padding: "14px 18px",
+    borderRadius: "12px",
+    background: "#e0f2fe",
+    border: "1px solid #bae6fd",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "16px",
+    fontSize: "14px",
+    fontWeight: "600",
+  },
+
+  clearTaxesBtn: {
+    background: "transparent",
+    border: "1px solid #93c5fd",
+    color: "#1e40af",
+    padding: "6px 12px",
+    borderRadius: "8px",
+    fontSize: "13px",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+};
 
 export default ModifyProductForm;
