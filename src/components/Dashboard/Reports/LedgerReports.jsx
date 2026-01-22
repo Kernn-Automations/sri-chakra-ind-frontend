@@ -1,469 +1,814 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useAuth } from '@/Auth'
-import ErrorModal from '@/components/ErrorModal'
-import Loading from '@/components/Loading'
-import customerLedgerService from '@/services/customerLedgerService'
-import pdf from '../../../images/pdf-png.png'
-import styles from '../Sales/Sales.module.css'
-import CustomSearchDropdown from '@/utils/CustomSearchDropDown'
+import React, { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/Auth";
+import ErrorModal from "@/components/ErrorModal";
+import Loading from "@/components/Loading";
+import customerLedgerService from "@/services/customerLedgerService";
+import pdf from "../../../images/pdf-png.png";
+import styles from "../Sales/Sales.module.css";
+import CustomSearchDropdown from "@/utils/CustomSearchDropDown";
 
-function LedgerReports({navigate}) {
-  const { axiosAPI } = useAuth()
-  const [customers, setCustomers] = useState([])
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
-  const [customer, setCustomer] = useState('')
-  const [reportType, setReportType] = useState('custom') // custom, financial-year
-  const [financialYear, setFinancialYear] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState(null)
-  const [ledgerData, setLedgerData] = useState([])
-  const [showReport, setShowReport] = useState(false)
-  const [infoMessage, setInfoMessage] = useState('')
-  const [downloadingPDF, setDownloadingPDF] = useState(false)
+/* ===========================
+   HELPERS
+=========================== */
+const formatAmount = (val) =>
+  Number(val || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
-  const closeModal = () => setIsModalOpen(false)
+const formatBalance = (amount, type = "Dr") =>
+  `${formatAmount(amount)} ${type}`;
 
-  // Fetch customers on component mount
+const formatAddress = (location = "") =>
+  location
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p && p.toLowerCase() !== "null")
+    .join(", ");
+
+function LedgerReports({ navigate }) {
+  const { axiosAPI } = useAuth();
+
+  /* ===========================
+     STATE
+  =========================== */
+  const [customers, setCustomers] = useState([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [reportType, setReportType] = useState("custom");
+  const [financialYear, setFinancialYear] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState(null);
+
+  const [ledgerRows, setLedgerRows] = useState([]);
+  const [openingBalance, setOpeningBalance] = useState(0);
+  const [openingBalanceType, setOpeningBalanceType] = useState("Dr");
+  const [closingBalance, setClosingBalance] = useState(0);
+  const [closingBalanceType, setClosingBalanceType] = useState("Dr");
+  const [summary, setSummary] = useState(null);
+
+  const [showReport, setShowReport] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
+
+  const closeModal = () => setIsModalOpen(false);
+
+  /* ===========================
+     FETCH CUSTOMERS
+  =========================== */
   useEffect(() => {
-    async function fetchCustomers() {
+    (async () => {
       try {
-        setLoading(true)
-        const result = await customerLedgerService.getCustomers(axiosAPI)
-        
+        setLoading(true);
+        const result = await customerLedgerService.getCustomers(axiosAPI);
         if (result.success) {
-          const customersList = result.data || []
-          
-          // Add dummy customer for testing
-          const dummyCustomer = {
-            id: 'dummy-001',
-            name: 'DIGAMBAR SHANKAR SAWANT',
-            address: 'SNO 27 1/2, CHANRABHAGA NIVAS, GHATE COLONY, WAI SATARA MH',
-            aadhar: '924823386904',
-            location: '28.704100, 77.102500',
-            contact: '+91-8888000743',
-            email: '',
-            isDummy: true
-          }
-          setCustomers([dummyCustomer, ...customersList])
+          setCustomers(result.data || []);
         } else {
-          setError(result.message || "Failed to fetch customers")
-          setIsModalOpen(true)
+          throw new Error(result.message);
         }
-      } catch (err) {
-        setError("Failed to fetch customers")
-        setIsModalOpen(true)
+      } catch {
+        setError("Failed to fetch customers");
+        setIsModalOpen(true);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchCustomers()
-  }, [])
+    })();
+  }, []);
 
+  /* ===========================
+     SUBMIT
+  =========================== */
   const handleSubmit = async () => {
     if (!customer) {
-      setError("Please select a customer")
-      setIsModalOpen(true)
-      return
+      setError("Please select a customer");
+      setIsModalOpen(true);
+      return;
     }
 
-    // Validate financial year if selected
-    if (reportType === 'financial-year' && !financialYear) {
-      setError("Please select a financial year")
-      setIsModalOpen(true)
-      return
+    if (reportType === "custom" && (!fromDate || !toDate)) {
+      setError("Please select From and To dates");
+      setIsModalOpen(true);
+      return;
     }
 
-    // Validate date range if custom report
-    if (reportType === 'custom' && (!fromDate || !toDate)) {
-      setError("Please select both from and to dates")
-      setIsModalOpen(true)
-      return
+    if (reportType === "financial-year" && !financialYear) {
+      setError("Please select a financial year");
+      setIsModalOpen(true);
+      return;
     }
 
-    const selectedCustomer = customers.find(c => String(c.id) === String(customer))
-    if (!selectedCustomer) {
-      setError("Customer not found")
-      setIsModalOpen(true)
-      return
-    }
-
-    setSelectedCustomerDetails(selectedCustomer)
-    setShowReport(true)
-    setInfoMessage('')
-    setLoading(true)
+    setLoading(true);
+    setShowReport(true);
+    setInfoMessage("");
 
     try {
-      let result
+      const selected = customers.find((c) => String(c.id) === String(customer));
+      if (!selected) throw new Error("Customer not found");
 
-      if (selectedCustomer.id === 'dummy-001') {
-        // Use dummy data for testing
-        setLedgerData([
-          { date: '01 Apr 25', particulars: 'Opening Balance', vchType: '', vchNo: '', debit: '0.00', credit: '', balance: '0.00' },
-          { date: '18 Jun 25', particulars: 'Sales Of Cattle Feed', vchType: 'Sales', vchNo: 'INV-2025-26-00012', debit: '', credit: '29,150.00', balance: '29,150.00 Dr' },
-          { date: '', particulars: 'YES BANK LIMITED', vchType: 'Receipt', vchNo: '36', debit: '29,150.00', credit: '', balance: '' },
-          { date: '26 Jun 25', particulars: 'YES BANK LIMITED', vchType: 'Receipt', vchNo: '51', debit: '3,590.00', credit: '', balance: '3,590.00 Cr' },
-          { date: '', particulars: 'Sales Of Cattle Feed', vchType: 'Sales', vchNo: 'INV-2025-26-00024', debit: '', credit: '3,590.00', balance: '' },
-        ])
-        setInfoMessage('')
-      } else {
-        // Fetch real data from backend
-        const periodData = reportType === 'financial-year' 
-          ? financialYear 
-          : { fromDate, toDate }
+      const period =
+        reportType === "financial-year" ? financialYear : { fromDate, toDate };
 
-        result = await customerLedgerService.fetchCustomerLedger(
-          axiosAPI, 
-          selectedCustomer.customer_id || selectedCustomer.id, 
-          reportType, 
-          periodData
+      const res = await customerLedgerService.fetchCustomerLedger(
+        axiosAPI,
+        selected.customer_id || selected.id,
+        reportType,
+        period,
+      );
+
+      if (!res.success) throw new Error(res.message);
+
+      const data = res.data;
+
+      /* -----------------------
+         CUSTOMER
+      ------------------------ */
+      if (data.customer) {
+        setSelectedCustomerDetails({
+          ...data.customer,
+          address: formatAddress(data.customer.location || ""),
+        });
+      }
+
+      /* -----------------------
+         BALANCES
+      ------------------------ */
+      setOpeningBalance(
+        data.openingBalance ?? data.summary?.openingBalance ?? 0,
+      );
+      setOpeningBalanceType("Dr");
+
+      setClosingBalance(
+        data.closingBalance ?? data.summary?.closingBalance ?? 0,
+      );
+      setClosingBalanceType(data.summary?.closingBalanceType || "Dr");
+
+      setSummary(data.summary || null);
+
+      /* -----------------------
+         TRANSACTIONS
+      ------------------------ */
+      const txns = data.transactions || [];
+
+      const formattedRows = txns
+        .filter(
+          (t) => !(t.particulars === "Opening Balance" && txns.length === 1),
         )
+        .map((t) => ({
+          date: t.date || "",
+          particulars: t.particulars,
+          vchType: t.vchType || "",
+          vchNo: t.vchNo || "",
+          debit: t.debit ? formatAmount(t.debit) : "",
+          credit: t.credit ? formatAmount(t.credit) : "",
+          balance: formatBalance(t.balance, t.balanceType || "Dr"),
+        }));
 
-        if (result.success) {
-          // Handle the new backend response structure
-          const responseData = result.data;
-          
-          // Use customer data from API response if available, otherwise use selected customer
-          if (responseData?.customer) {
-            const apiCustomer = responseData.customer;
-            setSelectedCustomerDetails({
-              id: apiCustomer.id,
-              customer_id: apiCustomer.customer_id,
-              name: apiCustomer.name,
-              address: apiCustomer.location || '',
-              aadhar: apiCustomer.aadhaarNumber || '',
-              location: apiCustomer.location || '',
-              contact: apiCustomer.contact || `Mobile: ${apiCustomer.mobile || ''}, WhatsApp: ${apiCustomer.whatsapp || ''}`,
-              email: apiCustomer.email || '',
-              mobile: apiCustomer.mobile || '',
-              whatsapp: apiCustomer.whatsapp || '',
-              firmName: apiCustomer.firmName || ''
-            });
-          }
-          
-          const transactions = responseData?.transactions || [];
-          
-          const formattedData = transactions.map(item => {
-            return {
-              date: item.date || '',
-              particulars: item.particulars || '',
-              vchType: item.vchType || '',
-              vchNo: item.vchNo || '',
-              debit: item.debit ? customerLedgerService.formatCurrency(item.debit) : '',
-              credit: item.credit ? customerLedgerService.formatCurrency(item.credit) : '',
-              balance: customerLedgerService.formatBalance(item.balance, item.balanceType)
-            }
-          })
-          
-          setLedgerData(formattedData)
-          setInfoMessage((formattedData?.length || 0) === 0 ? 'No ledger data found for the selected period' : '')
-        } else {
-          setError(result.message || 'Failed to fetch ledger data')
-          setIsModalOpen(true)
-          setLedgerData([])
-        }
+      setLedgerRows(formattedRows);
+
+      if (formattedRows.length === 0) {
+        setInfoMessage("No transactions for selected period");
       }
     } catch (err) {
-      setError('Failed to fetch ledger data')
-      setIsModalOpen(true)
-      setLedgerData([])
+      setError(err.message || "Failed to load ledger");
+      setIsModalOpen(true);
+      setLedgerRows([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleCancel = () => {
-    setFromDate('')
-    setToDate('')
-    setCustomer('')
-    setReportType('custom')
-    setFinancialYear('')
-    setSelectedCustomerDetails(null)
-    setLedgerData([])
-    setShowReport(false)
-    setInfoMessage('')
-  }
+  /* ===========================
+     FINAL LEDGER (WITH OB/CB)
+  =========================== */
+  const finalLedgerRows = useMemo(() => {
+    const rows = [];
 
+    rows.push({
+      isOpening: true,
+      date: ledgerRows[0]?.date || "",
+      particulars: "Opening Balance",
+      balance: formatBalance(openingBalance, openingBalanceType),
+    });
+
+    ledgerRows.forEach((r) => rows.push(r));
+
+    rows.push({
+      isClosing: true,
+      date: ledgerRows[ledgerRows.length - 1]?.date || "",
+      particulars: "Closing Balance",
+      balance: formatBalance(closingBalance, closingBalanceType),
+    });
+
+    return rows;
+  }, [ledgerRows, openingBalance, closingBalance]);
+
+  /* ===========================
+     PDF DOWNLOAD
+  =========================== */
   const handleDownloadPDF = async () => {
-    if (!selectedCustomerDetails) {
-      setError("No customer selected")
-      setIsModalOpen(true)
-      return
-    }
-
-    setDownloadingPDF(true)
-
     try {
-      const periodData = reportType === 'financial-year' 
-        ? financialYear 
-        : { fromDate, toDate }
+      setDownloadingPDF(true);
+      const period =
+        reportType === "financial-year" ? financialYear : { fromDate, toDate };
 
-      const result = await customerLedgerService.downloadPDF(
+      const res = await customerLedgerService.downloadPDF(
         axiosAPI,
         selectedCustomerDetails.customer_id || selectedCustomerDetails.id,
         reportType,
-        periodData
-      )
+        period,
+      );
 
-      if (result.success) {
-        // Create download link
-        const url = window.URL.createObjectURL(result.blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = result.filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-      } else {
-        setError(result.message || 'Failed to download PDF')
-        setIsModalOpen(true)
-      }
-    } catch (err) {
-      setError('Failed to download PDF')
-      setIsModalOpen(true)
+      if (!res.success) throw new Error(res.message);
+
+      const url = URL.createObjectURL(res.blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Failed to download PDF");
+      setIsModalOpen(true);
     } finally {
-      setDownloadingPDF(false)
+      setDownloadingPDF(false);
     }
-  }
+  };
 
-  // Forward-fill empty dates with previous non-empty date for display
-  const filledLedgerData = useMemo(() => {
-    let lastDate = ''
-    return ledgerData.map((row) => {
-      const displayDate = row.date && row.date.trim() !== '' ? row.date : lastDate
-      if (row.date && row.date.trim() !== '') lastDate = row.date
-      return { ...row, displayDate }
-    })
-  }, [ledgerData])
-
-  function parseLedgerDate(d) {
-    if (!d) return null
-    const parts = d.split(' ').filter(Boolean)
-    if (parts.length !== 3) return null
-    const [dd, mon, yy] = parts
-    const monthMap = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 }
-    const m = monthMap[mon]
-    const day = parseInt(dd, 10)
-    const year = 2000 + parseInt(yy, 10)
-    if (Number.isNaN(day) || m == null || Number.isNaN(year)) return null
-    return new Date(year, m, day)
-  }
-
-  const rangedLedgerData = useMemo(() => {
-    if (!fromDate && !toDate) return filledLedgerData
-    const from = fromDate ? new Date(fromDate) : null
-    const to = toDate ? new Date(toDate) : null
-    return filledLedgerData.filter((row) => {
-      const d = parseLedgerDate(row.displayDate)
-      if (!d) return true
-      if (from && d < from) return false
-      if (to) {
-        const toEnd = new Date(to)
-        toEnd.setHours(23,59,59,999)
-        if (d > toEnd) return false
-      }
-      return true
-    })
-  }, [filledLedgerData, fromDate, toDate])
-
+  /* ===========================
+     RENDER
+  =========================== */
   return (
-     <>
-      <p className="path">
-        <span onClick={() => navigate("/reports")}>Reports</span>{" "}
-        <i className="bi bi-chevron-right"></i> Ledger-Reports
-      </p>
+    <div style={containerStyle}>
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
 
-      {/* Filters */}
-      <div className="row m-0 p-3">
-        <div className="col-2 formcontent">
-          <label>Report Type:</label>
-          <select
-            value={reportType}
-            onChange={(e) => {
-              setReportType(e.target.value)
-              if (e.target.value === 'custom') {
-                setFinancialYear('')
-              } else {
-                setFromDate('')
-                setToDate('')
-              }
-            }}
-          >
-            <option value="custom">Custom Date Range</option>
-            <option value="financial-year">Financial Year</option>
-          </select>
-        </div>
-        
-        {reportType === 'custom' ? (
-          <>
-            <div className="col-2 formcontent">
-              <label>From Date:</label>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
-            </div>
-            <div className="col-2 formcontent">
-              <label>To Date:</label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="col-2 formcontent">
-            <label>Financial Year:</label>
+        .erp-breadcrumb {
+          font-size: 13px;
+          color: #6b7280;
+          margin-bottom: 20px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #e5e7eb;
+          font-weight: 500;
+        }
+
+        .erp-breadcrumb span {
+          color: #2563eb;
+          cursor: pointer;
+          transition: color 0.15s;
+        }
+
+        .erp-breadcrumb span:hover {
+          color: #1d4ed8;
+        }
+
+        .erp-page-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 24px;
+        }
+
+        .erp-filter-panel {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          padding: 24px;
+          margin-bottom: 24px;
+        }
+
+        .erp-filter-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .erp-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .erp-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #374151;
+          letter-spacing: 0.01em;
+        }
+
+        .erp-input,
+        .erp-select {
+          padding: 9px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 14px;
+          color: #111827;
+          background: #ffffff;
+          transition: all 0.15s;
+          outline: none;
+        }
+
+        .erp-input:focus,
+        .erp-select:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .erp-input:disabled,
+        .erp-select:disabled {
+          background: #f3f4f6;
+          cursor: not-allowed;
+        }
+
+        .erp-btn-group {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .erp-btn {
+          padding: 9px 24px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.15s;
+          outline: none;
+          background: #ffffff;
+          color: #374151;
+        }
+
+        .erp-btn-primary {
+          background: #2563eb;
+          color: #ffffff;
+          border-color: #2563eb;
+        }
+
+        .erp-btn-primary:hover:not(:disabled) {
+          background: #1d4ed8;
+          border-color: #1d4ed8;
+        }
+
+        .erp-btn-secondary {
+          background: #ffffff;
+          color: #374151;
+          border-color: #d1d5db;
+        }
+
+        .erp-btn-secondary:hover:not(:disabled) {
+          background: #f9fafb;
+          border-color: #9ca3af;
+        }
+
+        .erp-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .erp-customer-header {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          padding: 20px 24px;
+          margin-bottom: 20px;
+        }
+
+        .erp-customer-name {
+          font-size: 18px;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 8px;
+        }
+
+        .erp-customer-info {
+          font-size: 13px;
+          color: #6b7280;
+          line-height: 1.6;
+        }
+
+        .erp-customer-info-row {
+          margin: 4px 0;
+        }
+
+        .erp-report-container {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .erp-table-wrapper {
+          overflow-x: auto;
+        }
+
+        .erp-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+        }
+
+        .erp-table thead {
+          background: #f9fafb;
+          border-bottom: 2px solid #e5e7eb;
+        }
+
+        .erp-table thead th {
+          padding: 12px 16px;
+          text-align: left;
+          font-weight: 600;
+          color: #374151;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+        }
+
+        .erp-table thead th.text-right {
+          text-align: right;
+        }
+
+        .erp-table tbody tr {
+          border-bottom: 1px solid #f3f4f6;
+          transition: background-color 0.1s;
+        }
+
+        .erp-table tbody tr:hover:not(.row-opening):not(.row-closing) {
+          background: #f9fafb;
+        }
+
+        .erp-table tbody td {
+          padding: 11px 16px;
+          color: #111827;
+          vertical-align: middle;
+        }
+
+        .erp-table tbody td.text-right {
+          text-align: right;
+        }
+
+        .row-opening {
+          background: #eff6ff;
+          border-top: 2px solid #3b82f6;
+          border-bottom: 2px solid #3b82f6;
+        }
+
+        .row-opening td {
+          font-weight: 600;
+          color: #1e40af;
+        }
+
+        .row-closing {
+          background: #f0fdf4;
+          border-top: 2px solid #10b981;
+          border-bottom: 2px solid #10b981;
+        }
+
+        .row-closing td {
+          font-weight: 600;
+          color: #065f46;
+        }
+
+        .amount-debit {
+          color: #dc2626;
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .amount-credit {
+          color: #059669;
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .amount-balance {
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .erp-summary-panel {
+          border-top: 2px solid #e5e7eb;
+          padding: 20px 24px;
+          background: #fafafa;
+        }
+
+        .erp-summary-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          max-width: 600px;
+          margin-left: auto;
+        }
+
+        .erp-summary-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 0;
+        }
+
+        .erp-summary-label {
+          font-size: 13px;
+          font-weight: 500;
+          color: #6b7280;
+        }
+
+        .erp-summary-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #111827;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .erp-summary-total {
+          border-top: 2px solid #d1d5db;
+          padding-top: 12px;
+          margin-top: 8px;
+        }
+
+        .erp-summary-total .erp-summary-value {
+          font-size: 15px;
+          color: #065f46;
+        }
+
+        .erp-toolbar {
+          padding: 16px 24px;
+          border-bottom: 1px solid #e5e7eb;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #fafafa;
+        }
+
+        .erp-toolbar-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .erp-alert {
+          background: #fef3c7;
+          border: 1px solid #fbbf24;
+          border-left: 4px solid #f59e0b;
+          color: #92400e;
+          padding: 12px 16px;
+          border-radius: 4px;
+          font-size: 13px;
+          margin: 16px 0;
+        }
+
+        @media (max-width: 768px) {
+          .erp-filter-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .erp-summary-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .erp-table {
+            font-size: 12px;
+          }
+
+          .erp-table thead th,
+          .erp-table tbody td {
+            padding: 8px 10px;
+          }
+        }
+
+        @media print {
+          .erp-filter-panel,
+          .erp-toolbar,
+          .erp-btn-group {
+            display: none;
+          }
+
+          .erp-report-container {
+            border: none;
+          }
+        }
+      `}</style>
+
+      <div className="erp-breadcrumb">
+        <span onClick={() => navigate("/reports")}>Reports</span> › Customer
+        Ledger
+      </div>
+
+      <h1 className="erp-page-title">Customer Ledger Report</h1>
+
+      {/* FILTERS */}
+      <div className="erp-filter-panel">
+        <div className="erp-filter-grid">
+          <div className="erp-form-group">
+            <label className="erp-label">Report Type</label>
             <select
-              value={financialYear}
-              onChange={(e) => setFinancialYear(e.target.value)}
+              className="erp-select"
+              value={reportType}
+              onChange={(e) => {
+                setReportType(e.target.value);
+                setFromDate("");
+                setToDate("");
+                setFinancialYear("");
+              }}
             >
-              <option value="">--select--</option>
-              <option value="2024-25">2024-25</option>
-              <option value="2023-24">2023-24</option>
-              <option value="2022-23">2022-23</option>
-              <option value="2021-22">2021-22</option>
+              <option value="custom">Custom Period</option>
+              <option value="financial-year">Financial Year</option>
             </select>
           </div>
-        )}
-        
-        <CustomSearchDropdown
-          label="Customer"
-          onSelect={setCustomer}
-          options={customers?.map((c) => ({ value: c.id, label: c.name }))}
-          showSelectAll={false}
-        />
-      </div>
 
-      {/* Submit and Cancel Buttons */}
-      <div className="row m-0 p-3 justify-content-center">
-        <div className="col-4 formcontent d-flex gap-2">
-          <button className="submitbtn" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Loading...' : 'Submit'}
-          </button>
-          <button className="cancelbtn" onClick={handleCancel}>
-            Cancel
+          {reportType === "custom" ? (
+            <>
+              <div className="erp-form-group">
+                <label className="erp-label">From Date</label>
+                <input
+                  className="erp-input"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+              <div className="erp-form-group">
+                <label className="erp-label">To Date</label>
+                <input
+                  className="erp-input"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="erp-form-group">
+              <label className="erp-label">Financial Year</label>
+              <select
+                className="erp-select"
+                value={financialYear}
+                onChange={(e) => setFinancialYear(e.target.value)}
+              >
+                <option value="">Select Year</option>
+                <option value="2025-26">2025-26</option>
+                <option value="2024-25">2024-25</option>
+              </select>
+            </div>
+          )}
+
+          <div className="erp-form-group">
+            <CustomSearchDropdown
+              label="Customer"
+              onSelect={setCustomer}
+              options={customers.map((c) => ({ value: c.id, label: c.name }))}
+            />
+          </div>
+        </div>
+
+        <div className="erp-btn-group">
+          <button
+            className="erp-btn erp-btn-primary"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Generating..." : "Generate Report"}
           </button>
         </div>
       </div>
 
-      {/* Export buttons - centered below Submit/Cancel */}
-      {!loading && showReport && selectedCustomerDetails && ledgerData.length > 0 && (
-        <div className="row m-0 p-3 justify-content-center">
-          <div className="col-4 d-flex justify-content-center">
-            <button className={styles.xls} onClick={handleDownloadPDF} disabled={downloadingPDF}>
-              <p>Export to </p>
-              <img src={pdf} alt="" />
+      {/* CUSTOMER HEADER */}
+      {showReport && selectedCustomerDetails && (
+        <div className="erp-customer-header">
+          <div className="erp-customer-name">
+            {selectedCustomerDetails.firmName || selectedCustomerDetails.name}
+          </div>
+          <div className="erp-customer-info">
+            <div className="erp-customer-info-row">
+              {selectedCustomerDetails.name}
+            </div>
+            {selectedCustomerDetails.address && (
+              <div className="erp-customer-info-row">
+                {selectedCustomerDetails.address}
+              </div>
+            )}
+            <div className="erp-customer-info-row">
+              Mobile: {selectedCustomerDetails.mobile}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INFO MESSAGE */}
+      {infoMessage && <div className="erp-alert">{infoMessage}</div>}
+
+      {/* LEDGER TABLE */}
+      {showReport && ledgerRows.length > 0 && (
+        <div className="erp-report-container">
+          <div className="erp-toolbar">
+            <span className="erp-toolbar-title">Transaction Details</span>
+            <button
+              className="erp-btn erp-btn-secondary"
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF}
+              style={{ display: "flex", alignItems: "center", gap: "8px" }}
+            >
+              <img src={pdf} alt="PDF" style={{ width: 16, height: 16 }} />
+              {downloadingPDF ? "Downloading..." : "Export PDF"}
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Loading and Error Modals */}
-      {(loading || downloadingPDF) && <Loading />}
-      {error && (
-        <ErrorModal
-          show={isModalOpen}
-          onHide={closeModal}
-          message={error}
-        />
-      )}
-
-      {/* Centered Header Details */}
-      {showReport && selectedCustomerDetails && (
-        <div className="row m-0 p-3">
-          <div className="col-12 text-center">
-            <h3 className="fw-bold mb-2">FB AGRI VET PRIVATE LIMITED</h3>
-            <div className="mb-2">CS NO 3651,</div>
-            <div className="mb-2">Kachare Housing Society,</div>
-            <div className="mb-2">JAYSINGPUR KOLHAPUR ROAD</div>
-            <div className="mb-2">SAMBHJIPUR, Jaysingpur, Kolhapur,, Maharashtra - 416101</div>
-            <div className="mb-3">E-Mail :finance@feedbazaar.in</div>
-
-            <h5 className="fw-bold mb-1">{selectedCustomerDetails.name}</h5>
-            <div className="mb-1">Ledger Account</div>
-            {selectedCustomerDetails.address && (
-              <div className="mb-1">
-                {selectedCustomerDetails.address
-                  .split(',')
-                  .map(part => part.trim())
-                  .filter(part => part && part.toLowerCase() !== 'null' && part !== '')
-                  .map((part, index) => (
-                    <div key={index}>{part}</div>
-                  ))}
-              </div>
-            )}
-            <div className="mb-1">Aadhar no : {selectedCustomerDetails.aadhar}</div>
-            {selectedCustomerDetails.mobile && (
-              <div className="mb-3">Contact : {selectedCustomerDetails.mobile}</div>
-            )}
-
-            {rangedLedgerData.length > 0 && (
-              <div className="mt-2">
-                {rangedLedgerData[0].displayDate} To {rangedLedgerData[rangedLedgerData.length - 1].displayDate}
-              </div>
-            )}
+          <div className="erp-table-wrapper">
+            <table className="erp-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Particulars</th>
+                  <th className="text-right">Debit (₹)</th>
+                  <th className="text-right">Credit (₹)</th>
+                  <th className="text-right">Balance (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {finalLedgerRows.map((r, i) => (
+                  <tr
+                    key={i}
+                    className={
+                      r.isOpening
+                        ? "row-opening"
+                        : r.isClosing
+                          ? "row-closing"
+                          : ""
+                    }
+                  >
+                    <td style={{ whiteSpace: "nowrap" }}>{r.date}</td>
+                    <td>{r.particulars}</td>
+                    <td
+                      className={`text-right ${r.debit ? "amount-debit" : ""}`}
+                    >
+                      {r.debit || "—"}
+                    </td>
+                    <td
+                      className={`text-right ${r.credit ? "amount-credit" : ""}`}
+                    >
+                      {r.credit || "—"}
+                    </td>
+                    <td className="text-right amount-balance">{r.balance}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
 
-      {/* Ledger Table */}
-      {showReport && (
-        <div className="row m-0 p-3">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="mb-0">Ledger Account</h5>
-              </div>
-              <div className="card-body">
-                <div className="table-responsive">
-                  <table className="table table-bordered borderedtable">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Particulars</th>
-                        <th>Vch Type</th>
-                        <th>Vch No.</th>
-                        <th className="text-center">Debit</th>
-                        <th className="text-center">Credit</th>
-                        <th className="text-center">Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rangedLedgerData.length > 0 ? (
-                        rangedLedgerData.map((row, index) => (
-                          <tr key={index} className={row.date === '' ? 'table-light' : ''}>
-                            <td>{row.displayDate}</td>
-                            <td>{row.particulars}</td>
-                            <td>{row.vchType}</td>
-                            <td>{row.vchNo}</td>
-                            <td className="text-center">{row.debit}</td>
-                            <td className="text-center">{row.credit}</td>
-                            <td className="text-center">{row.balance}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="7" className="text-center text-muted">
-                            {infoMessage || (fromDate || toDate ? 'No data for selected date range' : 'No ledger data available.')}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+          {/* SUMMARY */}
+          {summary && (
+            <div className="erp-summary-panel">
+              <div className="erp-summary-grid">
+                <div>
+                  <div className="erp-summary-item">
+                    <span className="erp-summary-label">Total Debit:</span>
+                    <span className="erp-summary-value amount-debit">
+                      ₹ {formatAmount(summary.totalDebits)}
+                    </span>
+                  </div>
+                  <div className="erp-summary-item">
+                    <span className="erp-summary-label">Total Credit:</span>
+                    <span className="erp-summary-value amount-credit">
+                      ₹ {formatAmount(summary.totalCredits)}
+                    </span>
+                  </div>
+                  <div className="erp-summary-item erp-summary-total">
+                    <span className="erp-summary-label">Closing Balance:</span>
+                    <span className="erp-summary-value">
+                      ₹ {formatAmount(closingBalance)} {closingBalanceType}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
-    </>
-  )
+
+      {(loading || downloadingPDF) && <Loading />}
+      {error && (
+        <ErrorModal show={isModalOpen} onHide={closeModal} message={error} />
+      )}
+    </div>
+  );
 }
 
-export default LedgerReports
+const containerStyle = {
+  maxWidth: "1400px",
+  margin: "0 auto",
+  padding: "24px",
+  background: "#f9fafb",
+  minHeight: "100vh",
+};
+
+export default LedgerReports;

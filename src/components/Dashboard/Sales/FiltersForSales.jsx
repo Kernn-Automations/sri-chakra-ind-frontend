@@ -1,6 +1,7 @@
 import { useAuth } from "@/Auth";
 import CustomSearchDropdown from "@/utils/CustomSearchDropDown";
 import React, { useEffect, useState } from "react";
+import styles from "./Sales.module.css";
 
 function FiltersForSales({
   divisionId,
@@ -120,9 +121,9 @@ function FiltersForSales({
             className={styles.readOnlySelect}
           >
             <option value={divisionId}>
-              {divisions?.find((d) => d.id == divisionId)?.name || 
-               localStorage.getItem("currentDivisionName") || 
-               "Loading..."}
+              {divisions?.find((d) => d.id == divisionId)?.name ||
+                localStorage.getItem("currentDivisionName") ||
+                "Loading..."}
             </option>
           </select>
         ) : (
@@ -136,7 +137,9 @@ function FiltersForSales({
           >
             <option value="null">--select--</option>
             {divisions?.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
             ))}
           </select>
         )}
