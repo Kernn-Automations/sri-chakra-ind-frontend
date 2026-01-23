@@ -15,195 +15,229 @@ function PaymentApprovals({ navigate }) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [trigger, setTrigger] = useState(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSalesOrder, setSelectedSalesOrder] = useState(null);
-
-  const closeModal = () => setIsModalOpen(false);
-  const changeTrigger = () => setTrigger(!trigger);
 
   const [pageNo, setPageNo] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
 
+  const changeTrigger = () => setTrigger((p) => !p);
+
+  /* --------------------------------------------------
+   * FETCH PAYMENT APPROVALS (ERP API)
+   * -------------------------------------------------- */
   useEffect(() => {
-    async function fetch() {
+    async function fetchData() {
       try {
         setLoading(true);
         setSalesOrders([]);
         setFilteredSalesOrders([]);
 
-        const query = `/payment-requests?status=Pending&page=${pageNo}&limit=${limit}`;
-
+        const query = `/payment-requests?approvalStatus=Pending&page=${pageNo}&limit=${limit}`;
         const res = await axiosAPI.get(query);
-        console.log(res.data);
-        const orders = res.data.salesOrders || [];
-        // Sort by date descending (using transactionDate from paymentRequests)
+
+        const orders = res.data?.data || [];
+
+        // Sort by latest payment date (descending)
         orders.sort((a, b) => {
-          const getVal = (o) => {
-            const d = o.paymentRequests?.[0]?.transactionDate || o.createdAt;
-            const date = new Date(d);
-            return isNaN(date.getTime()) ? 0 : date.getTime();
-          };
-          return getVal(b) - getVal(a);
+          const da = new Date(
+            a.paymentRequests?.[0]?.transactionDate || 0,
+          ).getTime();
+          const db = new Date(
+            b.paymentRequests?.[0]?.transactionDate || 0,
+          ).getTime();
+          return db - da;
         });
+
         setSalesOrders(orders);
-        setTotalPages(res.data.totalPages);
+        setTotalPages(res.data?.totalPages || 0);
       } catch (e) {
         setError(e.response?.data?.message || "Something went wrong.");
-        setIsModalOpen(true);
       } finally {
         setLoading(false);
       }
     }
-    fetch();
+
+    fetchData();
   }, [trigger, pageNo, limit]);
 
-  // Filter by customer name
+  /* --------------------------------------------------
+   * SEARCH FILTER (CUSTOMER NAME)
+   * -------------------------------------------------- */
   useEffect(() => {
     const filtered = salesOrders.filter((order) =>
-      order.customer?.name?.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      order.customer?.name
+        ?.toLowerCase()
+        .includes(searchTerm.trim().toLowerCase()),
     );
     setFilteredSalesOrders(filtered);
   }, [searchTerm, salesOrders]);
 
-  let index = 1;
-
-  function calculateTotalAmount(paymentRequests) {
-    return paymentRequests.reduce((sum, pr) => sum + (pr.netAmount || 0), 0).toFixed(2);
-  }
-
+  /* --------------------------------------------------
+   * HELPERS
+   * -------------------------------------------------- */
   function getDisplayDate(order) {
-    const dateStr = order.paymentRequests?.[0]?.transactionDate || order.createdAt;
-    if (!dateStr) return '-';
+    const dateStr = order.paymentRequests?.[0]?.transactionDate;
+    if (!dateStr) return "-";
     const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? '-' : date.toLocaleDateString("en-IN");
+    return isNaN(date.getTime())
+      ? "-"
+      : date.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
   }
 
-  function openModal(salesOrder) {
-    setSelectedSalesOrder(salesOrder);
-    setIsModalOpen(true);
-  }
-
+  /* --------------------------------------------------
+   * RENDER
+   * -------------------------------------------------- */
   return (
     <>
       <p className="path">
         <span onClick={() => navigate("/payments")}>Payments</span>{" "}
-        <i className="bi bi-chevron-right"></i> Payment-approvals
+        <i className="bi bi-chevron-right"></i> Payment Approvals
       </p>
 
-      {salesOrders && filteredSalesOrders && (
-        <>
-          <div className="row m-0 p-3 pt-5 justify-content-end">
-            <div className={`col-4 ${styles.search}`}>
-              <input
-                type="text"
-                placeholder="Search by customer name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <span className={styles.searchicon}>
-                <IoSearch />
-              </span>
-            </div>
-          </div>
+      {/* SEARCH */}
+      <div className="row m-0 p-3 pt-4 justify-content-end">
+        <div className={`col-4 ${styles.search}`}>
+          <input
+            type="text"
+            placeholder="Search by customer name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <span className={styles.searchicon}>
+            <IoSearch />
+          </span>
+        </div>
+      </div>
 
-          <div className="row m-0 p-3 justify-content-center">
-            <div className="row m-0 p-3 justify-content-center">
-              <div className={`col-lg-10 ${styles.entity}`}>
-                <label htmlFor="">Entity :</label>
-                <select
-                  name=""
-                  id=""
-                  value={limit}
-                  onChange={(e) => setLimit(parseInt(e.target.value))}
+      {/* LIMIT */}
+      <div className="row m-0 p-3 justify-content-center">
+        <div className={`col-lg-10 ${styles.entity}`}>
+          <label>Records per page :</label>
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPageNo(1);
+            }}
+          >
+            {[10, 20, 30, 40, 50].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="row m-0 p-3 justify-content-center">
+        <div className="col-lg-10">
+          <table className="table table-bordered borderedtable">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Sales Order</th>
+                <th>Last Payment Date</th>
+                <th>Customer</th>
+                <th>Sales Executive</th>
+                <th>Warehouse</th>
+                <th>Total Paid (₹)</th>
+                <th>Payments</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredSalesOrders.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center">
+                    NO DATA FOUND
+                  </td>
+                </tr>
+              )}
+
+              {filteredSalesOrders.map((order, index) => (
+                <tr
+                  key={order.salesOrderId}
+                  className="animated-row"
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  {[10, 20, 30, 40, 50].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <td>{index + 1}</td>
+
+                  <td style={{ fontWeight: 600 }}>{order.orderNumber}</td>
+
+                  <td>{getDisplayDate(order)}</td>
+
+                  <td>
+                    <div style={{ fontWeight: 500 }}>
+                      {order.customer?.name}
+                    </div>
+                    <small className="text-muted">
+                      {order.customer?.mobile}
+                    </small>
+                  </td>
+
+                  <td>{order.salesExecutive?.name || "-"}</td>
+
+                  <td>{order.warehouse?.name || "-"}</td>
+
+                  <td
+                    style={{
+                      fontWeight: 600,
+                      color: "#0f766e",
+                    }}
+                  >
+                    ₹
+                    {Number(order.totalPaidAmount || 0).toLocaleString("en-IN")}
+                  </td>
+
+                  <td>
+                    <ApprovalsViewModal
+                      report={order}
+                      changeTrigger={changeTrigger}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* PAGINATION */}
+          <div className="row m-0 p-0 pt-3 justify-content-between">
+            <div className={`col-2 ${styles.buttonbox}`}>
+              {pageNo > 1 && (
+                <button onClick={() => setPageNo(pageNo - 1)}>
+                  <FaArrowLeftLong /> Previous
+                </button>
+              )}
             </div>
-            <div className="col-lg-10">
-              <table className="table table-bordered borderedtable">
-                <thead>
-                  <tr>
-                    <th>S.No</th>
-                    <th>Order Number</th>
-                    <th>Date</th>
-                    <th>Customer Name</th>
-                    <th>SE Name</th>
-                    <th>Warehouse</th>
-                    <th>Total Amount</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSalesOrders.length === 0 && (
-                    <tr>
-                      <td colSpan={8}>NO DATA FOUND</td>
-                    </tr>
-                  )}
-                  {filteredSalesOrders.map((order) => (
-                    <tr
-                      key={order.salesOrderId}
-                      className="animated-row"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <td>{index++}</td>
-                      <td>{order.orderNumber}</td>
-                      <td>{getDisplayDate(order)}</td>
-                      <td>{order.customer?.name}</td>
-                      <td>{order.salesExecutive?.name}</td>
-                      <td>{order.warehouse?.name}</td>
-                      <td>{calculateTotalAmount(order.paymentRequests)}</td>
-                      <td>
-                        <ApprovalsViewModal
-                          report={order}
-                          changeTrigger={changeTrigger}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="row m-0 p-0 pt-3 justify-content-between">
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
-                {pageNo > 1 && (
-                  <button onClick={() => setPageNo(pageNo - 1)}>
-                    <span><FaArrowLeftLong /></span> Previous
-                  </button>
-                )}
-              </div>
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
-                {totalPages > 1 && pageNo < totalPages && (
-                  <button onClick={() => setPageNo(pageNo + 1)}>
-                    Next <span><FaArrowRightLong /></span>
-                  </button>
-                )}
-              </div>
-            </div>
+
+            <div className={`col-2 ${styles.buttonbox}`}>
+              {totalPages > 1 && pageNo < totalPages && (
+                <button onClick={() => setPageNo(pageNo + 1)}>
+                  Next <FaArrowRightLong />
+                </button>
+              )}
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </div>
 
-      {selectedSalesOrder && (
-        <ApprovalsViewModal
-          salesOrder={selectedSalesOrder}
-          changeTrigger={changeTrigger}
-          onClose={closeModal}
-          isOpen={isModalOpen}
+      {/* ERROR */}
+      {error && (
+        <ErrorModal
+          isOpen={true}
+          message={error}
+          onClose={() => setError(null)}
         />
       )}
 
-      {isModalOpen && error && (
-        <ErrorModal isOpen={isModalOpen} message={error} onClose={closeModal} />
-      )}
-
+      {/* LOADING */}
       {loading && <Loading />}
     </>
   );

@@ -48,6 +48,54 @@ function AddProduct({ navigate }) {
 
   const [taxSearch, setTaxSearch] = useState("");
 
+  const [conversionUnits, setConversionUnits] = useState([]);
+
+  const getInventoryUnit = () => {
+    if (measurementType === "weight") return "kg";
+    if (measurementType === "length") return "m";
+    if (measurementType === "area") return "sq_m";
+    if (measurementType === "count") return "nos";
+    return "";
+  };
+
+  useEffect(() => {
+    const inventoryUnit = getInventoryUnit();
+    if (!inventoryUnit) return;
+
+    setConversionUnits((prev) => {
+      const existing = prev.map((c) => c.fromUnit);
+
+      const needed = unitPrices
+        .map((u) => u.unit)
+        .filter((u) => u && u !== inventoryUnit && !existing.includes(u));
+
+      return [
+        ...prev,
+        ...needed.map((u) => ({
+          fromUnit: u,
+          toUnit: inventoryUnit,
+          conversionType: "FIXED",
+          factor: "",
+          length: "",
+          width: "",
+          thickness: "",
+          density: "",
+          roundingRule: "NONE",
+        })),
+      ];
+    });
+  }, [unitPrices, measurementType]);
+
+  const updateConversion = (index, key, value) => {
+    setConversionUnits((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, [key]: value } : c)),
+    );
+  };
+
+  const removeConversion = (fromUnit) => {
+    setConversionUnits((prev) => prev.filter((c) => c.fromUnit !== fromUnit));
+  };
+
   const filteredTaxes = taxeslist.filter(
     (t) =>
       t.name.toLowerCase().includes(taxSearch.toLowerCase()) ||
@@ -253,6 +301,17 @@ function AddProduct({ navigate }) {
     formData.append("unitPrices", JSON.stringify(unitPrices));
     selectedTaxes.forEach((t) => formData.append("taxIds[]", t));
     images.forEach((img) => img && formData.append("images", img.file));
+
+    formData.append(
+      "conversionUnits",
+      JSON.stringify(
+        conversionUnits.filter(
+          (c) =>
+            (c.conversionType === "FIXED" && c.factor) ||
+            (c.conversionType === "FORMULA" && c.density),
+        ),
+      ),
+    );
 
     try {
       setLoading(true);
@@ -530,6 +589,121 @@ function AddProduct({ navigate }) {
         <button style={styles.addBtn} onClick={addUnitPrice}>
           + Add Unit Price
         </button>
+      </section>
+
+      {/* UNIT CONVERSIONS */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Unit Conversions</h4>
+          <span style={styles.infoText}>
+            Required to sell in multiple units
+          </span>
+        </div>
+
+        {conversionUnits.length === 0 ? (
+          <p style={{ color: "#64748b", fontSize: 14 }}>
+            No conversion rules required
+          </p>
+        ) : (
+          conversionUnits.map((c, i) => (
+            <div
+              key={c.fromUnit}
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 16,
+              }}
+            >
+              <strong>
+                {c.fromUnit} → {c.toUnit}
+              </strong>
+
+              <div style={styles.grid}>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Conversion Type</label>
+                  <select
+                    style={styles.input}
+                    value={c.conversionType}
+                    onChange={(e) =>
+                      updateConversion(i, "conversionType", e.target.value)
+                    }
+                  >
+                    <option value="FIXED">Fixed</option>
+                    <option value="FORMULA">Formula</option>
+                  </select>
+                </div>
+
+                {c.conversionType === "FIXED" && (
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Factor</label>
+                    <input
+                      style={styles.input}
+                      type="number"
+                      placeholder="e.g. 2.5"
+                      value={c.factor}
+                      onChange={(e) =>
+                        updateConversion(i, "factor", e.target.value)
+                      }
+                    />
+                  </div>
+                )}
+
+                {c.conversionType === "FORMULA" && (
+                  <>
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Length (m)</label>
+                      <input
+                        style={styles.input}
+                        type="number"
+                        value={c.length}
+                        onChange={(e) =>
+                          updateConversion(i, "length", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Width (m)</label>
+                      <input
+                        style={styles.input}
+                        type="number"
+                        value={c.width}
+                        onChange={(e) =>
+                          updateConversion(i, "width", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Thickness (mm)</label>
+                      <input
+                        style={styles.input}
+                        type="number"
+                        value={c.thickness}
+                        onChange={(e) =>
+                          updateConversion(i, "thickness", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Density (kg/m³)</label>
+                      <input
+                        style={styles.input}
+                        type="number"
+                        value={c.density}
+                        onChange={(e) =>
+                          updateConversion(i, "density", e.target.value)
+                        }
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </section>
 
       {/* TAX LINKING - NEW SECTION */}
