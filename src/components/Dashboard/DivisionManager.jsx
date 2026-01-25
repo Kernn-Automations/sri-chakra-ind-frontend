@@ -2294,42 +2294,6 @@ function DivisionManager() {
           >
             Divisions
           </button>
-          <button
-            className={`${styles.tabButton} ${activeTab === "zones" ? styles.activeTab : ""}`}
-            onClick={() => {
-              handleTabChange("zones");
-              if (zones.length === 0) {
-                fetchZones();
-              }
-            }}
-          >
-            Zones
-          </button>
-          <button
-            className={`${styles.tabButton} ${activeTab === "subzones" ? styles.activeTab : ""}`}
-            onClick={() => {
-              handleTabChange("subzones");
-              if (zones.length === 0) {
-                fetchZones();
-              }
-            }}
-          >
-            Sub Zones
-          </button>
-          <button
-            className={`${styles.tabButton} ${activeTab === "stores" ? styles.activeTab : ""}`}
-            onClick={() => {
-              handleTabChange("stores");
-              if (stores.length === 0) {
-                fetchStores();
-              }
-              if (zones.length === 0) {
-                fetchZones();
-              }
-            }}
-          >
-            Stores
-          </button>
         </div>
 
         {/* Divisions Tab Content */}
