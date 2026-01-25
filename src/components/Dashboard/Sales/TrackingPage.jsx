@@ -1209,12 +1209,6 @@ const TrackingPage = ({ orderId, setOrderId, navigate }) => {
             </div>
           </div>
           <div className={styles.infoGrid}>
-            <h6 className={styles.title}>Drop-off Points </h6>
-            <div className={styles.infoCard}>
-              <DropOffs dropoffs={order.dropOffs} />
-            </div>
-          </div>
-          <div className={styles.infoGrid}>
             <h6 className={styles.title}>Order Items </h6>
             <div className={styles.infoCard}>
               <ProductsList items={order.items} />

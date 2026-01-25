@@ -16,6 +16,7 @@ import Loading from "@/components/Loading";
 import ImagesViewModal from "./ImagesViewModal";
 import axios from "axios";
 import PhotosDrawer from "./PhotosDrawer";
+import CustomerSalesAnalytics from "./CustomerAnalytics";
 
 function CustomersModal({ customerId, setCustomerId, isAdmin }) {
   const { axiosAPI } = useAuth();
@@ -44,21 +45,21 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
     async function fetch() {
       try {
         setLoading(true);
-        const currentDivisionId = localStorage.getItem('currentDivisionId');
+        const currentDivisionId = localStorage.getItem("currentDivisionId");
 
         // Build both endpoint variants with division context
         const buildUrl = (base) => {
           let u = `${base}/${customerId}`;
-          if (currentDivisionId && currentDivisionId !== '1') {
+          if (currentDivisionId && currentDivisionId !== "1") {
             u += `?divisionId=${currentDivisionId}`;
-          } else if (currentDivisionId === '1') {
+          } else if (currentDivisionId === "1") {
             u += `?showAllDivisions=true`;
           }
           return u;
         };
 
-        const customersUrl = buildUrl('/customers');
-        const customerUrl = buildUrl('/customer');
+        const customersUrl = buildUrl("/customers");
+        const customerUrl = buildUrl("/customer");
 
         let res;
         try {
@@ -75,13 +76,20 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
 
         const data = res.data || {};
         const customer = data.customer || data?.data?.customer || data;
-        const pad = data.productsAndDiscounting || data?.data?.productsAndDiscounting || {};
+        const pad =
+          data.productsAndDiscounting ||
+          data?.data?.productsAndDiscounting ||
+          {};
         setCustomerdata(customer);
         setProducts(pad?.products || []);
-        setBillToBillDiscounts(pad?.billToBillDiscounts || pad?.bill_to_bill_discounts || []);
-        setMonthlyDiscounts(pad?.monthlyDiscounts || pad?.monthly_discounts || []);
+        setBillToBillDiscounts(
+          pad?.billToBillDiscounts || pad?.bill_to_bill_discounts || [],
+        );
+        setMonthlyDiscounts(
+          pad?.monthlyDiscounts || pad?.monthly_discounts || [],
+        );
       } catch (e) {
-        setError(e.response?.data?.message || 'Failed to load customer');
+        setError(e.response?.data?.message || "Failed to load customer");
         setIsModalOpen(true);
       } finally {
         setLoading(false);
@@ -97,12 +105,17 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/customer/product-pricing`, {
         customerId,
         productId,
-        customPrice: customPrice === '' || customPrice == null ? null : Number(customPrice),
+        customPrice:
+          customPrice === "" || customPrice == null
+            ? null
+            : Number(customPrice),
       });
       // Optimistically update UI
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, customPrice } : p));
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, customPrice } : p)),
+      );
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update product price');
+      setError(e.response?.data?.message || "Failed to update product price");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -116,10 +129,14 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/bill-to-bill-discount`, {
         discountId: discount.id,
         minQuantity: Number(discount.minQuantity ?? discount.min_quantity ?? 0),
-        discountAmount: Number(discount.discountAmount ?? discount.discount_amount ?? 0),
+        discountAmount: Number(
+          discount.discountAmount ?? discount.discount_amount ?? 0,
+        ),
       });
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update bill-to-bill discount');
+      setError(
+        e.response?.data?.message || "Failed to update bill-to-bill discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -133,10 +150,14 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/monthly-discount`, {
         discountId: discount.id,
         minTurnover: Number(discount.minTurnover ?? discount.min_turnover ?? 0),
-        discountAmount: Number(discount.discountAmount ?? discount.discount_amount ?? 0),
+        discountAmount: Number(
+          discount.discountAmount ?? discount.discount_amount ?? 0,
+        ),
       });
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update monthly discount');
+      setError(
+        e.response?.data?.message || "Failed to update monthly discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -153,14 +174,34 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         discountAmount: 0,
       });
       const created = res.data?.discount || res.data;
-      setBillToBillDiscounts(prev => [...prev, created]);
+      setBillToBillDiscounts((prev) => [...prev, created]);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to add bill-to-bill discount');
+      setError(
+        e.response?.data?.message || "Failed to add bill-to-bill discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const [salesData, setSalesData] = useState(null);
+
+  useEffect(() => {
+    if (!customerId) return;
+
+    async function fetchSales() {
+      try {
+        const res = await axiosAPI.get(`/sales-orders/customer/${customerId}`);
+        console.log("Sales Data :", res);
+        setSalesData(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchSales();
+  }, [customerId]);
 
   const addMonthlyDiscount = async () => {
     try {
@@ -171,9 +212,9 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         discountAmount: 0,
       });
       const created = res.data?.discount || res.data;
-      setMonthlyDiscounts(prev => [...prev, created]);
+      setMonthlyDiscounts((prev) => [...prev, created]);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to add monthly discount');
+      setError(e.response?.data?.message || "Failed to add monthly discount");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -184,7 +225,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
     try {
       setLoading(true);
       const res = await axiosAPI.put(
-        `/customers/${customerdata.id}/kyc/approve`
+        `/customers/${customerdata.id}/kyc/approve`,
       );
       setSuccessful(res.data.message);
 
@@ -233,7 +274,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         `/customers/${customerdata.id}/kyc/reject`,
         {
           remark: rejectionRemark,
-        }
+        },
       );
       setSuccessful(res.data.message);
       // changeTrigger();
@@ -385,7 +426,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       console.log(res);
       setSuccessful(res.data.message);
@@ -541,37 +582,6 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                 />
               </div>
             )}
-            {!editclick && (
-              <>
-                <div className={`col-4 ${styles.longform}`}>
-                  <label>SE ID :</label>
-                  <input
-                    type="text"
-                    value={customerdata.salesExecutive?.id || "NA"}
-                    readOnly={!editclick}
-                  />
-                </div>
-                <div className={`col-4 ${styles.longform}`}>
-                  <label>SE Name :</label>
-                  <input
-                    type="text"
-                    value={customerdata.salesExecutive?.name || "NA"}
-                    readOnly={!editclick}
-                  />
-                </div>
-              </>
-            )}
-            {editclick && (
-              <div className={`col-4 ${styles.longform}`}>
-                <label>SE :</label>
-                <select value={seId} onChange={(e) => setSeId(e.target.value)}>
-                  <option value="null">--select--</option>
-                  {ses?.map((se) => (
-                    <option value={se.id}>{se.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
             <div className={`col-4 ${styles.location}`}>
               <label htmlFor="">Location :</label>
               <a
@@ -609,7 +619,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
             ))}
           </div>
 
-          {/* Products & Discounting */}
+          {/* Products & Discounting 
           <div className="row m-0 p-0 mt-3">
             <h5 className={styles.headmdl}>Products & Discounting</h5>
             <div className="col-12">
@@ -626,28 +636,43 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                   <tbody>
                     {products.length === 0 && (
                       <tr>
-                        <td colSpan="4" className="text-center">No products</td>
+                        <td colSpan="4" className="text-center">
+                          No products
+                        </td>
                       </tr>
                     )}
                     {products.map((p) => (
                       <tr key={p.id}>
                         <td>{p.name}</td>
-                        <td>{p.basePrice ?? p.base_price ?? '-'}</td>
+                        <td>{p.basePrice ?? p.base_price ?? "-"}</td>
                         <td>
                           <input
                             type="number"
                             step="0.01"
                             placeholder="Enter price"
                             className="text-center"
-                            value={p.customPrice ?? ''}
+                            value={p.customPrice ?? ""}
                             onChange={(e) => {
                               const val = e.target.value;
-                              setProducts(prev => prev.map(x => x.id === p.id ? { ...x, customPrice: val } : x));
+                              setProducts((prev) =>
+                                prev.map((x) =>
+                                  x.id === p.id
+                                    ? { ...x, customPrice: val }
+                                    : x,
+                                ),
+                              );
                             }}
                           />
                         </td>
                         <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveProductPrice(p.id, p.customPrice)}>Save</button>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() =>
+                              saveProductPrice(p.id, p.customPrice)
+                            }
+                          >
+                            Save
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -655,96 +680,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                 </table>
               </div>
             </div>
-          </div>
-
-          <div className="row m-0 p-0 mt-3">
-            <div className="col-6">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0">Bill-to-Bill Discounts</h6>
-                <button className="btn btn-sm btn-outline-primary" onClick={addBillToBillDiscount}>Add</button>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-sm table-bordered borderedtable">
-                  <thead>
-                    <tr>
-                      <th>Min Qty</th>
-                      <th>Amount</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(billToBillDiscounts || []).map((d) => (
-                      <tr key={d.id}>
-                        <td>
-                          <input type="number" value={d.minQuantity ?? d.min_quantity ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillToBillDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, minQuantity: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <input type="number" step="0.01" value={d.discountAmount ?? d.discount_amount ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillToBillDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, discountAmount: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveBillToBillDiscount(d)}>Save</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {billToBillDiscounts.length === 0 && (
-                      <tr><td colSpan="3" className="text-center">No discounts</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0">Monthly Discounts</h6>
-                <button className="btn btn-sm btn-outline-primary" onClick={addMonthlyDiscount}>Add</button>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-sm table-bordered borderedtable">
-                  <thead>
-                    <tr>
-                      <th>Min Turnover</th>
-                      <th>Amount</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(monthlyDiscounts || []).map((d) => (
-                      <tr key={d.id}>
-                        <td>
-                          <input type="number" value={d.minTurnover ?? d.min_turnover ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setMonthlyDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, minTurnover: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <input type="number" step="0.01" value={d.discountAmount ?? d.discount_amount ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setMonthlyDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, discountAmount: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveMonthlyDiscount(d)}>Save</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {monthlyDiscounts.length === 0 && (
-                      <tr><td colSpan="3" className="text-center">No discounts</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          </div>*/}
 
           <div className="row m-0 p-0 justify-content-center">
             <div className={`col-4`}>
@@ -818,7 +754,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
               )}
             </div>
           )}
-
+          <CustomerSalesAnalytics data={salesData} />
           {successful && (
             <div className="row m-0 p-3 pt-4 justify-content-center">
               <div className={`col-4`}>
@@ -948,14 +884,14 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                           if (Object.keys(payload).length > 0) {
                             await axiosAPI.put(
                               `/customers/${customerdata.id}/details`,
-                              payload
+                              payload,
                             );
                           }
                           changeTrigger();
                         } catch (e) {
                           setError(
                             e.response?.data?.message ||
-                              "Failed to update details"
+                              "Failed to update details",
                           );
                           setIsModalOpen(true);
                         } finally {

@@ -120,7 +120,7 @@ function LedgerReports({ navigate }) {
         reportType,
         period,
       );
-
+      console.log(res);
       if (!res.success) throw new Error(res.message);
 
       const data = res.data;
