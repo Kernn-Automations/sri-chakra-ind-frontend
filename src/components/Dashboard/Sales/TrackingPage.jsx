@@ -11,12 +11,15 @@ import SignUploadModal from "./SignUploadModal";
 import VerifyOTP from "./VerifyOTP";
 import DispatchForm from "./DispatchForm";
 import PaymentsSection from "./PaymentSection";
+import CustomersModal from "../Customers/CustomersModal";
 
-const TrackingPage = ({ orderId, setOrderId, navigate }) => {
+const TrackingPage = ({ orderId, setOrderId, navigate, isAdmin }) => {
   const [order, setOrder] = useState();
   const { axiosAPI } = useAuth();
 
   const [showDispatchModal, setShowDispatchModal] = useState(false);
+
+  const [customerId, setCustomerId] = useState(null);
 
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
@@ -411,7 +414,13 @@ const TrackingPage = ({ orderId, setOrderId, navigate }) => {
                 />
               </div>
               <div>
-                <h6>{order.customer.name}</h6>
+                <h6
+                  style={{ cursor: "pointer", color: "#0d6efd", margin: 0 }}
+                  onClick={() => setCustomerId(order.customer.id)}
+                >
+                  {order.customer.name}
+                </h6>
+
                 <p>ID : {order.customer?.customer_id}</p>
                 <p>Mobile : {order.customer.mobile}</p>
                 <p>WhatsApp : {order.customer.whatsapp}</p>
@@ -1505,6 +1514,13 @@ const TrackingPage = ({ orderId, setOrderId, navigate }) => {
             </form>
           </div>
         </div>
+      )}
+      {customerId && (
+        <CustomersModal
+          customerId={customerId}
+          setCustomerId={setCustomerId}
+          isAdmin={isAdmin}
+        />
       )}
     </>
   );

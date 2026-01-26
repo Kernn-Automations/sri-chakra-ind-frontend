@@ -440,186 +440,207 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
   };
 
   return (
-    <>
-      {customerdata && (
+    <DialogRoot
+      open={!!customerId}
+      onOpenChange={(open) => !open && setCustomerId(null)}
+    >
+      <DialogContent
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1000,
+          maxWidth: "1100px",
+          width: "95vw",
+          background: "#fff",
+          borderRadius: "12px",
+          padding: "24px",
+          maxHeight: "90vh",
+          overflowY: "auto",
+        }}
+      >
+        <DialogCloseTrigger />
         <>
-          {/* <h3 className={`px-3 mdl-title`}>KYC Approval</h3> */}
+          {customerdata && (
+            <>
+              {/* <h3 className={`px-3 mdl-title`}>KYC Approval</h3> */}
 
-          <div className="row m-0 p-0">
-            <h5 className={styles.head}>Customer Details</h5>
-            <div className={`col-5 ${styles.longform}`}>
-              <label>Customer Name :</label>
-              <input
-                type="text"
-                value={name}
-                style={{
-                  width: `${
-                    (customerdata.name?.length > 15
-                      ? customerdata.name?.length
-                      : 15) + 1
-                  }ch`,
-                  padding: "0.3rem 0.5rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                readOnly={!editclick}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className={`col-5 ${styles.longform}`}>
-              <label>Email :</label>
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: `${
-                    (customerdata.email?.length > 15
-                      ? customerdata.email?.length
-                      : 15) + 1
-                  }ch`,
-                  padding: "0.3rem 0.5rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Customer ID :</label>
-              <input
-                type="text"
-                value={customerdata.customer_id || "-"}
-                onChange={(e) => setEmail(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Mobile :</label>
-              <input
-                type="text"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>WhatsApp :</label>
-              <input
-                type="text"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
+              <div className="row m-0 p-0">
+                <h5 className={styles.head}>Customer Details</h5>
+                <div className={`col-5 ${styles.longform}`}>
+                  <label>Customer Name :</label>
+                  <input
+                    type="text"
+                    value={name}
+                    style={{
+                      width: `${
+                        (customerdata.name?.length > 15
+                          ? customerdata.name?.length
+                          : 15) + 1
+                      }ch`,
+                      padding: "0.3rem 0.5rem",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                    }}
+                    readOnly={!editclick}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className={`col-5 ${styles.longform}`}>
+                  <label>Email :</label>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      width: `${
+                        (customerdata.email?.length > 15
+                          ? customerdata.email?.length
+                          : 15) + 1
+                      }ch`,
+                      padding: "0.3rem 0.5rem",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                    }}
+                    readOnly={!editclick}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Customer ID :</label>
+                  <input
+                    type="text"
+                    value={customerdata.customer_id || "-"}
+                    onChange={(e) => setEmail(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Mobile :</label>
+                  <input
+                    type="text"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>WhatsApp :</label>
+                  <input
+                    type="text"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Aadhaar Number :</label>
-              <input
-                type="text"
-                value={aadharNumber}
-                maxlength="12"
-                pattern="\d{12}"
-                inputmode="numeric"
-                readOnly={!editclick}
-                onChange={(e) => setAadharNumber(e.target.value)}
-                required
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>PAN Number :</label>
-              <input
-                type="text"
-                value={panNumber}
-                readOnly={!editclick}
-                onChange={(e) => setPanNumber(e.target.value)}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>KYC Status :</label>
-              <input
-                type="text"
-                value={customerdata.kycStatus || "-"}
-                readOnly={!editclick}
-              />
-            </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Aadhaar Number :</label>
+                  <input
+                    type="text"
+                    value={aadharNumber}
+                    maxlength="12"
+                    pattern="\d{12}"
+                    inputmode="numeric"
+                    readOnly={!editclick}
+                    onChange={(e) => setAadharNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>PAN Number :</label>
+                  <input
+                    type="text"
+                    value={panNumber}
+                    readOnly={!editclick}
+                    onChange={(e) => setPanNumber(e.target.value)}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>KYC Status :</label>
+                  <input
+                    type="text"
+                    value={customerdata.kycStatus || "-"}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-            <div className={`col-4 ${styles.longform}`}>
-              <label>GSTIN :</label>
-              <input
-                type="text"
-                value={gstin}
-                onChange={(e) => setGstin(e.target.value)}
-              />
-            </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>GSTIN :</label>
+                  <input
+                    type="text"
+                    value={gstin}
+                    onChange={(e) => setGstin(e.target.value)}
+                  />
+                </div>
 
-            <div className={`col-4 ${styles.longform}`}>
-              <label>MSME Number :</label>
-              <input
-                type="text"
-                value={msme}
-                onChange={(e) => setMsme(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>MSME Number :</label>
+                  <input
+                    type="text"
+                    value={msme}
+                    onChange={(e) => setMsme(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Firm Name :</label>
-              <input
-                type="text"
-                value={firmName}
-                onChange={(e) => setFirmName(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Firm Name :</label>
+                  <input
+                    type="text"
+                    value={firmName}
+                    onChange={(e) => setFirmName(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-            {customerdata.rejectionRemark && (
-              <div className={`col-8 ${styles.longform}`}>
-                <label>Rejection Remark :</label>
-                <textarea
-                  value={customerdata.rejectionRemark}
-                  readOnly={!editclick}
-                />
+                {customerdata.rejectionRemark && (
+                  <div className={`col-8 ${styles.longform}`}>
+                    <label>Rejection Remark :</label>
+                    <textarea
+                      value={customerdata.rejectionRemark}
+                      readOnly={!editclick}
+                    />
+                  </div>
+                )}
+                <div className={`col-4 ${styles.location}`}>
+                  <label htmlFor="">Location :</label>
+                  <a
+                    href={googleMapsURL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.mapLink}
+                  >
+                    <FaMapMarkerAlt /> View on Map
+                  </a>
+                </div>
               </div>
-            )}
-            <div className={`col-4 ${styles.location}`}>
-              <label htmlFor="">Location :</label>
-              <a
-                href={googleMapsURL}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.mapLink}
-              >
-                <FaMapMarkerAlt /> View on Map
-              </a>
-            </div>
-          </div>
 
-          <div className="row m-0 p-0">
-            <h5 className={styles.headmdl}>Address</h5>
-            {[
-              { label: "Plot", value: plot, set: setPlot },
-              { label: "Street", value: street, set: setStreet },
-              { label: "Area", value: area, set: setArea },
-              { label: "City", value: city, set: setCity },
-              { label: "Mandal", value: mandal, set: setMandal },
-              { label: "District", value: district, set: setDistrict },
-              { label: "State", value: stateName, set: setStateName },
-              { label: "Pincode", value: pincode, set: setPincode },
-            ].map(({ label, value, set }) => (
-              <div key={label} className={`col-4 ${styles.longform}`}>
-                <label>{label} :</label>
-                <input
-                  type="text"
-                  value={value || ""}
-                  onChange={(e) => set(e.target.value)}
-                  readOnly={!editclick}
-                />
+              <div className="row m-0 p-0">
+                <h5 className={styles.headmdl}>Address</h5>
+                {[
+                  { label: "Plot", value: plot, set: setPlot },
+                  { label: "Street", value: street, set: setStreet },
+                  { label: "Area", value: area, set: setArea },
+                  { label: "City", value: city, set: setCity },
+                  { label: "Mandal", value: mandal, set: setMandal },
+                  { label: "District", value: district, set: setDistrict },
+                  { label: "State", value: stateName, set: setStateName },
+                  { label: "Pincode", value: pincode, set: setPincode },
+                ].map(({ label, value, set }) => (
+                  <div key={label} className={`col-4 ${styles.longform}`}>
+                    <label>{label} :</label>
+                    <input
+                      type="text"
+                      value={value || ""}
+                      onChange={(e) => set(e.target.value)}
+                      readOnly={!editclick}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Products & Discounting 
+              {/* Products & Discounting 
           <div className="row m-0 p-0 mt-3">
             <h5 className={styles.headmdl}>Products & Discounting</h5>
             <div className="col-12">
@@ -682,238 +703,247 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
             </div>
           </div>*/}
 
-          <div className="row m-0 p-0 justify-content-center">
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>Aadhaar Proof</h5>
-              {/* <ImagesViewModal
+              <div className="row m-0 p-0 justify-content-center">
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>Aadhaar Proof</h5>
+                  {/* <ImagesViewModal
                 title={"Aadhar"}
                 front={customerdata.kycDocuments?.[0]?.frontImage}
                 back={customerdata.kycDocuments?.[0]?.backImage}
               /> */}
-              <PhotosDrawer
-                title={"Aadhaar Details"}
-                front={customerdata.kycDocuments?.[0]?.frontImage}
-                back={customerdata.kycDocuments?.[0]?.backImage}
-              />
-            </div>
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>PAN Card Proof</h5>
-              {/* <ImagesViewModal
+                  <PhotosDrawer
+                    title={"Aadhaar Details"}
+                    front={customerdata.kycDocuments?.[0]?.frontImage}
+                    back={customerdata.kycDocuments?.[0]?.backImage}
+                  />
+                </div>
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>PAN Card Proof</h5>
+                  {/* <ImagesViewModal
                 title={"PAN"}
                 front={customerdata.kycDocuments?.[1]?.frontImage}
                 back={customerdata.kycDocuments?.[1]?.backImage}
               /> */}
-              <PhotosDrawer
-                title={"PAN Details"}
-                front={customerdata.kycDocuments?.[1]?.frontImage}
-                back={customerdata.kycDocuments?.[1]?.backImage}
-              />
-            </div>
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>Customer Photo</h5>
-              {/* <ImagesViewModal title={"Photo"} front={customerdata.photo} /> */}
-              <PhotosDrawer
-                title={"Customer Photo"}
-                front={customerdata.photo}
-              />
-            </div>
-          </div>
+                  <PhotosDrawer
+                    title={"PAN Details"}
+                    front={customerdata.kycDocuments?.[1]?.frontImage}
+                    back={customerdata.kycDocuments?.[1]?.backImage}
+                  />
+                </div>
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>Customer Photo</h5>
+                  {/* <ImagesViewModal title={"Photo"} front={customerdata.photo} /> */}
+                  <PhotosDrawer
+                    title={"Customer Photo"}
+                    front={customerdata.photo}
+                  />
+                </div>
+              </div>
 
-          {!loading && !successful && (
-            <div className="row m-0 p-3 pt-4 justify-content-center">
-              {!editclick && (
-                <div className={`col-5`}>
-                  {isAdmin && (
+              {!loading && !successful && (
+                <div className="row m-0 p-3 pt-4 justify-content-center">
+                  {!editclick && (
+                    <div className={`col-5`}>
+                      {isAdmin && (
+                        <button
+                          className="submitbtn"
+                          onClick={() => setEditclick(true)}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="cancelbtn"
+                        onClick={() => setCustomerId(null)}
+                      >
+                        cancel
+                      </button>
+                    </div>
+                  )}
+                  {editclick && (
+                    <div className={`col-4`}>
+                      <button className="submitbtn" onClick={onUpdate}>
+                        Update
+                      </button>
+                      <button
+                        className="cancelbtn"
+                        onClick={() => setEditclick(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <CustomerSalesAnalytics data={salesData} />
+              {successful && (
+                <div className="row m-0 p-3 pt-4 justify-content-center">
+                  <div className={`col-4`}>
                     <button
                       className="submitbtn"
-                      onClick={() => setEditclick(true)}
+                      onClick={() => setCustomerId(null)}
                     >
-                      Edit
+                      {successful}
                     </button>
-                  )}
-                  <button
-                    className="cancelbtn"
-                    onClick={() => setCustomerId(null)}
-                  >
-                    cancel
-                  </button>
+                  </div>
                 </div>
               )}
-              {editclick && (
-                <div className={`col-4`}>
-                  <button className="submitbtn" onClick={onUpdate}>
-                    Update
-                  </button>
-                  <button
-                    className="cancelbtn"
-                    onClick={() => setEditclick(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          <CustomerSalesAnalytics data={salesData} />
-          {successful && (
-            <div className="row m-0 p-3 pt-4 justify-content-center">
-              <div className={`col-4`}>
-                <button
-                  className="submitbtn"
-                  onClick={() => setCustomerId(null)}
+
+              {showRejectionModal && (
+                <div
+                  className="modal d-block"
+                  tabIndex="-1"
+                  style={{ background: "rgba(0,0,0,0.5)" }}
                 >
-                  {successful}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {showRejectionModal && (
-            <div
-              className="modal d-block"
-              tabIndex="-1"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content p-3">
-                  <h5>Enter Rejection Remark</h5>
-                  <textarea
-                    className="form-control mb-3"
-                    placeholder="Write rejection reason..."
-                    value={rejectionRemark}
-                    onChange={(e) => setRejectionRemark(e.target.value)}
-                  />
-                  <div className="d-flex justify-content-end gap-2">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowRejectionModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={submitRejection}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {showGstinMsmeModal && (
-            <div
-              className="modal d-block"
-              tabIndex="-1"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content p-3">
-                  <h5>Additional Details</h5>
-
-                  {!customerdata.gstin && (
-                    <>
-                      <div className="form-check my-2">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={requireGstin}
-                          onChange={() => setRequireGstin(!requireGstin)}
-                          id="gstinCheck"
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="gstinCheck"
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content p-3">
+                      <h5>Enter Rejection Remark</h5>
+                      <textarea
+                        className="form-control mb-3"
+                        placeholder="Write rejection reason..."
+                        value={rejectionRemark}
+                        onChange={(e) => setRejectionRemark(e.target.value)}
+                      />
+                      <div className="d-flex justify-content-end gap-2">
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setShowRejectionModal(false)}
                         >
-                          Add GSTIN
-                        </label>
+                          Cancel
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          onClick={submitRejection}
+                        >
+                          Reject
+                        </button>
                       </div>
-                      {requireGstin && (
-                        <input
-                          type="text"
-                          className="form-control mb-3"
-                          placeholder="Enter GSTIN"
-                          value={gstin}
-                          onChange={(e) => setGstin(e.target.value)}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  {!customerdata.msme && (
-                    <>
-                      <div className="form-check my-2">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={requireMsme}
-                          onChange={() => setRequireMsme(!requireMsme)}
-                          id="msmeCheck"
-                        />
-                        <label className="form-check-label" htmlFor="msmeCheck">
-                          Add MSME Number
-                        </label>
-                      </div>
-                      {requireMsme && (
-                        <input
-                          type="text"
-                          className="form-control mb-3"
-                          placeholder="Enter MSME Number"
-                          value={msme}
-                          onChange={(e) => setMsme(e.target.value)}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  <div className="d-flex justify-content-end gap-2">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowGstinMsmeModal(false)}
-                    >
-                      Skip
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={async () => {
-                        try {
-                          setLoading(true);
-                          const payload = {};
-                          if (requireGstin) payload.gstin = gstin;
-                          if (requireMsme) payload.msmeNumber = msme;
-                          if (Object.keys(payload).length > 0) {
-                            await axiosAPI.put(
-                              `/customers/${customerdata.id}/details`,
-                              payload,
-                            );
-                          }
-                          changeTrigger();
-                        } catch (e) {
-                          setError(
-                            e.response?.data?.message ||
-                              "Failed to update details",
-                          );
-                          setIsModalOpen(true);
-                        } finally {
-                          setLoading(false);
-                          setShowGstinMsmeModal(false);
-                        }
-                      }}
-                    >
-                      Save
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+              {showGstinMsmeModal && (
+                <div
+                  className="modal d-block"
+                  tabIndex="-1"
+                  style={{ background: "rgba(0,0,0,0.5)" }}
+                >
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content p-3">
+                      <h5>Additional Details</h5>
+
+                      {!customerdata.gstin && (
+                        <>
+                          <div className="form-check my-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={requireGstin}
+                              onChange={() => setRequireGstin(!requireGstin)}
+                              id="gstinCheck"
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="gstinCheck"
+                            >
+                              Add GSTIN
+                            </label>
+                          </div>
+                          {requireGstin && (
+                            <input
+                              type="text"
+                              className="form-control mb-3"
+                              placeholder="Enter GSTIN"
+                              value={gstin}
+                              onChange={(e) => setGstin(e.target.value)}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      {!customerdata.msme && (
+                        <>
+                          <div className="form-check my-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={requireMsme}
+                              onChange={() => setRequireMsme(!requireMsme)}
+                              id="msmeCheck"
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="msmeCheck"
+                            >
+                              Add MSME Number
+                            </label>
+                          </div>
+                          {requireMsme && (
+                            <input
+                              type="text"
+                              className="form-control mb-3"
+                              placeholder="Enter MSME Number"
+                              value={msme}
+                              onChange={(e) => setMsme(e.target.value)}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      <div className="d-flex justify-content-end gap-2">
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setShowGstinMsmeModal(false)}
+                        >
+                          Skip
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          onClick={async () => {
+                            try {
+                              setLoading(true);
+                              const payload = {};
+                              if (requireGstin) payload.gstin = gstin;
+                              if (requireMsme) payload.msmeNumber = msme;
+                              if (Object.keys(payload).length > 0) {
+                                await axiosAPI.put(
+                                  `/customers/${customerdata.id}/details`,
+                                  payload,
+                                );
+                              }
+                              changeTrigger();
+                            } catch (e) {
+                              setError(
+                                e.response?.data?.message ||
+                                  "Failed to update details",
+                              );
+                              setIsModalOpen(true);
+                            } finally {
+                              setLoading(false);
+                              setShowGstinMsmeModal(false);
+                            }
+                          }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
+          {isModalOpen && (
+            <ErrorModal
+              isOpen={isModalOpen}
+              message={error}
+              onClose={closeModal}
+            />
+          )}
+          {loading && <Loading />}
         </>
-      )}
-      {isModalOpen && (
-        <ErrorModal isOpen={isModalOpen} message={error} onClose={closeModal} />
-      )}
-      {loading && <Loading />}
-    </>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 

@@ -5,6 +5,10 @@ import PageSkeleton from "../../SkeletonLoaders/PageSkeleton";
 import { useAuth } from "@/Auth";
 import TrackingPage from "./TrackingPage";
 import OrderTransferPage from "./OrderTransferPage";
+import {
+  isAdmin as checkAdmin,
+  isDivisionHead,
+} from "../../../utils/roleUtils";
 
 // Lazy-loaded components
 const SalesHome = lazy(() => import("./SalesHome"));
@@ -35,11 +39,7 @@ function SalesRoutes() {
   const { axiosAPI } = useAuth();
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const roles = user?.roles;
-  const isAdmin = Array.isArray(roles)
-    ? roles.includes("Admin")
-    : typeof roles === "string"
-      ? roles.includes("Admin")
-      : false;
+  const isAdmin = checkAdmin(user) || isDivisionHead(user);
 
   const date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -101,6 +101,7 @@ function SalesRoutes() {
               setFrom={setFrom}
               to={to}
               setTo={setTo}
+              isAdmin={isAdmin}
             />
           </Suspense>
         }
@@ -125,6 +126,7 @@ function SalesRoutes() {
               navigate={navigate}
               setOrderId={setOrderId}
               orderId={orderId}
+              isAdmin={isAdmin}
             />
           </Suspense>
         }
