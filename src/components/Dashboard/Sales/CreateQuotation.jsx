@@ -61,6 +61,7 @@ function CreateQuotation() {
       setLoading(true);
       setSelectedCustomer(customer);
       const res = await axiosAPI.get(`/customers/${customer.id}`);
+      console.log(res);
       setProducts(res.data?.productsAndDiscounting?.products || []);
       setQuotationItems([]);
     } catch {
@@ -75,6 +76,7 @@ function CreateQuotation() {
     try {
       setLoading(true);
       const res = await axiosAPI.get("/products");
+      console.log(res);
       setProducts(res.data?.products || []);
       setQuotationItems([]);
     } catch {
@@ -98,6 +100,57 @@ function CreateQuotation() {
     }
   }, [customerType]);
 
+  const convertToMeters = (value, unit) => {
+    const v = Number(value || 0);
+    switch (unit) {
+      case "mm":
+        return v / 1000;
+      case "cm":
+        return v / 100;
+      case "m":
+        return v;
+      case "ft":
+        return v * 0.3048;
+      case "inch":
+        return v * 0.0254;
+      default:
+        return v;
+    }
+  };
+
+  function updateItem(index, key, value) {
+    setQuotationItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+
+        let updated = { ...item, [key]: value };
+
+        // When unit changes, reset RMT
+        if (key === "unit") {
+          updated.price = Number(
+            item.unitPrices.find((u) => u.unit === value)?.price || 0,
+          );
+          updated.customPrice = null;
+          updated.rmtFactor = "";
+          updated.rmtMeters = 0;
+        }
+
+        // If RMT fields change → recalc meters
+        if (
+          updated.unit === "rmt" &&
+          (key === "rmtFactor" || key === "rmtUnit")
+        ) {
+          updated.rmtMeters = convertToMeters(
+            key === "rmtFactor" ? value : updated.rmtFactor,
+            key === "rmtUnit" ? value : updated.rmtUnit,
+          );
+        }
+
+        return updated;
+      }),
+    );
+  }
+
   /* -------------------------
    * ADD PRODUCT
    * ------------------------- */
@@ -119,42 +172,130 @@ function CreateQuotation() {
         name: product.name,
         sku: product.SKU || product.sku,
         unitPrices: product.unitPrices || [],
+        unitConversions: product.unitConversions || [], // ✅ ADD THIS
         unit: defaultUnit,
         price: Number(defaultPrice),
         quantity: 1,
         customPrice: null,
         taxes: product.taxes || [],
+
+        // ✅ NEW
+        rmtFactor: "",
+        rmtUnit: "mm",
+        rmtMeters: 0,
       },
     ]);
-  }
-
-  /* -------------------------
-   * UPDATE ITEM
-   * ------------------------- */
-  function updateItem(index, key, value) {
-    setQuotationItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              [key]: value,
-              ...(key === "unit"
-                ? {
-                    price: Number(
-                      item.unitPrices.find((u) => u.unit === value)?.price || 0,
-                    ),
-                    customPrice: null,
-                  }
-                : {}),
-            }
-          : item,
-      ),
-    );
   }
 
   function removeItem(index) {
     setQuotationItems((prev) => prev.filter((_, i) => i !== index));
   }
+
+  const normalizeLengthToMeters = (value, unit) => {
+    const v = Number(value || 0);
+    switch (unit) {
+      case "mm":
+        return v / 1000;
+      case "cm":
+        return v / 100;
+      case "m":
+        return v;
+      case "ft":
+        return v * 0.3048;
+      case "inch":
+        return v * 0.0254;
+      default:
+        return v;
+    }
+  };
+
+  const calculateWeightKg = (item) => {
+    try {
+      console.log("🧾 Calculating weight for item:", item);
+
+      if (!item.unitConversions?.length) {
+        console.error("❌ No unitConversions found for item", item.productId);
+        return null;
+      }
+
+      const conv = item.unitConversions.find(
+        (c) => c.fromUnit === item.unit && c.toUnit === "kg",
+      );
+
+      if (!conv) {
+        console.error("❌ No KG conversion found", item.unitConversions);
+        return null;
+      }
+
+      const quantity = Number(item.quantity || 0);
+      if (!quantity || isNaN(quantity)) {
+        console.error("❌ Invalid quantity:", item.quantity);
+        return null;
+      }
+
+      // ---------------- FIXED CONVERSION ----------------
+      if (conv.conversionType === "FIXED") {
+        const factor = Number(conv.factor || 0);
+        if (!factor) {
+          console.error("❌ FIXED conversion missing factor", conv);
+          return null;
+        }
+        const result = quantity * factor;
+        return result;
+      }
+
+      // ---------------- FORMULA CONVERSION ----------------
+      const formula = conv.formula;
+      if (!formula) {
+        console.error("❌ FORMULA conversion missing formula object", conv);
+        return null;
+      }
+
+      const thicknessM = Number(formula.thickness) / 1000; // mm → m
+      const widthM = Number(formula.width);
+      const density = Number(formula.density);
+      let lengthPerUnitM = Number(formula.length);
+
+      if ([thicknessM, widthM, density, lengthPerUnitM].some((v) => isNaN(v))) {
+        console.error("❌ Invalid formula numbers", formula);
+        return null;
+      }
+
+      // ✅ RMT adjustment (length multiplier only)
+      if (item.unit === "rmt") {
+        if (!item.rmtFactor) {
+          console.error("❌ RMT selected but rmtFactor missing", item);
+          return null;
+        }
+
+        const factorMeters = normalizeLengthToMeters(
+          item.rmtFactor,
+          item.rmtUnit,
+        );
+
+        lengthPerUnitM = lengthPerUnitM * factorMeters;
+      }
+
+      const weightPerUnit = lengthPerUnitM * widthM * thicknessM * density;
+
+      if (isNaN(weightPerUnit)) {
+        console.error("❌ weightPerUnit became NaN", {
+          lengthPerUnitM,
+          widthM,
+          thicknessM,
+          density,
+        });
+        return null;
+      }
+
+      const totalKg = weightPerUnit * quantity;
+
+      return totalKg > 0 ? totalKg : null;
+    } catch (err) {
+      console.error("🔥 Weight calculation crashed:", err, item);
+      return null;
+    }
+  };
 
   /* -------------------------
    * CALCULATIONS
@@ -165,7 +306,10 @@ function CreateQuotation() {
         item.customPrice !== null
           ? Number(item.customPrice)
           : Number(item.price);
-      const baseAmount = unitPrice * item.quantity;
+      const baseAmount =
+        item.unit === "rmt"
+          ? unitPrice * item.quantity * Number(item.rmtFactor || 0)
+          : unitPrice * item.quantity;
 
       let itemTaxAmount = 0;
       item.taxes?.forEach((tax) => {
@@ -218,6 +362,10 @@ function CreateQuotation() {
           quantity: i.quantity,
           unitPrice:
             i.customPrice !== null ? Number(i.customPrice) : Number(i.price),
+
+          // ✅ NEW
+          rmtFactor: i.unit === "rmt" ? Number(i.rmtFactor) : null,
+          rmtUnit: i.unit === "rmt" ? i.rmtUnit : null,
         })),
       };
 
@@ -553,7 +701,10 @@ function CreateQuotation() {
                     item.customPrice !== null
                       ? Number(item.customPrice)
                       : Number(item.price);
-                  const baseAmount = unitPrice * item.quantity;
+                  const baseAmount =
+                    item.unit === "rmt"
+                      ? unitPrice * item.quantity * Number(item.rmtFactor || 0)
+                      : unitPrice * item.quantity;
 
                   let itemTax = 0;
                   item.taxes?.forEach((tax) => {
@@ -568,6 +719,11 @@ function CreateQuotation() {
                         <div style={styles.itemName}>{item.name}</div>
                         {item.sku && (
                           <div style={styles.itemSku}>{item.sku}</div>
+                        )}
+                        {item.unit === "rmt" && item.rmtMeters > 0 && (
+                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                            Weight: {calculateWeightKg(item)?.toFixed(2)} kg
+                          </div>
                         )}
                       </div>
 
@@ -585,6 +741,33 @@ function CreateQuotation() {
                             </option>
                           ))}
                         </select>
+
+                        {item.unit === "rmt" && (
+                          <div style={{ marginTop: 6 }}>
+                            <input
+                              type="number"
+                              placeholder="Width"
+                              value={item.rmtFactor}
+                              onChange={(e) =>
+                                updateItem(idx, "rmtFactor", e.target.value)
+                              }
+                              style={{ ...styles.inputSmall, marginBottom: 4 }}
+                            />
+                            <select
+                              value={item.rmtUnit}
+                              onChange={(e) =>
+                                updateItem(idx, "rmtUnit", e.target.value)
+                              }
+                              style={styles.selectSmall}
+                            >
+                              <option value="mm">mm</option>
+                              <option value="cm">cm</option>
+                              <option value="m">m</option>
+                              <option value="ft">ft</option>
+                              <option value="inch">inch</option>
+                            </select>
+                          </div>
+                        )}
                       </div>
 
                       <div style={styles.tdQty}>
@@ -777,15 +960,24 @@ function CreateQuotation() {
                   item.customPrice !== null
                     ? Number(item.customPrice)
                     : Number(item.price);
-                const baseAmount = unitPrice * item.quantity;
+                const baseAmount =
+                  item.unit === "rmt"
+                    ? unitPrice * item.quantity * Number(item.rmtFactor || 0)
+                    : unitPrice * item.quantity;
 
                 return (
                   <div key={idx} style={styles.reviewItem}>
                     <div style={styles.reviewItemInfo}>
                       <div style={styles.reviewItemName}>{item.name}</div>
                       <div style={styles.reviewItemMeta}>
-                        {item.quantity} × {item.unit} @ ₹
-                        {unitPrice.toLocaleString("en-IN")}
+                        {item.unit === "rmt"
+                          ? `${item.quantity} × ${item.rmtFactor || 0}${item.rmtUnit} (RMT) @ ₹${unitPrice}`
+                          : `${item.quantity} × ${item.unit} @ ₹${unitPrice}`}
+                        {item.unit === "rmt" && item.rmtMeters > 0 && (
+                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                            Weight: {calculateWeightKg(item)?.toFixed(2)} kg
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={styles.reviewItemAmount}>

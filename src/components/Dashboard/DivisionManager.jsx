@@ -33,6 +33,28 @@ function DivisionManager() {
     gstinNumber: "",
     cinNumber: "",
   });
+  // Add these with your other division states (around line 30)
+  const [editingDivision, setEditingDivision] = useState(null);
+
+  // Update handleCancel (or create a specific one for Division)
+  const handleCancelDivisionForm = () => {
+    setShowCreateForm(false);
+    setEditingDivision(null);
+    setNewDivision({
+      name: "",
+      state: "",
+      stateCode: "",
+      plot: "",
+      street1: "",
+      street2: "",
+      areaLocality: "",
+      cityVillage: "",
+      pincode: "",
+      district: "",
+      gstinNumber: "",
+      cinNumber: "",
+    });
+  };
   const [creating, setCreating] = useState(false);
   const [storeSearch, setStoreSearch] = useState("");
 
@@ -40,6 +62,49 @@ function DivisionManager() {
   // Get active tab from URL params or default to 'divisions'
   const activeTabFromUrl = searchParams.get("tab") || "divisions";
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
+
+  const handleEditDivision = (division) => {
+    setEditingDivision(division);
+    setNewDivision({
+      name: division.name || "",
+      state: division.state || "",
+      stateCode: division.stateCode || "",
+      plot: division.plot || "",
+      street1: division.street1 || "",
+      street2: division.street2 || "",
+      areaLocality: division.areaLocality || "",
+      cityVillage: division.cityVillage || "",
+      pincode: division.pincode || "",
+      district: division.district || "",
+      gstinNumber: division.gstinNumber || "",
+      cinNumber: division.cinNumber || "",
+    });
+    setShowCreateForm(true);
+  };
+
+  const handleUpdateDivision = async (e) => {
+    e.preventDefault();
+    try {
+      setCreating(true);
+      const response = await axiosAPI.put(
+        `/divisions/${editingDivision.id}`,
+        newDivision,
+      );
+
+      if (response.status === 200) {
+        setError("Division updated successfully!");
+        setIsModalOpen(true);
+        handleCancelDivisionForm();
+        fetchDivisions();
+      }
+    } catch (error) {
+      console.error("Error updating division:", error);
+      setError(error.response?.data?.message || "Failed to update division");
+      setIsModalOpen(true);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   // Sync activeTab with URL params on mount and when URL changes
   useEffect(() => {
@@ -2301,8 +2366,17 @@ function DivisionManager() {
           <>
             {showCreateForm && (
               <div className={styles.createForm}>
-                <h3>Create New Division</h3>
-                <form onSubmit={handleCreateDivision}>
+                {/* Change Title Dynamically */}
+                <h3>
+                  {editingDivision ? "Edit Division" : "Create New Division"}
+                </h3>
+                <form
+                  onSubmit={
+                    editingDivision
+                      ? handleUpdateDivision
+                      : handleCreateDivision
+                  }
+                >
                   {/* Basic Information Section */}
                   <div className={styles.formSection}>
                     <h4 className={styles.sectionTitle}>Basic Information</h4>
@@ -2552,12 +2626,16 @@ function DivisionManager() {
                       className="homebtn"
                       disabled={creating}
                     >
-                      {creating ? "Creating..." : "Create Division"}
+                      {creating
+                        ? "Saving..."
+                        : editingDivision
+                          ? "Update Division"
+                          : "Create Division"}
                     </button>
                     <button
                       type="button"
                       className="homebtn"
-                      onClick={() => setShowCreateForm(false)}
+                      onClick={handleCancelDivisionForm}
                     >
                       Cancel
                     </button>
@@ -2605,12 +2683,22 @@ function DivisionManager() {
                       </div>
                       <div className={styles.divisionActions}>
                         {!isDivisionHead(user) && (
-                          <button
-                            className="homebtn"
-                            onClick={() => handleDeleteDivision(division.id)}
-                          >
-                            Delete
-                          </button>
+                          <>
+                            {/* Add Edit Button here */}
+                            <button
+                              className="homebtn"
+                              onClick={() => handleEditDivision(division)}
+                              style={{ marginRight: "8px" }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="homebtn"
+                              onClick={() => handleDeleteDivision(division.id)}
+                            >
+                              Delete
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>

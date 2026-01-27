@@ -75,15 +75,11 @@ function InvoiceDetails({ navigate, invoiceId }) {
                   <PDFPreviewModal
                     pdfUrl={`/invoice/${invoice.salesOrder?.id}/pdf?type=${invoice.type}`}
                     filename={`${invoice.invoiceNumber}.pdf`}
-                    triggerText={<><i className="bi bi-download"></i> Download Invoice </>}
-                  />
-                </div>
-
-                <div className={styles.downloadBtn}>
-                  <PDFPreviewModal
-                    pdfUrl={`/sales-orders/dc/${invoice.salesOrder?.id}/pdf`}
-                    filename={`DeliveryChallan_SO${invoice.salesOrder?.id}.pdf`}
-                    triggerText="Delivery Challan"
+                    triggerText={
+                      <>
+                        <i className="bi bi-download"></i> Download Invoice{" "}
+                      </>
+                    }
                   />
                 </div>
               </div>

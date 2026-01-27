@@ -57,7 +57,7 @@ function InvoicesPage({ navigate, setInvoiceId }) {
 
         console.log(
           "InvoicePage - Fetching customers with endpoint:",
-          endpoint
+          endpoint,
         );
         console.log("InvoicePage - Division ID:", currentDivisionId);
         console.log("InvoicePage - Division Name:", currentDivisionName);
@@ -98,7 +98,7 @@ function InvoicesPage({ navigate, setInvoiceId }) {
         const res = await axiosAPI.get(
           `/invoice?fromDate=${from}&toDate=${to}${
             warehouse ? `&warehouseId=${warehouse}` : ""
-          }${customer ? `&customerId=${customer}` : ""}${divisionParam}&page=${pageNo}`
+          }${customer ? `&customerId=${customer}` : ""}${divisionParam}&page=${pageNo}`,
         );
         console.log(res);
         const allItems = res.data.invoices;
@@ -311,7 +311,7 @@ function InvoicesPage({ navigate, setInvoiceId }) {
                   {invoices && invoices.length > 0
                     ? Math.min(
                         pageNo * limit,
-                        (pageNo - 1) * limit + invoices.length
+                        (pageNo - 1) * limit + invoices.length,
                       )
                     : 0}{" "}
                   of {allInvoices ? allInvoices.length : 0} entries
@@ -330,7 +330,6 @@ function InvoicesPage({ navigate, setInvoiceId }) {
                   <th>Sales Order Number</th>
                   <th>Customer Name</th>
                   <th>Customer Mobile</th>
-                  <th>Total Bags</th>
                   <th>Amount</th>
                   <th>Action</th>
                 </tr>
@@ -356,11 +355,6 @@ function InvoicesPage({ navigate, setInvoiceId }) {
                       <td>{inv.salesOrder?.orderNumber}</td>
                       <td>{inv.customer?.name}</td>
                       <td>{inv.customer?.mobile}</td>
-                      <td>
-                        {inv.totalBags === 1
-                          ? `${inv.totalBags} Bag`
-                          : `${inv.totalBags} Bags`}{" "}
-                      </td>
                       <td>₹{Number(inv.grandTotal || 0).toFixed(2)}</td>
 
                       {/* ✅ DC PDF View Button */}
