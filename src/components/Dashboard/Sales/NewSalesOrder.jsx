@@ -784,6 +784,14 @@ const Card = ({ children, variant, style = {} }) => {
   return <div style={{ ...cardStyle, ...style }}>{children}</div>;
 };
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  marginTop: "4px",
+  borderRadius: "6px",
+  border: "1px solid #ccc",
+};
+
 const QuantityModal = ({
   showQuantityModal,
   selectedProductForQty,
@@ -796,6 +804,10 @@ const QuantityModal = ({
   const [customUnitPrice, setCustomUnitPrice] = React.useState("");
   const [selectedUnit, setSelectedUnit] = React.useState("");
 
+  // ✅ RMT states
+  const [rmtFactor, setRmtFactor] = React.useState("");
+  const [rmtUnit, setRmtUnit] = React.useState("cm");
+
   React.useEffect(() => {
     if (selectedProductForQty?.unitPrices?.length) {
       const defaultUnit =
@@ -804,8 +816,11 @@ const QuantityModal = ({
 
       setSelectedUnit(defaultUnit);
       setCustomUnitPrice("");
+      setRmtFactor("");
+      setRmtUnit("cm");
+      setInputQuantity("");
     }
-  }, [selectedProductForQty]);
+  }, [selectedProductForQty, setInputQuantity]);
 
   if (!showQuantityModal || !selectedProductForQty) return null;
 
@@ -818,9 +833,13 @@ const QuantityModal = ({
       ? Number(customUnitPrice)
       : Number(systemUnitPrice || 0);
 
-  const baseAmount = baseUnitPrice * quantity;
+  // ✅ Base Amount (RMT aware)
+  const baseAmount =
+    selectedUnit === "rmt"
+      ? baseUnitPrice * quantity * Number(rmtFactor || 0)
+      : baseUnitPrice * quantity;
 
-  // 🧾 TAX CALCULATION
+  // 🧾 TAX
   let taxAmount = 0;
   const taxBreakdown = [];
 
@@ -850,6 +869,7 @@ const QuantityModal = ({
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
+        padding: "16px",
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -857,134 +877,181 @@ const QuantityModal = ({
           setSelectedProductForQty(null);
           setInputQuantity("");
           setCustomUnitPrice("");
+          setRmtFactor("");
         }
       }}
     >
+      {/* MODAL */}
       <div
         style={{
           backgroundColor: "white",
           borderRadius: "12px",
-          padding: "24px",
           width: "420px",
-          maxWidth: "90vw",
-          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+          maxWidth: "100%",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ marginBottom: "16px" }}>Add to Cart</h3>
-
-        <div style={{ marginBottom: "10px" }}>
-          <strong>Product:</strong>
-          <div>{selectedProductForQty.name}</div>
+        {/* HEADER */}
+        <div
+          style={{
+            padding: "16px 24px",
+            borderBottom: "1px solid #e2e8f0",
+            fontWeight: 600,
+          }}
+        >
+          Add to Cart
         </div>
 
-        <div style={{ marginBottom: "10px" }}>
-          <strong>Base Price:</strong>
-          <div>
-            ₹
-            {customUnitPrice !== "" && Number(customUnitPrice) > 0
-              ? Number(customUnitPrice)
-              : getUnitPrice(
-                  selectedProductForQty,
-                  selectedUnit || selectedProductForQty.defaultUnit,
-                )}{" "}
-            per{" "}
-            {selectedProductForQty.productType === "packed"
-              ? "pack"
-              : selectedUnit || selectedProductForQty.defaultUnit}
+        {/* BODY (SCROLLABLE) */}
+        <div
+          style={{
+            padding: "16px 24px",
+            overflowY: "auto",
+            flex: 1,
+          }}
+        >
+          <div style={{ marginBottom: "10px" }}>
+            <strong>Product:</strong>
+            <div>{selectedProductForQty.name}</div>
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <strong>Base Price:</strong>
+            <div>
+              ₹{baseUnitPrice} per{" "}
+              {selectedUnit === "rmt" ? "running meter" : selectedUnit}
+            </div>
+          </div>
+
+          {/* UNIT */}
+          <div style={{ marginBottom: "12px" }}>
+            <label>Unit</label>
+            <select
+              value={selectedUnit}
+              onChange={(e) => setSelectedUnit(e.target.value)}
+              style={inputStyle}
+            >
+              {selectedProductForQty.unitPrices?.map((u) => (
+                <option key={u.unit} value={u.unit}>
+                  {u.unit} — ₹{u.price}
+                  {u.isDefault ? " (default)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* RMT */}
+          {selectedUnit === "rmt" && (
+            <div
+              style={{
+                marginBottom: "12px",
+                padding: "12px",
+                background: "#edf2f7",
+                borderRadius: "8px",
+              }}
+            >
+              <label>Width / RMT Factor</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Eg: 15"
+                value={rmtFactor}
+                onChange={(e) => setRmtFactor(e.target.value)}
+                style={inputStyle}
+              />
+
+              <select
+                value={rmtUnit}
+                onChange={(e) => setRmtUnit(e.target.value)}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              >
+                <option value="mm">mm</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="ft">ft</option>
+                <option value="inch">inch</option>
+              </select>
+
+              <small style={{ color: "#4a5568" }}>
+                Applied only for running meter pricing
+              </small>
+            </div>
+          )}
+
+          {/* QUANTITY */}
+          <div style={{ marginBottom: "12px" }}>
+            <label>Quantity</label>
+            <input
+              type="number"
+              min="1"
+              value={inputQuantity}
+              onChange={(e) => setInputQuantity(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          {/* CUSTOM PRICE */}
+          <div style={{ marginBottom: "12px" }}>
+            <label>
+              Custom Unit Price{" "}
+              <span style={{ color: "#718096" }}>(optional)</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Override price"
+              value={customUnitPrice}
+              onChange={(e) => setCustomUnitPrice(e.target.value)}
+              style={{
+                ...inputStyle,
+                border:
+                  customUnitPrice !== ""
+                    ? "2px solid #c53030"
+                    : "1px solid #ccc",
+              }}
+            />
+            {customUnitPrice !== "" && (
+              <small style={{ color: "#c53030" }}>
+                ⚠ Manual price override
+              </small>
+            )}
+          </div>
+
+          {/* PRICE SUMMARY */}
+          <div
+            style={{
+              background: "#f7fafc",
+              padding: "12px",
+              borderRadius: "8px",
+              marginTop: "12px",
+            }}
+          >
+            <div>Base Amount: ₹{formatINR(baseAmount)}</div>
+            <div>Tax: ₹{formatINR(taxAmount)}</div>
+            <strong>Total: ₹{formatINR(finalAmount)}</strong>
+
+            {taxBreakdown.map((t) => (
+              <div key={t.name} style={{ fontSize: "12px", color: "#4a5568" }}>
+                {t.name} ({t.percentage}%): ₹{t.amount.toFixed(2)}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* UNIT SELECT */}
-        <div style={{ marginBottom: "12px" }}>
-          <label>Unit</label>
-          <select
-            value={selectedUnit}
-            onChange={(e) => setSelectedUnit(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginTop: "4px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          >
-            {selectedProductForQty.unitPrices?.map((u) => (
-              <option key={u.unit} value={u.unit}>
-                {u.unit} — ₹{u.price}
-                {u.isDefault ? " (default)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* QUANTITY */}
-        <div style={{ marginBottom: "12px" }}>
-          <label>Quantity</label>
-          <input
-            type="number"
-            min="1"
-            value={inputQuantity}
-            onChange={(e) => setInputQuantity(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginTop: "4px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </div>
-
-        {/* 🔥 CUSTOM PRICE */}
-        <div style={{ marginBottom: "12px" }}>
-          <label>
-            Custom Unit Price{" "}
-            <span style={{ color: "#718096" }}>(optional)</span>
-          </label>
-          <input
-            type="number"
-            min="0"
-            placeholder="Override price"
-            value={customUnitPrice}
-            onChange={(e) => setCustomUnitPrice(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginTop: "4px",
-              borderRadius: "6px",
-              border:
-                customUnitPrice !== "" ? "2px solid #c53030" : "1px solid #ccc",
-            }}
-          />
-          {customUnitPrice !== "" && (
-            <small style={{ color: "#c53030" }}>⚠ Manual price override</small>
-          )}
-        </div>
-
-        {/* PRICE SUMMARY */}
+        {/* FOOTER */}
         <div
           style={{
-            background: "#f7fafc",
-            padding: "12px",
-            borderRadius: "8px",
-            marginBottom: "16px",
+            padding: "12px 24px",
+            borderTop: "1px solid #e2e8f0",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            background: "#fff",
           }}
-        >
-          <div>Base Amount: ₹{formatINR(baseAmount)}</div>
-          <div>Tax: ₹{formatINR(taxAmount)}</div>
-          <strong>Total: ₹{formatINR(finalAmount)}</strong>
-
-          {taxBreakdown.map((t) => (
-            <div key={t.name} style={{ fontSize: "12px", color: "#4a5568" }}>
-              {t.name} ({t.percentage}%): ₹{t.amount.toFixed(2)}
-            </div>
-          ))}
-        </div>
-
-        {/* ACTIONS */}
-        <div
-          style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}
         >
           <button
             onClick={() => {
@@ -992,25 +1059,32 @@ const QuantityModal = ({
               setSelectedProductForQty(null);
               setInputQuantity("");
               setCustomUnitPrice("");
+              setRmtFactor("");
             }}
           >
             Cancel
           </button>
 
           <button
-            disabled={!quantity || quantity <= 0}
+            disabled={
+              !quantity ||
+              quantity <= 0 ||
+              (selectedUnit === "rmt" && !rmtFactor)
+            }
             onClick={() =>
               handleQuantityConfirm({
                 quantity,
                 unit: selectedUnit,
                 customUnitPrice:
                   customUnitPrice !== "" ? Number(customUnitPrice) : null,
+                rmtFactor: selectedUnit === "rmt" ? Number(rmtFactor) : null,
+                rmtUnit: selectedUnit === "rmt" ? rmtUnit : null,
               })
             }
             style={{
               backgroundColor: "#003176",
               color: "white",
-              padding: "6px 12px",
+              padding: "6px 14px",
               borderRadius: "4px",
               border: "none",
             }}
@@ -1176,6 +1250,10 @@ export default function SalesOrderWizard() {
               productId: id,
               quantity: item.quantity,
               unit: item.unit,
+
+              // 🔥 RMT SUPPORT (THIS WAS MISSING)
+              rmtFactor: item.unit === "rmt" ? item.rmtFactor : null,
+              rmtUnit: item.unit === "rmt" ? item.rmtUnit : null,
 
               // 🔥 CUSTOM PRICE SUPPORT (CRITICAL)
               unitPrice:
@@ -1477,6 +1555,8 @@ export default function SalesOrderWizard() {
     unit,
     customUnitPrice = null,
     priceOverrideReason = null,
+    rmtFactor = null,
+    rmtUnit = null,
   ) {
     if (!customerDetails) return;
     const isNewCart = !cartId;
@@ -1508,6 +1588,9 @@ export default function SalesOrderWizard() {
             productId: product.id,
             quantity,
             unit: unit,
+            // 🔥 RMT SUPPORT
+            rmtFactor: unit === "rmt" ? Number(rmtFactor) : null,
+            rmtUnit: unit === "rmt" ? rmtUnit : null,
             // 🔥 PRICE OVERRIDE SUPPORT
             customUnitPrice:
               customUnitPrice !== null && customUnitPrice !== ""
@@ -1631,7 +1714,13 @@ export default function SalesOrderWizard() {
   }
 
   // Handle quantity modal confirmation
-  function handleQuantityConfirm({ quantity, customUnitPrice, unit }) {
+  function handleQuantityConfirm({
+    quantity,
+    customUnitPrice,
+    unit,
+    rmtFactor = null,
+    rmtUnit = null,
+  }) {
     if (!selectedProductForQty || quantity <= 0) return;
 
     const currentInCart = cartItems[selectedProductForQty.id]?.quantity || 0;
@@ -1642,6 +1731,8 @@ export default function SalesOrderWizard() {
       unit,
       customUnitPrice,
       customUnitPrice ? "Manual price override from cart modal" : null,
+      rmtFactor,
+      rmtUnit,
     );
 
     // cleanup
@@ -1686,7 +1777,12 @@ export default function SalesOrderWizard() {
       const existingItem = cartItems?.[productId];
       const cartItemId = existingItem?.id;
       const payload = cartItemId
-        ? { cartId, customerId: customerDetails?.customer_id, cartItemId }
+        ? {
+            cartId,
+            customerId: customerDetails?.customer_id,
+            cartItemId,
+            productId,
+          }
         : {
             cartId,
             customerId: customerDetails?.customer_id,
@@ -2882,11 +2978,13 @@ export default function SalesOrderWizard() {
                                 (product.quantity ||
                                   product.stockQuantity ||
                                   product.stock ||
-                                  0) > 10
+                                  product.totalStock ||
+                                  0) > 1
                                   ? "#28a745"
                                   : (product.quantity ||
                                         product.stockQuantity ||
                                         product.stock ||
+                                        product.totalStock ||
                                         0) > 0
                                     ? "#ffc107"
                                     : "#dc3545",
@@ -2895,11 +2993,13 @@ export default function SalesOrderWizard() {
                             {(product.quantity ||
                               product.stockQuantity ||
                               product.stock ||
+                              product.totalStock ||
                               0) <= 0
                               ? "Out of Stock"
                               : product.quantity ||
                                 product.stockQuantity ||
                                 product.stock ||
+                                product.totalStock ||
                                 0}
                           </span>
                         </div>
@@ -2954,7 +3054,7 @@ export default function SalesOrderWizard() {
                               ? "Add More"
                               : "Add to Cart"}
                         </Button>
-
+                        {console.log("Product : ", product)}
                         {inCart > 0 && (
                           <Button
                             variant="danger"
@@ -3046,7 +3146,9 @@ export default function SalesOrderWizard() {
                             }
 
                             if (!priceBreakup) {
+                              console.log("Cart Item", cartItem);
                               const amountBase =
+                                cartItem?.baseAmount ??
                                 cartItem?.cartBaseAmount ??
                                 cartItem?.total ??
                                 cartItem?.totalPrice ??
@@ -3254,7 +3356,7 @@ export default function SalesOrderWizard() {
                                   >
                                     ₹
                                     {(
-                                      (priceBreakup.amount ??
+                                      (priceBreakup.baseAmount ??
                                         priceBreakup.totalCost) ||
                                       0
                                     ).toLocaleString("en-IN")}

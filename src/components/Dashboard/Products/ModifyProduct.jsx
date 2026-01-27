@@ -153,12 +153,7 @@ function ModifyProduct({ navigate, isAdmin }) {
         const currentDivisionId = localStorage.getItem("currentDivisionId");
         const currentDivisionName = localStorage.getItem("currentDivisionName");
 
-        let endpoint = "/products/list";
-        if (currentDivisionId && currentDivisionId !== "1") {
-          endpoint += `?divisionId=${currentDivisionId}`;
-        } else if (currentDivisionId === "1") {
-          endpoint += `?showAllDivisions=true`;
-        }
+        let endpoint = `/products?showAll=true&divisionId=${currentDivisionId}`;
 
         const res = await axiosAPI.get(endpoint);
         setProducts(res.data.products);

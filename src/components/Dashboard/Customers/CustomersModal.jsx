@@ -16,6 +16,7 @@ import Loading from "@/components/Loading";
 import ImagesViewModal from "./ImagesViewModal";
 import axios from "axios";
 import PhotosDrawer from "./PhotosDrawer";
+import CustomerSalesAnalytics from "./CustomerAnalytics";
 
 function CustomersModal({ customerId, setCustomerId, isAdmin }) {
   const { axiosAPI } = useAuth();
@@ -44,21 +45,21 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
     async function fetch() {
       try {
         setLoading(true);
-        const currentDivisionId = localStorage.getItem('currentDivisionId');
+        const currentDivisionId = localStorage.getItem("currentDivisionId");
 
         // Build both endpoint variants with division context
         const buildUrl = (base) => {
           let u = `${base}/${customerId}`;
-          if (currentDivisionId && currentDivisionId !== '1') {
+          if (currentDivisionId && currentDivisionId !== "1") {
             u += `?divisionId=${currentDivisionId}`;
-          } else if (currentDivisionId === '1') {
+          } else if (currentDivisionId === "1") {
             u += `?showAllDivisions=true`;
           }
           return u;
         };
 
-        const customersUrl = buildUrl('/customers');
-        const customerUrl = buildUrl('/customer');
+        const customersUrl = buildUrl("/customers");
+        const customerUrl = buildUrl("/customer");
 
         let res;
         try {
@@ -75,13 +76,20 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
 
         const data = res.data || {};
         const customer = data.customer || data?.data?.customer || data;
-        const pad = data.productsAndDiscounting || data?.data?.productsAndDiscounting || {};
+        const pad =
+          data.productsAndDiscounting ||
+          data?.data?.productsAndDiscounting ||
+          {};
         setCustomerdata(customer);
         setProducts(pad?.products || []);
-        setBillToBillDiscounts(pad?.billToBillDiscounts || pad?.bill_to_bill_discounts || []);
-        setMonthlyDiscounts(pad?.monthlyDiscounts || pad?.monthly_discounts || []);
+        setBillToBillDiscounts(
+          pad?.billToBillDiscounts || pad?.bill_to_bill_discounts || [],
+        );
+        setMonthlyDiscounts(
+          pad?.monthlyDiscounts || pad?.monthly_discounts || [],
+        );
       } catch (e) {
-        setError(e.response?.data?.message || 'Failed to load customer');
+        setError(e.response?.data?.message || "Failed to load customer");
         setIsModalOpen(true);
       } finally {
         setLoading(false);
@@ -97,12 +105,17 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/customer/product-pricing`, {
         customerId,
         productId,
-        customPrice: customPrice === '' || customPrice == null ? null : Number(customPrice),
+        customPrice:
+          customPrice === "" || customPrice == null
+            ? null
+            : Number(customPrice),
       });
       // Optimistically update UI
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, customPrice } : p));
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, customPrice } : p)),
+      );
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update product price');
+      setError(e.response?.data?.message || "Failed to update product price");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -116,10 +129,14 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/bill-to-bill-discount`, {
         discountId: discount.id,
         minQuantity: Number(discount.minQuantity ?? discount.min_quantity ?? 0),
-        discountAmount: Number(discount.discountAmount ?? discount.discount_amount ?? 0),
+        discountAmount: Number(
+          discount.discountAmount ?? discount.discount_amount ?? 0,
+        ),
       });
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update bill-to-bill discount');
+      setError(
+        e.response?.data?.message || "Failed to update bill-to-bill discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -133,10 +150,14 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
       await axiosAPI.put(`/monthly-discount`, {
         discountId: discount.id,
         minTurnover: Number(discount.minTurnover ?? discount.min_turnover ?? 0),
-        discountAmount: Number(discount.discountAmount ?? discount.discount_amount ?? 0),
+        discountAmount: Number(
+          discount.discountAmount ?? discount.discount_amount ?? 0,
+        ),
       });
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to update monthly discount');
+      setError(
+        e.response?.data?.message || "Failed to update monthly discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -153,14 +174,34 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         discountAmount: 0,
       });
       const created = res.data?.discount || res.data;
-      setBillToBillDiscounts(prev => [...prev, created]);
+      setBillToBillDiscounts((prev) => [...prev, created]);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to add bill-to-bill discount');
+      setError(
+        e.response?.data?.message || "Failed to add bill-to-bill discount",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const [salesData, setSalesData] = useState(null);
+
+  useEffect(() => {
+    if (!customerId) return;
+
+    async function fetchSales() {
+      try {
+        const res = await axiosAPI.get(`/sales-orders/customer/${customerId}`);
+        console.log("Sales Data :", res);
+        setSalesData(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchSales();
+  }, [customerId]);
 
   const addMonthlyDiscount = async () => {
     try {
@@ -171,9 +212,9 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         discountAmount: 0,
       });
       const created = res.data?.discount || res.data;
-      setMonthlyDiscounts(prev => [...prev, created]);
+      setMonthlyDiscounts((prev) => [...prev, created]);
     } catch (e) {
-      setError(e.response?.data?.message || 'Failed to add monthly discount');
+      setError(e.response?.data?.message || "Failed to add monthly discount");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -184,7 +225,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
     try {
       setLoading(true);
       const res = await axiosAPI.put(
-        `/customers/${customerdata.id}/kyc/approve`
+        `/customers/${customerdata.id}/kyc/approve`,
       );
       setSuccessful(res.data.message);
 
@@ -233,7 +274,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
         `/customers/${customerdata.id}/kyc/reject`,
         {
           remark: rejectionRemark,
-        }
+        },
       );
       setSuccessful(res.data.message);
       // changeTrigger();
@@ -385,7 +426,7 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       console.log(res);
       setSuccessful(res.data.message);
@@ -399,217 +440,207 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
   };
 
   return (
-    <>
-      {customerdata && (
+    <DialogRoot
+      open={!!customerId}
+      onOpenChange={(open) => !open && setCustomerId(null)}
+    >
+      <DialogContent
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 1000,
+          maxWidth: "1100px",
+          width: "95vw",
+          background: "#fff",
+          borderRadius: "12px",
+          padding: "24px",
+          maxHeight: "90vh",
+          overflowY: "auto",
+        }}
+      >
+        <DialogCloseTrigger />
         <>
-          {/* <h3 className={`px-3 mdl-title`}>KYC Approval</h3> */}
+          {customerdata && (
+            <>
+              {/* <h3 className={`px-3 mdl-title`}>KYC Approval</h3> */}
 
-          <div className="row m-0 p-0">
-            <h5 className={styles.head}>Customer Details</h5>
-            <div className={`col-5 ${styles.longform}`}>
-              <label>Customer Name :</label>
-              <input
-                type="text"
-                value={name}
-                style={{
-                  width: `${
-                    (customerdata.name?.length > 15
-                      ? customerdata.name?.length
-                      : 15) + 1
-                  }ch`,
-                  padding: "0.3rem 0.5rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                readOnly={!editclick}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className={`col-5 ${styles.longform}`}>
-              <label>Email :</label>
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: `${
-                    (customerdata.email?.length > 15
-                      ? customerdata.email?.length
-                      : 15) + 1
-                  }ch`,
-                  padding: "0.3rem 0.5rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Customer ID :</label>
-              <input
-                type="text"
-                value={customerdata.customer_id || "-"}
-                onChange={(e) => setEmail(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Mobile :</label>
-              <input
-                type="text"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>WhatsApp :</label>
-              <input
-                type="text"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Aadhaar Number :</label>
-              <input
-                type="text"
-                value={aadharNumber}
-                maxlength="12"
-                pattern="\d{12}"
-                inputmode="numeric"
-                readOnly={!editclick}
-                onChange={(e) => setAadharNumber(e.target.value)}
-                required
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>PAN Number :</label>
-              <input
-                type="text"
-                value={panNumber}
-                readOnly={!editclick}
-                onChange={(e) => setPanNumber(e.target.value)}
-              />
-            </div>
-            <div className={`col-4 ${styles.longform}`}>
-              <label>KYC Status :</label>
-              <input
-                type="text"
-                value={customerdata.kycStatus || "-"}
-                readOnly={!editclick}
-              />
-            </div>
-
-            <div className={`col-4 ${styles.longform}`}>
-              <label>GSTIN :</label>
-              <input
-                type="text"
-                value={gstin}
-                onChange={(e) => setGstin(e.target.value)}
-              />
-            </div>
-
-            <div className={`col-4 ${styles.longform}`}>
-              <label>MSME Number :</label>
-              <input
-                type="text"
-                value={msme}
-                onChange={(e) => setMsme(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-
-            <div className={`col-4 ${styles.longform}`}>
-              <label>Firm Name :</label>
-              <input
-                type="text"
-                value={firmName}
-                onChange={(e) => setFirmName(e.target.value)}
-                readOnly={!editclick}
-              />
-            </div>
-
-            {customerdata.rejectionRemark && (
-              <div className={`col-8 ${styles.longform}`}>
-                <label>Rejection Remark :</label>
-                <textarea
-                  value={customerdata.rejectionRemark}
-                  readOnly={!editclick}
-                />
-              </div>
-            )}
-            {!editclick && (
-              <>
-                <div className={`col-4 ${styles.longform}`}>
-                  <label>SE ID :</label>
+              <div className="row m-0 p-0">
+                <h5 className={styles.head}>Customer Details</h5>
+                <div className={`col-5 ${styles.longform}`}>
+                  <label>Customer Name :</label>
                   <input
                     type="text"
-                    value={customerdata.salesExecutive?.id || "NA"}
+                    value={name}
+                    style={{
+                      width: `${
+                        (customerdata.name?.length > 15
+                          ? customerdata.name?.length
+                          : 15) + 1
+                      }ch`,
+                      padding: "0.3rem 0.5rem",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                    }}
+                    readOnly={!editclick}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className={`col-5 ${styles.longform}`}>
+                  <label>Email :</label>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      width: `${
+                        (customerdata.email?.length > 15
+                          ? customerdata.email?.length
+                          : 15) + 1
+                      }ch`,
+                      padding: "0.3rem 0.5rem",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                    }}
                     readOnly={!editclick}
                   />
                 </div>
                 <div className={`col-4 ${styles.longform}`}>
-                  <label>SE Name :</label>
+                  <label>Customer ID :</label>
                   <input
                     type="text"
-                    value={customerdata.salesExecutive?.name || "NA"}
+                    value={customerdata.customer_id || "-"}
+                    onChange={(e) => setEmail(e.target.value)}
                     readOnly={!editclick}
                   />
                 </div>
-              </>
-            )}
-            {editclick && (
-              <div className={`col-4 ${styles.longform}`}>
-                <label>SE :</label>
-                <select value={seId} onChange={(e) => setSeId(e.target.value)}>
-                  <option value="null">--select--</option>
-                  {ses?.map((se) => (
-                    <option value={se.id}>{se.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className={`col-4 ${styles.location}`}>
-              <label htmlFor="">Location :</label>
-              <a
-                href={googleMapsURL}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.mapLink}
-              >
-                <FaMapMarkerAlt /> View on Map
-              </a>
-            </div>
-          </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Mobile :</label>
+                  <input
+                    type="text"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>WhatsApp :</label>
+                  <input
+                    type="text"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-          <div className="row m-0 p-0">
-            <h5 className={styles.headmdl}>Address</h5>
-            {[
-              { label: "Plot", value: plot, set: setPlot },
-              { label: "Street", value: street, set: setStreet },
-              { label: "Area", value: area, set: setArea },
-              { label: "City", value: city, set: setCity },
-              { label: "Mandal", value: mandal, set: setMandal },
-              { label: "District", value: district, set: setDistrict },
-              { label: "State", value: stateName, set: setStateName },
-              { label: "Pincode", value: pincode, set: setPincode },
-            ].map(({ label, value, set }) => (
-              <div key={label} className={`col-4 ${styles.longform}`}>
-                <label>{label} :</label>
-                <input
-                  type="text"
-                  value={value || ""}
-                  onChange={(e) => set(e.target.value)}
-                  readOnly={!editclick}
-                />
-              </div>
-            ))}
-          </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Aadhaar Number :</label>
+                  <input
+                    type="text"
+                    value={aadharNumber}
+                    maxlength="12"
+                    pattern="\d{12}"
+                    inputmode="numeric"
+                    readOnly={!editclick}
+                    onChange={(e) => setAadharNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>PAN Number :</label>
+                  <input
+                    type="text"
+                    value={panNumber}
+                    readOnly={!editclick}
+                    onChange={(e) => setPanNumber(e.target.value)}
+                  />
+                </div>
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>KYC Status :</label>
+                  <input
+                    type="text"
+                    value={customerdata.kycStatus || "-"}
+                    readOnly={!editclick}
+                  />
+                </div>
 
-          {/* Products & Discounting */}
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>GSTIN :</label>
+                  <input
+                    type="text"
+                    value={gstin}
+                    onChange={(e) => setGstin(e.target.value)}
+                  />
+                </div>
+
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>MSME Number :</label>
+                  <input
+                    type="text"
+                    value={msme}
+                    onChange={(e) => setMsme(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
+
+                <div className={`col-4 ${styles.longform}`}>
+                  <label>Firm Name :</label>
+                  <input
+                    type="text"
+                    value={firmName}
+                    onChange={(e) => setFirmName(e.target.value)}
+                    readOnly={!editclick}
+                  />
+                </div>
+
+                {customerdata.rejectionRemark && (
+                  <div className={`col-8 ${styles.longform}`}>
+                    <label>Rejection Remark :</label>
+                    <textarea
+                      value={customerdata.rejectionRemark}
+                      readOnly={!editclick}
+                    />
+                  </div>
+                )}
+                <div className={`col-4 ${styles.location}`}>
+                  <label htmlFor="">Location :</label>
+                  <a
+                    href={googleMapsURL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.mapLink}
+                  >
+                    <FaMapMarkerAlt /> View on Map
+                  </a>
+                </div>
+              </div>
+
+              <div className="row m-0 p-0">
+                <h5 className={styles.headmdl}>Address</h5>
+                {[
+                  { label: "Plot", value: plot, set: setPlot },
+                  { label: "Street", value: street, set: setStreet },
+                  { label: "Area", value: area, set: setArea },
+                  { label: "City", value: city, set: setCity },
+                  { label: "Mandal", value: mandal, set: setMandal },
+                  { label: "District", value: district, set: setDistrict },
+                  { label: "State", value: stateName, set: setStateName },
+                  { label: "Pincode", value: pincode, set: setPincode },
+                ].map(({ label, value, set }) => (
+                  <div key={label} className={`col-4 ${styles.longform}`}>
+                    <label>{label} :</label>
+                    <input
+                      type="text"
+                      value={value || ""}
+                      onChange={(e) => set(e.target.value)}
+                      readOnly={!editclick}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Products & Discounting 
           <div className="row m-0 p-0 mt-3">
             <h5 className={styles.headmdl}>Products & Discounting</h5>
             <div className="col-12">
@@ -626,28 +657,43 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                   <tbody>
                     {products.length === 0 && (
                       <tr>
-                        <td colSpan="4" className="text-center">No products</td>
+                        <td colSpan="4" className="text-center">
+                          No products
+                        </td>
                       </tr>
                     )}
                     {products.map((p) => (
                       <tr key={p.id}>
                         <td>{p.name}</td>
-                        <td>{p.basePrice ?? p.base_price ?? '-'}</td>
+                        <td>{p.basePrice ?? p.base_price ?? "-"}</td>
                         <td>
                           <input
                             type="number"
                             step="0.01"
                             placeholder="Enter price"
                             className="text-center"
-                            value={p.customPrice ?? ''}
+                            value={p.customPrice ?? ""}
                             onChange={(e) => {
                               const val = e.target.value;
-                              setProducts(prev => prev.map(x => x.id === p.id ? { ...x, customPrice: val } : x));
+                              setProducts((prev) =>
+                                prev.map((x) =>
+                                  x.id === p.id
+                                    ? { ...x, customPrice: val }
+                                    : x,
+                                ),
+                              );
                             }}
                           />
                         </td>
                         <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveProductPrice(p.id, p.customPrice)}>Save</button>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() =>
+                              saveProductPrice(p.id, p.customPrice)
+                            }
+                          >
+                            Save
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -655,329 +701,249 @@ function CustomersModal({ customerId, setCustomerId, isAdmin }) {
                 </table>
               </div>
             </div>
-          </div>
+          </div>*/}
 
-          <div className="row m-0 p-0 mt-3">
-            <div className="col-6">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0">Bill-to-Bill Discounts</h6>
-                <button className="btn btn-sm btn-outline-primary" onClick={addBillToBillDiscount}>Add</button>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-sm table-bordered borderedtable">
-                  <thead>
-                    <tr>
-                      <th>Min Qty</th>
-                      <th>Amount</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(billToBillDiscounts || []).map((d) => (
-                      <tr key={d.id}>
-                        <td>
-                          <input type="number" value={d.minQuantity ?? d.min_quantity ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillToBillDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, minQuantity: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <input type="number" step="0.01" value={d.discountAmount ?? d.discount_amount ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillToBillDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, discountAmount: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveBillToBillDiscount(d)}>Save</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {billToBillDiscounts.length === 0 && (
-                      <tr><td colSpan="3" className="text-center">No discounts</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0">Monthly Discounts</h6>
-                <button className="btn btn-sm btn-outline-primary" onClick={addMonthlyDiscount}>Add</button>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-sm table-bordered borderedtable">
-                  <thead>
-                    <tr>
-                      <th>Min Turnover</th>
-                      <th>Amount</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(monthlyDiscounts || []).map((d) => (
-                      <tr key={d.id}>
-                        <td>
-                          <input type="number" value={d.minTurnover ?? d.min_turnover ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setMonthlyDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, minTurnover: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <input type="number" step="0.01" value={d.discountAmount ?? d.discount_amount ?? 0}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setMonthlyDiscounts(prev => prev.map(x => x.id === d.id ? { ...x, discountAmount: val } : x));
-                            }} />
-                        </td>
-                        <td>
-                          <button className="btn btn-sm btn-primary" onClick={() => saveMonthlyDiscount(d)}>Save</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {monthlyDiscounts.length === 0 && (
-                      <tr><td colSpan="3" className="text-center">No discounts</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div className="row m-0 p-0 justify-content-center">
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>Aadhaar Proof</h5>
-              {/* <ImagesViewModal
+              <div className="row m-0 p-0 justify-content-center">
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>Aadhaar Proof</h5>
+                  {/* <ImagesViewModal
                 title={"Aadhar"}
                 front={customerdata.kycDocuments?.[0]?.frontImage}
                 back={customerdata.kycDocuments?.[0]?.backImage}
               /> */}
-              <PhotosDrawer
-                title={"Aadhaar Details"}
-                front={customerdata.kycDocuments?.[0]?.frontImage}
-                back={customerdata.kycDocuments?.[0]?.backImage}
-              />
-            </div>
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>PAN Card Proof</h5>
-              {/* <ImagesViewModal
+                  <PhotosDrawer
+                    title={"Aadhaar Details"}
+                    front={customerdata.kycDocuments?.[0]?.frontImage}
+                    back={customerdata.kycDocuments?.[0]?.backImage}
+                  />
+                </div>
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>PAN Card Proof</h5>
+                  {/* <ImagesViewModal
                 title={"PAN"}
                 front={customerdata.kycDocuments?.[1]?.frontImage}
                 back={customerdata.kycDocuments?.[1]?.backImage}
               /> */}
-              <PhotosDrawer
-                title={"PAN Details"}
-                front={customerdata.kycDocuments?.[1]?.frontImage}
-                back={customerdata.kycDocuments?.[1]?.backImage}
-              />
-            </div>
-            <div className={`col-4`}>
-              <h5 className={styles.headmdl}>Customer Photo</h5>
-              {/* <ImagesViewModal title={"Photo"} front={customerdata.photo} /> */}
-              <PhotosDrawer
-                title={"Customer Photo"}
-                front={customerdata.photo}
-              />
-            </div>
-          </div>
+                  <PhotosDrawer
+                    title={"PAN Details"}
+                    front={customerdata.kycDocuments?.[1]?.frontImage}
+                    back={customerdata.kycDocuments?.[1]?.backImage}
+                  />
+                </div>
+                <div className={`col-4`}>
+                  <h5 className={styles.headmdl}>Customer Photo</h5>
+                  {/* <ImagesViewModal title={"Photo"} front={customerdata.photo} /> */}
+                  <PhotosDrawer
+                    title={"Customer Photo"}
+                    front={customerdata.photo}
+                  />
+                </div>
+              </div>
 
-          {!loading && !successful && (
-            <div className="row m-0 p-3 pt-4 justify-content-center">
-              {!editclick && (
-                <div className={`col-5`}>
-                  {isAdmin && (
+              {!loading && !successful && (
+                <div className="row m-0 p-3 pt-4 justify-content-center">
+                  {!editclick && (
+                    <div className={`col-5`}>
+                      {isAdmin && (
+                        <button
+                          className="submitbtn"
+                          onClick={() => setEditclick(true)}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="cancelbtn"
+                        onClick={() => setCustomerId(null)}
+                      >
+                        cancel
+                      </button>
+                    </div>
+                  )}
+                  {editclick && (
+                    <div className={`col-4`}>
+                      <button className="submitbtn" onClick={onUpdate}>
+                        Update
+                      </button>
+                      <button
+                        className="cancelbtn"
+                        onClick={() => setEditclick(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <CustomerSalesAnalytics data={salesData} />
+              {successful && (
+                <div className="row m-0 p-3 pt-4 justify-content-center">
+                  <div className={`col-4`}>
                     <button
                       className="submitbtn"
-                      onClick={() => setEditclick(true)}
+                      onClick={() => setCustomerId(null)}
                     >
-                      Edit
+                      {successful}
                     </button>
-                  )}
-                  <button
-                    className="cancelbtn"
-                    onClick={() => setCustomerId(null)}
-                  >
-                    cancel
-                  </button>
+                  </div>
                 </div>
               )}
-              {editclick && (
-                <div className={`col-4`}>
-                  <button className="submitbtn" onClick={onUpdate}>
-                    Update
-                  </button>
-                  <button
-                    className="cancelbtn"
-                    onClick={() => setEditclick(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
-          {successful && (
-            <div className="row m-0 p-3 pt-4 justify-content-center">
-              <div className={`col-4`}>
-                <button
-                  className="submitbtn"
-                  onClick={() => setCustomerId(null)}
+              {showRejectionModal && (
+                <div
+                  className="modal d-block"
+                  tabIndex="-1"
+                  style={{ background: "rgba(0,0,0,0.5)" }}
                 >
-                  {successful}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {showRejectionModal && (
-            <div
-              className="modal d-block"
-              tabIndex="-1"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content p-3">
-                  <h5>Enter Rejection Remark</h5>
-                  <textarea
-                    className="form-control mb-3"
-                    placeholder="Write rejection reason..."
-                    value={rejectionRemark}
-                    onChange={(e) => setRejectionRemark(e.target.value)}
-                  />
-                  <div className="d-flex justify-content-end gap-2">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowRejectionModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={submitRejection}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {showGstinMsmeModal && (
-            <div
-              className="modal d-block"
-              tabIndex="-1"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content p-3">
-                  <h5>Additional Details</h5>
-
-                  {!customerdata.gstin && (
-                    <>
-                      <div className="form-check my-2">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={requireGstin}
-                          onChange={() => setRequireGstin(!requireGstin)}
-                          id="gstinCheck"
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="gstinCheck"
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content p-3">
+                      <h5>Enter Rejection Remark</h5>
+                      <textarea
+                        className="form-control mb-3"
+                        placeholder="Write rejection reason..."
+                        value={rejectionRemark}
+                        onChange={(e) => setRejectionRemark(e.target.value)}
+                      />
+                      <div className="d-flex justify-content-end gap-2">
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setShowRejectionModal(false)}
                         >
-                          Add GSTIN
-                        </label>
+                          Cancel
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          onClick={submitRejection}
+                        >
+                          Reject
+                        </button>
                       </div>
-                      {requireGstin && (
-                        <input
-                          type="text"
-                          className="form-control mb-3"
-                          placeholder="Enter GSTIN"
-                          value={gstin}
-                          onChange={(e) => setGstin(e.target.value)}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  {!customerdata.msme && (
-                    <>
-                      <div className="form-check my-2">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          checked={requireMsme}
-                          onChange={() => setRequireMsme(!requireMsme)}
-                          id="msmeCheck"
-                        />
-                        <label className="form-check-label" htmlFor="msmeCheck">
-                          Add MSME Number
-                        </label>
-                      </div>
-                      {requireMsme && (
-                        <input
-                          type="text"
-                          className="form-control mb-3"
-                          placeholder="Enter MSME Number"
-                          value={msme}
-                          onChange={(e) => setMsme(e.target.value)}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  <div className="d-flex justify-content-end gap-2">
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setShowGstinMsmeModal(false)}
-                    >
-                      Skip
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={async () => {
-                        try {
-                          setLoading(true);
-                          const payload = {};
-                          if (requireGstin) payload.gstin = gstin;
-                          if (requireMsme) payload.msmeNumber = msme;
-                          if (Object.keys(payload).length > 0) {
-                            await axiosAPI.put(
-                              `/customers/${customerdata.id}/details`,
-                              payload
-                            );
-                          }
-                          changeTrigger();
-                        } catch (e) {
-                          setError(
-                            e.response?.data?.message ||
-                              "Failed to update details"
-                          );
-                          setIsModalOpen(true);
-                        } finally {
-                          setLoading(false);
-                          setShowGstinMsmeModal(false);
-                        }
-                      }}
-                    >
-                      Save
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+              {showGstinMsmeModal && (
+                <div
+                  className="modal d-block"
+                  tabIndex="-1"
+                  style={{ background: "rgba(0,0,0,0.5)" }}
+                >
+                  <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content p-3">
+                      <h5>Additional Details</h5>
+
+                      {!customerdata.gstin && (
+                        <>
+                          <div className="form-check my-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={requireGstin}
+                              onChange={() => setRequireGstin(!requireGstin)}
+                              id="gstinCheck"
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="gstinCheck"
+                            >
+                              Add GSTIN
+                            </label>
+                          </div>
+                          {requireGstin && (
+                            <input
+                              type="text"
+                              className="form-control mb-3"
+                              placeholder="Enter GSTIN"
+                              value={gstin}
+                              onChange={(e) => setGstin(e.target.value)}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      {!customerdata.msme && (
+                        <>
+                          <div className="form-check my-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={requireMsme}
+                              onChange={() => setRequireMsme(!requireMsme)}
+                              id="msmeCheck"
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="msmeCheck"
+                            >
+                              Add MSME Number
+                            </label>
+                          </div>
+                          {requireMsme && (
+                            <input
+                              type="text"
+                              className="form-control mb-3"
+                              placeholder="Enter MSME Number"
+                              value={msme}
+                              onChange={(e) => setMsme(e.target.value)}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      <div className="d-flex justify-content-end gap-2">
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setShowGstinMsmeModal(false)}
+                        >
+                          Skip
+                        </button>
+                        <button
+                          className="btn btn-primary"
+                          onClick={async () => {
+                            try {
+                              setLoading(true);
+                              const payload = {};
+                              if (requireGstin) payload.gstin = gstin;
+                              if (requireMsme) payload.msmeNumber = msme;
+                              if (Object.keys(payload).length > 0) {
+                                await axiosAPI.put(
+                                  `/customers/${customerdata.id}/details`,
+                                  payload,
+                                );
+                              }
+                              changeTrigger();
+                            } catch (e) {
+                              setError(
+                                e.response?.data?.message ||
+                                  "Failed to update details",
+                              );
+                              setIsModalOpen(true);
+                            } finally {
+                              setLoading(false);
+                              setShowGstinMsmeModal(false);
+                            }
+                          }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
+          {isModalOpen && (
+            <ErrorModal
+              isOpen={isModalOpen}
+              message={error}
+              onClose={closeModal}
+            />
+          )}
+          {loading && <Loading />}
         </>
-      )}
-      {isModalOpen && (
-        <ErrorModal isOpen={isModalOpen} message={error} onClose={closeModal} />
-      )}
-      {loading && <Loading />}
-    </>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 

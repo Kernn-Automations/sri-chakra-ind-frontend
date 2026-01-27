@@ -131,7 +131,7 @@ function ReportsModal({
   };
 
   // Handle upload event for new damaged good image preview
-  const handleNewImageUpload = (e) => {
+  const handleNewImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) {
       setNewImageFile(null);
@@ -144,17 +144,26 @@ function ReportsModal({
       return;
     }
 
-    if (file.size > 100 * 1024) {
-      alert("❌ Each damaged good image must be less than 100KB");
-      return;
-    }
+    setLoading(true);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewImageFile(reader.result); // ✅ base64 string
-      setNewImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // 🔥 Compress to under 100KB just like Delivery Challan
+      const compressedBlob = await compressImageToUnder100KB(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result;
+
+        setNewImageFile(base64); // store compressed base64
+        setNewImagePreview(base64); // preview compressed image
+      };
+      reader.readAsDataURL(compressedBlob);
+    } catch (err) {
+      console.error("Damaged goods image compression failed:", err);
+      alert("❌ Failed to compress damaged goods image");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle delivery challan upload

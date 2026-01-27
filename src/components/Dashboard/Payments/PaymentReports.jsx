@@ -22,52 +22,52 @@ function PaymentReports({ navigate }) {
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isErrorOpen, setIsErrorOpen] = useState(false);
+
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
   const [selectedSalesOrder, setSelectedSalesOrder] = useState(null);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setError(null);
-  };
-
-  const closeReportsModal = () => {
-    setIsReportsModalOpen(false);
-    setSelectedSalesOrder(null);
-  };
-
   const [trigger, setTrigger] = useState(false);
 
-  const onSubmit = () => {
-    setTrigger(!trigger);
-  };
-
-  const date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  /* --------------------------------------------------
+   * DATE FILTERS (DEFAULT: LAST 7 DAYS)
+   * -------------------------------------------------- */
+  const fromDefault = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
-  const today = new Date(Date.now()).toISOString().slice(0, 10);
 
-  const [from, setFrom] = useState(date);
-  const [to, setTo] = useState(today);
+  const toDefault = new Date().toISOString().slice(0, 10);
+
+  const [from, setFrom] = useState(fromDefault);
+  const [to, setTo] = useState(toDefault);
   const [warehouse, setWarehouse] = useState("");
   const [customer, setCustomer] = useState("");
   const [se, setSe] = useState("");
 
-  // Fetch initial data (warehouses, customers, SES)
+  const [pageNo, setPageNo] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+
+  /* --------------------------------------------------
+   * FETCH MASTER DATA
+   * -------------------------------------------------- */
   useEffect(() => {
     async function fetchInitialData() {
       try {
         setLoading(true);
-        const res1 = await axiosAPI.get("/warehouse");
-        const res2 = await axiosAPI.get("/customers");
-        const res3 = await axiosAPI.get("/employees/role/Business Officer");
 
-        setWarehouses(res1.data.warehouses || []);
-        setCustomers(res2.data.customers || []);
-        setSes(res3.data.employees || []);
-      } catch (e) {
-        setError(e.response?.data?.message || "Failed to fetch initial data.");
-        setIsModalOpen(true);
+        const [w, c, e] = await Promise.all([
+          axiosAPI.get("/warehouse"),
+          axiosAPI.get("/customers"),
+          axiosAPI.get("/employees/role/Business Officer"),
+        ]);
+
+        setWarehouses(w.data.warehouses || []);
+        setCustomers(c.data.customers || []);
+        setSes(e.data.employees || []);
+      } catch (err) {
+        setError("Failed to load filter data");
+        setIsErrorOpen(true);
       } finally {
         setLoading(false);
       }
@@ -75,202 +75,225 @@ function PaymentReports({ navigate }) {
     fetchInitialData();
   }, []);
 
-  const [pageNo, setPageNo] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [totalPages, setTotalPages] = useState(0);
-
-  // Fetch payment reports based on filters
+  /* --------------------------------------------------
+   * FETCH REPORT DATA (ERP API)
+   * -------------------------------------------------- */
   useEffect(() => {
     async function fetchReports() {
       try {
         setLoading(true);
-        let query = `/payment-requests?status=Approved&fromDate=${from}&toDate=${to}&limit=${limit}&page=${pageNo}`;
-        if (warehouse && warehouse !== "all") {
-          query += `&warehouseId=${warehouse}`;
-        }
-        if (customer) {
-          query += `&customerId=${customer}`;
-        }
-        if (se) {
-          query += `&salesExecutiveId=${se}`;
-        }
-        const res = await axiosAPI.get(query);
-        console.log(res);
-        setTotalPages(res.data.totalPages);
 
-        setSalesOrders(res.data.salesOrders || []);
-      } catch (e) {
+        let query = `/payment-requests?approvalStatus=Approved&from=${from}&to=${to}&page=${pageNo}&limit=${limit}`;
+
+        if (warehouse) query += `&warehouseId=${warehouse}`;
+        if (customer) query += `&customerId=${customer}`;
+        if (se) query += `&salesExecutiveId=${se}`;
+
+        const res = await axiosAPI.get(query);
+
+        setSalesOrders(res.data.data || []);
+        setTotalPages(res.data.totalPages || 0);
+      } catch (err) {
         setError(
-          e.response?.data?.message || "Failed to fetch payment reports."
+          err.response?.data?.message || "Failed to fetch payment reports",
         );
-        setIsModalOpen(true);
+        setIsErrorOpen(true);
       } finally {
         setLoading(false);
       }
     }
+
     fetchReports();
   }, [trigger, from, to, warehouse, customer, se, pageNo, limit]);
 
-  // Mirror server-side results into table; server already applies filters via query
+  /* --------------------------------------------------
+   * MIRROR DATA
+   * -------------------------------------------------- */
   useEffect(() => {
-    setFilteredSalesOrders(salesOrders || []);
+    setFilteredSalesOrders(salesOrders);
   }, [salesOrders]);
 
-  // Helper to calculate total amount for a sales order
-  const calculateTotalAmount = (paymentRequests) => {
-    if (!paymentRequests) return "0.00";
-    return paymentRequests
-      .reduce((sum, pr) => sum + (pr.netAmount || 0), 0)
-      .toFixed(2);
-  };
-
-  // Function to open the modal and set the selected order
-  const openReportsModal = (salesOrder) => {
-    setSelectedSalesOrder(salesOrder);
-    setIsReportsModalOpen(true);
-  };
-
+  /* --------------------------------------------------
+   * EXPORT
+   * -------------------------------------------------- */
   const onExport = (type) => {
-    if (!filteredSalesOrders || filteredSalesOrders.length === 0) {
-      setError("Table is empty.");
-      setIsModalOpen(true);
+    if (!filteredSalesOrders.length) {
+      setError("No data to export");
+      setIsErrorOpen(true);
       return;
     }
+
     const columns = [
       "S.No",
       "Order Number",
-      "Customer Name",
-      "SE Name",
+      "Customer",
+      "Sales Executive",
       "Warehouse",
-      "Total Amount",
+      "Total Paid Amount",
     ];
-    const data = filteredSalesOrders.map((order, index) => [
-      index + 1,
-      order.orderNumber,
-      order.customer?.name,
-      order.salesExecutive?.name,
-      order.warehouse?.name,
-      calculateTotalAmount(order.paymentRequests),
+
+    const data = filteredSalesOrders.map((o, i) => [
+      i + 1,
+      o.orderNumber,
+      o.customer?.name,
+      o.salesExecutive?.name,
+      o.warehouse?.name,
+      Number(o.totalPaidAmount || 0).toFixed(2),
     ]);
-    if (type === "PDF") {
-      handleExportPDF(columns, data, "Payment-Reports");
-    } else if (type === "XLS") {
-      handleExportExcel(columns, data, "Payment-Reports");
-    }
+
+    if (type === "PDF") handleExportPDF(columns, data, "Payment-Reports");
+    else handleExportExcel(columns, data, "Payment-Reports");
+  };
+
+  /* --------------------------------------------------
+   * MODALS
+   * -------------------------------------------------- */
+  const openReportsModal = (order) => {
+    setSelectedSalesOrder(order);
+    setIsReportsModalOpen(true);
+  };
+
+  const closeReportsModal = () => {
+    setSelectedSalesOrder(null);
+    setIsReportsModalOpen(false);
   };
 
   return (
     <>
       <p className="path">
         <span onClick={() => navigate("/payments")}>Payments</span>{" "}
-        <i className="bi bi-chevron-right"></i> Payment-Reports
+        <i className="bi bi-chevron-right"></i> Payment Reports
       </p>
+
+      {/* FILTERS */}
       <div className="row m-0 p-3">
-        <div className={`col-3 formcontent`}>
-          <label htmlFor="">From :</label>
+        <div className="col-3 formcontent">
+          <label>From</label>
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
           />
         </div>
-        <div className={`col-3 formcontent`}>
-          <label htmlFor="">To :</label>
+
+        <div className="col-3 formcontent">
+          <label>To</label>
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
           />
         </div>
+
         <CustomSearchDropdown
           label="Warehouse"
           onSelect={setWarehouse}
-          options={warehouses?.map((w) => ({ value: w.id, label: w.name }))}
+          options={warehouses.map((w) => ({
+            value: w.id,
+            label: w.name,
+          }))}
         />
 
         <CustomSearchDropdown
           label="Sales Executive"
           onSelect={setSe}
-          options={ses?.map((se) => ({ value: se.id, label: se.name }))}
+          options={ses.map((s) => ({
+            value: s.id,
+            label: s.name,
+          }))}
         />
 
         <CustomSearchDropdown
-          label="Customers"
+          label="Customer"
           onSelect={setCustomer}
-          options={customers?.map((c) => ({ value: c.id, label: c.name }))}
+          options={customers.map((c) => ({
+            value: c.id,
+            label: c.name,
+          }))}
         />
       </div>
+
       <div className="row m-0 p-2 justify-content-center">
-        <div className={`col-3 formcontent`}>
-          <button className="submitbtn" onClick={onSubmit}>
-            Submit
-          </button>
-          <button className="cancelbtn" onClick={() => navigate(-1)}>
-            Cancel
-          </button>
-        </div>
+        <button
+          className="submitbtn"
+          styles="width:10%"
+          onClick={() => setTrigger(!trigger)}
+        >
+          Submit
+        </button>
+        <button className="cancelbtn" onClick={() => navigate(-1)}>
+          Cancel
+        </button>
       </div>
+
       {loading && <Loading />}
-      {!loading && filteredSalesOrders && (
+
+      {!loading && (
         <div className="row m-0 p-3 justify-content-center">
           <div className="col-lg-8">
             <button className={styles.xls} onClick={() => onExport("XLS")}>
-              <p>Export to </p>
-              <img src={xls} alt="Export to Excel" />
+              <p>Export</p>
+              <img src={xls} alt="Excel" />
             </button>
+
             <button className={styles.xls} onClick={() => onExport("PDF")}>
-              <p>Export to </p>
-              <img src={pdf} alt="Export to PDF" />
+              <p>Export</p>
+              <img src={pdf} alt="PDF" />
             </button>
           </div>
+
           <div className={`col-lg-2 ${styles.entity}`}>
-            <label htmlFor="">Entity :</label>
+            <label>Entity</label>
             <select
-              name=""
-              id=""
               value={limit}
-              onChange={(e) => setLimit(parseInt(e.target.value))}
+              onChange={(e) => setLimit(Number(e.target.value))}
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-              <option value={40}>40</option>
-              <option value={50}>50</option>
+              {[10, 20, 30, 40, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* TABLE */}
           <div className="col-lg-10">
             <table className="table table-bordered borderedtable">
               <thead>
                 <tr>
                   <th>S.No</th>
-                  <th>Order Number</th>
-                  <th>Customer Name</th>
-                  <th>SE Name</th>
+                  <th>Sales Order</th>
+                  <th>Customer</th>
+                  <th>Sales Executive</th>
                   <th>Warehouse</th>
-                  <th>Total Amount</th>
+                  <th>Total Paid</th>
                   <th>Action</th>
                 </tr>
               </thead>
+
               <tbody>
                 {filteredSalesOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7}>NO DATA FOUND</td>
+                    <td colSpan={7} className="text-center">
+                      NO DATA FOUND
+                    </td>
                   </tr>
                 ) : (
-                  filteredSalesOrders.map((order, i) => (
-                    <tr key={order.salesOrderId} className="animated-row">
+                  filteredSalesOrders.map((o, i) => (
+                    <tr key={o.salesOrderId}>
                       <td>{i + 1}</td>
-                      <td>{order.orderNumber}</td>
-                      <td>{order.customer?.name}</td>
-                      <td>{order.salesExecutive?.name}</td>
-                      <td>{order.warehouse?.name}</td>
-                      <td>{calculateTotalAmount(order.paymentRequests)}</td>
+                      <td>{o.orderNumber}</td>
+                      <td>{o.customer?.name}</td>
+                      <td>{o.salesExecutive?.name}</td>
+                      <td>{o.warehouse?.name}</td>
                       <td>
-                        {/* Here, we call the function to open the modal directly */}
+                        ₹
+                        {Number(o.totalPaidAmount || 0).toLocaleString("en-IN")}
+                      </td>
+                      <td>
                         <button
-                          onClick={() => openReportsModal(order)}
                           className={`btn ${styles.viewBtn}`}
+                          onClick={() => openReportsModal(o)}
                         >
                           View
                         </button>
@@ -280,24 +303,20 @@ function PaymentReports({ navigate }) {
                 )}
               </tbody>
             </table>
+
+            {/* PAGINATION */}
             <div className="row m-0 p-0 pt-3 justify-content-between">
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
+              <div className="col-2">
                 {pageNo > 1 && (
                   <button onClick={() => setPageNo(pageNo - 1)}>
-                    <span>
-                      <FaArrowLeftLong />
-                    </span>{" "}
-                    Previous
+                    <FaArrowLeftLong /> Previous
                   </button>
                 )}
               </div>
-              <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
+              <div className="col-2 text-end">
                 {pageNo < totalPages && (
                   <button onClick={() => setPageNo(pageNo + 1)}>
-                    Next{" "}
-                    <span>
-                      <FaArrowRightLong />
-                    </span>
+                    Next <FaArrowRightLong />
                   </button>
                 )}
               </div>
@@ -306,17 +325,20 @@ function PaymentReports({ navigate }) {
         </div>
       )}
 
-      {/* RENDER A SINGLE MODAL INSTANCE HERE, CONTROLLED BY STATE */}
       {isReportsModalOpen && selectedSalesOrder && (
         <ReportsViewModal
           report={selectedSalesOrder}
-          onClose={closeReportsModal}
           isOpen={isReportsModalOpen}
+          onClose={closeReportsModal}
         />
       )}
 
-      {isModalOpen && error && (
-        <ErrorModal isOpen={isModalOpen} message={error} onClose={closeModal} />
+      {isErrorOpen && error && (
+        <ErrorModal
+          isOpen={isErrorOpen}
+          message={error}
+          onClose={() => setIsErrorOpen(false)}
+        />
       )}
     </>
   );

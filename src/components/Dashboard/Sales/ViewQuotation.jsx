@@ -20,6 +20,7 @@ function ViewQuotation() {
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   /* -------------------------
    * FETCH QUOTATION
@@ -29,6 +30,7 @@ function ViewQuotation() {
       try {
         setLoading(true);
         const res = await axiosAPI.get(`/quotations/${id}`);
+        console.log(res);
         setQuotation(res.data?.quotation);
       } catch {
         setError("Failed to load quotation");
@@ -60,7 +62,9 @@ function ViewQuotation() {
    * DOWNLOAD
    * ------------------------- */
   async function downloadQuotation() {
+    if (downloading) return; // extra safety
     try {
+      setDownloading(true);
       const token = localStorage.getItem("accessToken");
 
       const response = await fetch(
@@ -87,6 +91,8 @@ function ViewQuotation() {
     } catch (error) {
       console.error("❌ Quotation download failed:", error);
       alert("Failed to download quotation PDF");
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -152,21 +158,38 @@ function ViewQuotation() {
 
         {/* ACTION BUTTONS */}
         <div style={styles.actionBar}>
-          <button style={styles.downloadBtn} onClick={downloadQuotation}>
-            <svg
-              style={styles.btnIcon}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Download PDF
+          <button
+            style={{
+              ...styles.downloadBtn,
+              opacity: downloading ? 0.7 : 1,
+              cursor: downloading ? "not-allowed" : "pointer",
+            }}
+            onClick={downloadQuotation}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <span style={styles.spinner}></span>
+                Downloading...
+              </>
+            ) : (
+              <>
+                <svg
+                  style={styles.btnIcon}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                Download PDF
+              </>
+            )}
           </button>
 
           {quotation.status === "Accepted" && (
@@ -207,9 +230,19 @@ function ViewQuotation() {
                       <td style={styles.td}>
                         <div style={styles.productCell}>
                           <div style={styles.productBadge}>{idx + 1}</div>
-                          <span style={styles.productName}>
-                            {item.productName}
-                          </span>
+                          <div>
+                            <div style={styles.productName}>
+                              {item.productName}
+                            </div>
+
+                            {item.unit === "rmt" && item.rmtFactor && (
+                              <div style={styles.rmtInfo}>
+                                Width:{" "}
+                                {Number(item.rmtFactor).toLocaleString("en-IN")}{" "}
+                                {item.rmtUnit}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td style={styles.td}>{item.unit}</td>
@@ -220,14 +253,37 @@ function ViewQuotation() {
                           fontWeight: 600,
                         }}
                       >
-                        {item.quantity}
+                        {item.unit === "rmt"
+                          ? `${Number(item.quantity).toLocaleString("en-IN")} pcs`
+                          : Number(item.quantity).toLocaleString("en-IN")}
+                      </td>
+
+                      <td style={{ ...styles.td, textAlign: "right" }}>
+                        {item.unit === "rmt" ? (
+                          <div style={{ textAlign: "right" }}>
+                            <div>
+                              ₹{Number(item.unitPrice).toLocaleString("en-IN")}
+                            </div>
+                            <div style={styles.rmtSubText}>per rmt</div>
+                          </div>
+                        ) : (
+                          <>₹{Number(item.unitPrice).toLocaleString("en-IN")}</>
+                        )}
                       </td>
                       <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{Number(item.unitPrice).toLocaleString("en-IN")}
+                        <div>
+                          ₹{Number(item.baseAmount).toLocaleString("en-IN")}
+                        </div>
+
+                        {item.unit === "rmt" && (
+                          <div style={styles.rmtSubText}>
+                            {Number(item.unitPrice).toLocaleString("en-IN")} ×{" "}
+                            {Number(item.quantity).toLocaleString("en-IN")} ×{" "}
+                            {Number(item.rmtFactor).toLocaleString("en-IN")}
+                          </div>
+                        )}
                       </td>
-                      <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{Number(item.baseAmount).toLocaleString("en-IN")}
-                      </td>
+
                       <td style={{ ...styles.td, textAlign: "right" }}>
                         ₹{Number(item.taxAmount).toLocaleString("en-IN")}
                       </td>
@@ -695,6 +751,27 @@ const styles = {
   summaryLabel: {
     fontSize: 14,
     color: "rgba(255,255,255,0.8)",
+  },
+
+  rmtInfo: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 4,
+  },
+
+  rmtSubText: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 2,
+  },
+
+  spinner: {
+    width: 16,
+    height: 16,
+    border: "2px solid #cbd5e1",
+    borderTop: "2px solid #475569",
+    borderRadius: "50%",
+    animation: "spin 0.8s linear infinite",
   },
 
   summaryValue: {

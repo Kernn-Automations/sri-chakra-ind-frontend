@@ -52,12 +52,10 @@ function DispatchForm({
 
   const updateDestination = (index, field, value) => {
     const updated = destinations.map((dest, i) =>
-      i === index ? { ...dest, [field]: value } : dest
+      i === index ? { ...dest, [field]: value } : dest,
     );
     setDestinations(updated);
   };
-
- 
 
   const [products, setProducts] = useState();
   const [partialStatus, setPartialStatus] = useState(null);
@@ -80,7 +78,7 @@ function DispatchForm({
     async function fetchPartialStatus() {
       try {
         const res = await axiosAPI.get(
-          `/sales-orders/${orderId}/partial-dispatch-status`
+          `/sales-orders/${orderId}/partial-dispatch-status`,
         );
         console.log("Partial dispatch status:", res.data);
         setPartialStatus(res.data);
@@ -94,14 +92,15 @@ function DispatchForm({
 
   const findProductById = (productId) =>
     order?.items?.find(
-      (item) => String(item.productId || item.id) === String(productId)
+      (item) => String(item.productId || item.id) === String(productId),
     );
 
   const getStatusCandidates = () => {
     if (!partialStatus) return [];
     const candidates = [];
     if (Array.isArray(partialStatus)) candidates.push(partialStatus);
-    if (Array.isArray(partialStatus?.items)) candidates.push(partialStatus.items);
+    if (Array.isArray(partialStatus?.items))
+      candidates.push(partialStatus.items);
     if (Array.isArray(partialStatus?.data?.items))
       candidates.push(partialStatus.data.items);
     if (Array.isArray(partialStatus?.data)) candidates.push(partialStatus.data);
@@ -112,7 +111,7 @@ function DispatchForm({
     const candidates = getStatusCandidates();
     for (const list of candidates) {
       const found = list.find(
-        (item) => String(item.productId || item.id) === String(productId)
+        (item) => String(item.productId || item.id) === String(productId),
       );
       if (found) return found;
     }
@@ -136,20 +135,17 @@ function DispatchForm({
   };
 
   const getAvailableQuantity = (productId) => {
-    const statusValue = getFirstAvailableNumber(
-      getStatusItem(productId),
-      [
-        "availableQuantity",
-        "availableQty",
-        "availableStock",
-        "available",
-        "currentQuantity",
-        "currentStock",
-        "balanceQuantity",
-        "remainingQuantity",
-        "stock",
-      ]
-    );
+    const statusValue = getFirstAvailableNumber(getStatusItem(productId), [
+      "availableQuantity",
+      "availableQty",
+      "availableStock",
+      "available",
+      "currentQuantity",
+      "currentStock",
+      "balanceQuantity",
+      "remainingQuantity",
+      "stock",
+    ]);
     if (statusValue !== undefined) return statusValue;
 
     const product = findProductById(productId);
@@ -166,17 +162,14 @@ function DispatchForm({
   };
 
   const getNeedQuantity = (productId) => {
-    const statusValue = getFirstAvailableNumber(
-      getStatusItem(productId),
-      [
-        "needQuantity",
-        "requiredQuantity",
-        "requiredQty",
-        "remainingQuantity",
-        "quantityNeeded",
-        "pendingQuantity",
-      ]
-    );
+    const statusValue = getFirstAvailableNumber(getStatusItem(productId), [
+      "needQuantity",
+      "requiredQuantity",
+      "requiredQty",
+      "remainingQuantity",
+      "quantityNeeded",
+      "pendingQuantity",
+    ]);
     if (statusValue !== undefined) return statusValue;
 
     const product = findProductById(productId);
@@ -190,10 +183,13 @@ function DispatchForm({
   };
 
   const getOrderedQuantity = (productId) => {
-    const statusValue = getFirstAvailableNumber(
-      getStatusItem(productId),
-      ["orderedQuantity", "orderQuantity", "orderedQty", "orderQty", "quantity"]
-    );
+    const statusValue = getFirstAvailableNumber(getStatusItem(productId), [
+      "orderedQuantity",
+      "orderQuantity",
+      "orderedQty",
+      "orderQty",
+      "quantity",
+    ]);
     if (statusValue !== undefined) return statusValue;
 
     const product = findProductById(productId);
@@ -217,11 +213,12 @@ function DispatchForm({
 
     if (isPartialDispatch) {
       const hasEmptyDestinations = destinations.some(
-        (dest) => !String(dest.productId).trim() || String(dest.quantity).trim() === ""
+        (dest) =>
+          !String(dest.productId).trim() || String(dest.quantity).trim() === "",
       );
       if (hasEmptyDestinations) {
         setError(
-          "All product and quantity fields are required for partial dispatch"
+          "All product and quantity fields are required for partial dispatch",
         );
         setIsModalOpen(true);
         return;
@@ -233,7 +230,8 @@ function DispatchForm({
         const statusItem = getStatusItem(dest.productId);
         const available = getAvailableQuantity(dest.productId);
         const needQty = getNeedQuantity(dest.productId);
-        const orderedQty = getOrderedQuantity(dest.productId) ?? product.quantity;
+        const orderedQty =
+          getOrderedQuantity(dest.productId) ?? product.quantity;
         return {
           productId: dest.productId,
           quantity: qty,
@@ -251,10 +249,12 @@ function DispatchForm({
       });
 
       const invalidQuantity = payloadDestinations.some(
-        (dest) => Number.isNaN(dest.quantity) || dest.quantity <= 0
+        (dest) => Number.isNaN(dest.quantity) || dest.quantity <= 0,
       );
       if (invalidQuantity) {
-        setError("Please enter a valid quantity greater than 0 for partial dispatch.");
+        setError(
+          "Please enter a valid quantity greater than 0 for partial dispatch.",
+        );
         setIsModalOpen(true);
         return;
       }
@@ -265,7 +265,9 @@ function DispatchForm({
       });
 
       if (exceedsAvailable) {
-        setError("Partial dispatch quantity cannot exceed available quantity for the selected product.");
+        setError(
+          "Partial dispatch quantity cannot exceed available quantity for the selected product.",
+        );
         setIsModalOpen(true);
         return;
       }
@@ -275,7 +277,7 @@ function DispatchForm({
       setActionLoading(true);
       if (!isPartialDispatch) {
         const eligibility = await axiosAPI.get(
-          `/sales-orders/${orderId}/dispatch/eligibility`
+          `/sales-orders/${orderId}/dispatch/eligibility`,
         );
         if (!eligibility.data.eligible) {
           setError(eligibility.data.reason || "Not eligible for dispatch");
@@ -289,7 +291,7 @@ function DispatchForm({
         dispatchItems = order.items.map((item) => {
           const productId = item.productId || item.id;
           const match = payloadDestinations.find(
-            (dest) => String(dest.productId) === String(productId)
+            (dest) => String(dest.productId) === String(productId),
           );
           const qty = match ? match.quantity : 0;
           const available = Number.isFinite(match?.availableQuantity)
@@ -304,7 +306,9 @@ function DispatchForm({
             dispatchedQuantity: qty,
             requiredQuantity: needQty ?? qty,
             needQuantity: needQty ?? qty,
-            availableQuantity: Number.isFinite(available) ? available : undefined,
+            availableQuantity: Number.isFinite(available)
+              ? available
+              : undefined,
             availableStock: Number.isFinite(available) ? available : undefined,
             remainingQuantity: getStatusItem(productId)?.remainingQuantity,
             orderedQuantity: orderedQty,
@@ -329,8 +333,9 @@ function DispatchForm({
 
       const res = await axiosAPI.put(
         `/sales-orders/${orderId}/dispatch`,
-        dispatchData
+        dispatchData,
       );
+      console.log("Dispatch Form Response :", res);
       setOrder({
         ...order,
         orderStatus: res.data.orderStatus,
@@ -339,14 +344,16 @@ function DispatchForm({
     } catch (err) {
       console.error("Dispatch API error:", err);
       console.error("Dispatch API response:", err?.response?.data);
-      
+
       // Handle network errors (connection refused, network error, etc.)
       let errorMessage = "Dispatch failed";
-      
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = "Unable to connect to the server. Please check if the backend server is running and try again.";
-      } else if (err.code === 'ERR_CONNECTION_REFUSED') {
-        errorMessage = "Connection refused. The backend server at http://localhost:8080 is not running. Please start the server and try again.";
+
+      if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+        errorMessage =
+          "Unable to connect to the server. Please check if the backend server is running and try again.";
+      } else if (err.code === "ERR_CONNECTION_REFUSED") {
+        errorMessage =
+          "Connection refused. The backend server at http://localhost:8080 is not running. Please start the server and try again.";
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.response?.data?.error) {
@@ -354,7 +361,7 @@ function DispatchForm({
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       setIsModalOpen(true);
     } finally {
@@ -441,7 +448,7 @@ function DispatchForm({
                 <h6>Complementry Details</h6>
                 {complimentries.map((comp) => {
                   const product = products.find(
-                    (p) => String(p.id) === String(comp.productId)
+                    (p) => String(p.id) === String(comp.productId),
                   );
                   return (
                     <p>
@@ -516,28 +523,43 @@ function DispatchForm({
                         max={
                           destination.productId
                             ? (() => {
-                                const available = getAvailableQuantity(destination.productId);
-                                return Number.isFinite(available) ? available : undefined;
+                                const available = getAvailableQuantity(
+                                  destination.productId,
+                                );
+                                return Number.isFinite(available)
+                                  ? available
+                                  : undefined;
                               })()
                             : undefined
                         }
                       />
-                      {destination.productId && (() => {
-                        const available = getAvailableQuantity(destination.productId);
-                        const needQty = getNeedQuantity(destination.productId);
-                        if (!Number.isFinite(available) && !Number.isFinite(needQty)) return null;
-                        return (
-                          <small className="text-muted">
-                            {Number.isFinite(available) && <>Available: {available}</>}
-                            {Number.isFinite(needQty) && (
-                              <>
-                                {Number.isFinite(available) ? " | " : ""}
-                                Needed: {needQty}
-                              </>
-                            )}
-                          </small>
-                        );
-                      })()}
+                      {destination.productId &&
+                        (() => {
+                          const available = getAvailableQuantity(
+                            destination.productId,
+                          );
+                          const needQty = getNeedQuantity(
+                            destination.productId,
+                          );
+                          if (
+                            !Number.isFinite(available) &&
+                            !Number.isFinite(needQty)
+                          )
+                            return null;
+                          return (
+                            <small className="text-muted">
+                              {Number.isFinite(available) && (
+                                <>Available: {available}</>
+                              )}
+                              {Number.isFinite(needQty) && (
+                                <>
+                                  {Number.isFinite(available) ? " | " : ""}
+                                  Needed: {needQty}
+                                </>
+                              )}
+                            </small>
+                          );
+                        })()}
                     </div>
                   </div>
                 ))}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Payments.module.css";
-import img from "./../../../images/dummy-img.jpeg"; // Assuming this is a local dummy image
+import img from "./../../../images/dummy-img.jpeg";
 import Loading from "@/components/Loading";
 import ErrorModal from "@/components/ErrorModal";
 import { useAuth } from "@/Auth";
-import ImageZoomModal from "./ImageZoomModal"; // New component for image zoom
+import ImageZoomModal from "./ImageZoomModal";
 
 function ApprovalModal({ report, changeTrigger }) {
   const { axiosAPI } = useAuth();
@@ -15,46 +15,53 @@ function ApprovalModal({ report, changeTrigger }) {
   const [isImageZoomModalOpen, setIsImageZoomModalOpen] = useState(false);
   const [currentZoomImageUrl, setCurrentZoomImageUrl] = useState(null);
 
+  /* --------------------------------------------------
+   * INIT PAYMENT STATUS MAP
+   * -------------------------------------------------- */
   useEffect(() => {
-    if (report && report.paymentRequests) {
+    if (report?.paymentRequests?.length) {
       const map = report.paymentRequests.reduce((acc, pr) => {
-        acc[pr.paymentRequestId] = pr.status;
+        acc[pr.paymentRequestId] = pr.approvalStatus;
         return acc;
       }, {});
       setPaymentStatuses(map);
     }
   }, [report]);
 
-  // Use actual payment requests from report, fallback to empty array if not available
   const paymentRequestsToShow = report?.paymentRequests || [];
 
+  /* --------------------------------------------------
+   * APPROVE / REJECT HANDLER
+   * -------------------------------------------------- */
   const handleAction = async (paymentRequestId, action) => {
     setError(null);
     setLoadingIds((prev) => new Set(prev).add(paymentRequestId));
+
     try {
-      // Make API call to approve/reject payment request
-      const endpoint = `/payment-requests/${paymentRequestId}/${action}`;
-      await axiosAPI.post(endpoint);
+      await axiosAPI.post(`/payment-requests/${paymentRequestId}/${action}`);
+
       setPaymentStatuses((prev) => ({
         ...prev,
         [paymentRequestId]: action === "approve" ? "Approved" : "Rejected",
       }));
-      changeTrigger(); // Notify parent to refresh list as needed
-      setLoadingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(paymentRequestId);
-        return newSet;
-      });
+
+      changeTrigger();
     } catch (e) {
-      setError(e.response?.data?.message || "Error updating payment status");
+      setError(
+        e.response?.data?.message || "Failed to update payment approval",
+      );
+    } finally {
       setLoadingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(paymentRequestId);
-        return newSet;
+        const next = new Set(prev);
+        next.delete(paymentRequestId);
+        return next;
       });
     }
   };
 
+  /* --------------------------------------------------
+   * IMAGE ZOOM
+   * -------------------------------------------------- */
   const openImageZoomModal = (imageUrl) => {
     setCurrentZoomImageUrl(imageUrl);
     setIsImageZoomModalOpen(true);
@@ -69,108 +76,173 @@ function ApprovalModal({ report, changeTrigger }) {
 
   return (
     <>
-      <h3 className={`px-3 mdl-title`}>
-        Approvals - Sales Order: {report.orderNumber}
+      {/* HEADER */}
+      <h3 className="px-3 mdl-title">
+        Payment Approvals – Sales Order: {report.orderNumber}
       </h3>
 
+      {/* ORDER INFO */}
       <div className="row m-0 p-0">
         <div className={`col-6 ${styles.longformmdl}`}>
-          <label>Customer Name:</label>
-          <input type="text" value={report.customer?.name || "Jagan"} readOnly />
+          <label>Customer</label>
+          <input type="text" value={report.customer?.name || "-"} readOnly />
         </div>
+
         <div className={`col-6 ${styles.longformmdl}`}>
-          <label>Warehouse:</label>
-          <input type="text" value={report.warehouse?.name} readOnly />
+          <label>Warehouse</label>
+          <input type="text" value={report.warehouse?.name || "-"} readOnly />
         </div>
+
         <div className={`col-6 ${styles.longformmdl}`}>
-          <label>Sales Executive:</label>
-          <input type="text" value={report.salesExecutive?.name} readOnly />
+          <label>Sales Executive</label>
+          <input
+            type="text"
+            value={report.salesExecutive?.name || "-"}
+            readOnly
+          />
+        </div>
+
+        <div className={`col-6 ${styles.longformmdl}`}>
+          <label>Total Paid</label>
+          <input
+            type="text"
+            value={`₹ ${Number(report.totalPaidAmount || 0).toLocaleString(
+              "en-IN",
+            )}`}
+            readOnly
+          />
         </div>
       </div>
 
-      <h4>Payment Requests</h4>
+      {/* PAYMENTS */}
+      <h4 className="mt-3">Payment Requests</h4>
+
       <div className={styles.paymentsContainer}>
         {paymentRequestsToShow.length === 0 ? (
           <p>No payment requests available</p>
         ) : (
-          paymentRequestsToShow.map((pr) => (
-          <div key={pr.paymentRequestId} className={styles.paymentCard}>
-            <div className={styles.paymentDetails}>
-              <div className={styles.paymentDetailRow}>
-                <span className={styles.paymentDetailLabel}>Payment Mode:</span>
-                <span className={styles.paymentDetailValue}>{pr.paymentMode}</span>
+          paymentRequestsToShow.map((pr) => {
+            const status = paymentStatuses[pr.paymentRequestId] || "Pending";
+
+            const isApproved = status === "Approved";
+            const isRejected = status === "Rejected";
+
+            return (
+              <div key={pr.paymentRequestId} className={styles.paymentCard}>
+                {/* DETAILS */}
+                <div className={styles.paymentDetails}>
+                  <div className={styles.paymentDetailRow}>
+                    <span className={styles.paymentDetailLabel}>
+                      Payment Mode:
+                    </span>
+                    <span className={styles.paymentDetailValue}>
+                      {pr.paymentMode}
+                    </span>
+                  </div>
+
+                  <div className={styles.paymentDetailRow}>
+                    <span className={styles.paymentDetailLabel}>
+                      Transaction Ref:
+                    </span>
+                    <span className={styles.paymentDetailValue}>
+                      {pr.transactionReference || "N/A"}
+                    </span>
+                  </div>
+
+                  <div className={styles.paymentDetailRow}>
+                    <span className={styles.paymentDetailLabel}>Amount:</span>
+                    <span className={styles.paymentDetailValue}>
+                      ₹{Number(pr.amount || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+
+                  <div className={styles.paymentDetailRow}>
+                    <span className={styles.paymentDetailLabel}>Date:</span>
+                    <span className={styles.paymentDetailValue}>
+                      {pr.transactionDate
+                        ? new Date(pr.transactionDate).toLocaleDateString(
+                            "en-IN",
+                          )
+                        : "-"}
+                    </span>
+                  </div>
+
+                  {pr.transactionRemark && (
+                    <div className={styles.paymentDetailRow}>
+                      <span className={styles.paymentDetailLabel}>Remark:</span>
+                      <span className={styles.paymentDetailValue}>
+                        {pr.transactionRemark}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* PROOF 
+                <div className={styles.paymentImageSection}>
+                  <img
+                    src={pr.paymentProof || img}
+                    alt="Payment Proof"
+                    className={styles.paymentImage}
+                    onClick={() => openImageZoomModal(pr.paymentProof || img)}
+                  />
+                </div>*/}
+
+                {/* STATUS + ACTIONS */}
+                <div className={styles.statusRow}>
+                  <div
+                    className={`${styles.statusBadge} ${
+                      isApproved
+                        ? styles.statusApproved
+                        : isRejected
+                          ? styles.statusRejected
+                          : styles.statusPending
+                    }`}
+                  >
+                    {status}
+                  </div>
+
+                  <div className={styles.actionButtons}>
+                    <button
+                      disabled={
+                        loadingIds.has(pr.paymentRequestId) || isApproved
+                      }
+                      onClick={() =>
+                        handleAction(pr.paymentRequestId, "approve")
+                      }
+                      className={styles.approveBtn}
+                    >
+                      Approve
+                    </button>
+
+                    <button
+                      disabled={
+                        loadingIds.has(pr.paymentRequestId) || isRejected
+                      }
+                      onClick={() =>
+                        handleAction(pr.paymentRequestId, "reject")
+                      }
+                      className={styles.rejectBtn}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className={styles.paymentDetailRow}>
-                <span className={styles.paymentDetailLabel}>Transaction Ref:</span>
-                <span className={styles.paymentDetailValue}>{pr.transactionReference || "N/A"}</span>
-              </div>
-              <div className={styles.paymentDetailRow}>
-                <span className={styles.paymentDetailLabel}>Amount:</span>
-                <span className={styles.paymentDetailValue}>{pr.netAmount}</span>
-              </div>
-            </div>
-            
-            <div className={styles.paymentImageSection}>
-              <img
-                src={pr.paymentProof || img}
-                alt="Payment Proof"
-                className={styles.paymentImage}
-                onClick={() => openImageZoomModal(pr.paymentProof || img)}
-              />
-            </div>
-            
-            <div className={styles.statusRow}>
-              <div className={`${styles.statusBadge} ${
-                paymentStatuses[pr.paymentRequestId] === "Approved" 
-                  ? styles.statusApproved 
-                  : paymentStatuses[pr.paymentRequestId] === "Rejected" 
-                  ? styles.statusRejected 
-                  : styles.statusPending
-              }`}>
-                {paymentStatuses[pr.paymentRequestId] || "Pending"}
-              </div>
-              
-              <div className={styles.actionButtons}>
-                <button
-                  disabled={
-                    loadingIds.has(pr.paymentRequestId) ||
-                    paymentStatuses[pr.paymentRequestId] === "Approved"
-                  }
-                  onClick={() => handleAction(pr.paymentRequestId, "approve")}
-                  className={styles.approveBtn}
-                  title="Approve"
-                >
-                  Accept
-                </button>
-                <button
-                  disabled={
-                    loadingIds.has(pr.paymentRequestId) ||
-                    paymentStatuses[pr.paymentRequestId] === "Rejected"
-                  }
-                  onClick={() => handleAction(pr.paymentRequestId, "reject")}
-                  className={styles.rejectBtn}
-                  title="Reject"
-                >
-                  Decline
-                </button>
-              </div>
-            </div>
-          </div>
-          ))
+            );
+          })
         )}
       </div>
 
+      {/* ERROR */}
       {error && (
         <ErrorModal
-          isOpen={!!error}
+          isOpen={true}
           message={error}
           onClose={() => setError(null)}
-          // Using global z-index hierarchy for error modal
-          // No need for inline z-index as it's handled by global CSS
-          className="error-modal-override"
         />
       )}
 
+      {/* IMAGE ZOOM */}
       {isImageZoomModalOpen && (
         <ImageZoomModal
           imageUrl={currentZoomImageUrl}
@@ -178,6 +250,7 @@ function ApprovalModal({ report, changeTrigger }) {
         />
       )}
 
+      {/* LOADING */}
       {loadingIds.size > 0 && <Loading />}
     </>
   );

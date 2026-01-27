@@ -19,6 +19,12 @@
   --secondary-color: #c01818;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* BOOTSTRAP MODAL Z-INDEX OVERRIDES */
 .modal {
   --bs-modal-zindex: 150000 !important;

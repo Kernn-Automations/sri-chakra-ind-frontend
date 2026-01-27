@@ -38,6 +38,15 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
   const [categories, setCategories] = useState([]);
   const [taxeslist, setTaxeslist] = useState([]);
   const [taxSearch, setTaxSearch] = useState("");
+  const [unitConversions, setUnitConversions] = useState([]);
+
+  const getInventoryUnit = () => {
+    if (measurementType === "weight") return "kg";
+    if (measurementType === "length") return "m";
+    if (measurementType === "area") return "sq_m";
+    if (measurementType === "count") return "nos";
+    return "";
+  };
 
   /* -------------------------
    * UNIT MAPS
@@ -143,6 +152,7 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
 
         // Fetch product
         const res = await axiosAPI.get(`/products/fetch/${productId}`);
+        console.log("Unique Response", res);
         const p = res.data.product;
 
         setName(p.name || "");
@@ -158,6 +168,21 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
         setPackageWeightUnit(p.packageWeightUnit || "");
         setUnitPrices(p.unitPrices || []);
         setSelectedTaxes(p.taxes?.map((t) => t.id) || []);
+
+        setUnitConversions(
+          (p.unitConversions || []).map((c) => ({
+            fromUnit: c.fromUnit,
+            toUnit: c.toUnit,
+            conversionType: c.conversionType,
+            factor: c.factor ?? "",
+            length: c.length ?? "",
+            width: c.width ?? "",
+            thickness: c.thickness ?? "",
+            density: c.density ?? "",
+            piecesPerUnit: c.piecesPerUnit ?? "",
+            roundingRule: c.roundingRule || "NONE",
+          })),
+        );
       } catch (e) {
         setError("Failed to load product");
         setIsModalOpen(true);
@@ -167,6 +192,76 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
     }
     fetchProduct();
   }, [productId, axiosAPI]);
+
+  useEffect(() => {
+    const inventoryUnit = getInventoryUnit();
+    if (!inventoryUnit) return;
+
+    setUnitConversions((prev) => {
+      const sellingUnits = unitPrices
+        .map((u) => u.unit)
+        .filter((u) => u && u !== inventoryUnit);
+
+      const prevMap = new Map(
+        prev.map((c) => [`${c.fromUnit}__${c.toUnit}`, c]),
+      );
+
+      const next = sellingUnits.map((u) => {
+        const key = `${u}__${inventoryUnit}`;
+        return (
+          prevMap.get(key) || {
+            fromUnit: u,
+            toUnit: inventoryUnit,
+            conversionType: "FIXED",
+            factor: "",
+            length: "",
+            width: "",
+            thickness: "",
+            density: "",
+            piecesPerUnit: "",
+            roundingRule: "NONE",
+          }
+        );
+      });
+
+      return next;
+    });
+  }, [unitPrices, measurementType]);
+
+  const updateUnitConversion = (index, key, value) => {
+    setUnitConversions((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, [key]: value } : c)),
+    );
+  };
+
+  const calculateKg = (c) => {
+    if (!c) return null;
+
+    // FIXED: 1 unit = factor kg
+    if (c.conversionType === "FIXED") {
+      const factor = parseFloat(c.factor);
+      return isNaN(factor) || factor <= 0 ? null : factor;
+    }
+
+    // FORMULA: L × W × T × Density
+    if (c.conversionType === "FORMULA") {
+      const length = parseFloat(c.length);
+      const width = parseFloat(c.width);
+      const thicknessMm = parseFloat(c.thickness);
+      const density = parseFloat(c.density);
+
+      if (
+        [length, width, thicknessMm, density].some((v) => isNaN(v) || v <= 0)
+      ) {
+        return null;
+      }
+
+      const thicknessM = thicknessMm / 1000; // mm → m
+      return length * width * thicknessM * density;
+    }
+
+    return null;
+  };
 
   /* -------------------------
    * VALIDATION
@@ -253,6 +348,39 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
     formData.append("unitPrices", JSON.stringify(unitPrices));
     selectedTaxes.forEach((t) => formData.append("taxIds[]", t));
     images.forEach((img) => img && formData.append("images", img.file));
+
+    formData.append(
+      "unitConversions",
+      JSON.stringify(
+        unitConversions
+          .filter(
+            (c) =>
+              (c.conversionType === "FIXED" && c.factor) ||
+              (c.conversionType === "FORMULA" && c.density),
+          )
+          .map((c) => ({
+            fromUnit: c.fromUnit,
+            toUnit: c.toUnit,
+            conversionType: c.conversionType,
+
+            factor:
+              c.conversionType === "FIXED" && c.factor !== ""
+                ? Number(c.factor)
+                : null,
+
+            length: c.length !== "" ? Number(c.length) : null,
+            width: c.width !== "" ? Number(c.width) : null,
+            thickness: c.thickness !== "" ? Number(c.thickness) : null,
+            density: c.density !== "" ? Number(c.density) : null,
+
+            // 🔥 THIS FIXES YOUR ERROR
+            piecesPerUnit:
+              c.piecesPerUnit !== "" ? Number(c.piecesPerUnit) : null,
+
+            roundingRule: c.roundingRule || "NONE",
+          })),
+      ),
+    );
 
     try {
       setLoading(true);
@@ -519,6 +647,162 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
         <button style={styles.addBtn} onClick={addUnitPrice}>
           + Add Unit Price
         </button>
+      </section>
+
+      {/* UNIT CONVERSIONS */}
+      {/* UNIT CONVERSIONS */}
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Unit Conversions</h4>
+          <span style={styles.infoText}>
+            Required for selling in multiple units
+          </span>
+        </div>
+
+        {unitConversions.length === 0 ? (
+          <p style={{ fontSize: 14, color: "#64748b" }}>
+            No unit conversions required
+          </p>
+        ) : (
+          unitConversions.map((c, i) => {
+            const calculatedKg = calculateKg(c);
+
+            return (
+              <div
+                key={`${c.fromUnit}_${c.toUnit}`}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <strong>
+                  {c.fromUnit} → {c.toUnit}
+                </strong>
+
+                <div style={styles.grid}>
+                  {/* CONVERSION TYPE */}
+                  <div style={styles.inputGroup}>
+                    <label style={styles.label}>Conversion Type</label>
+                    <select
+                      style={styles.input}
+                      value={c.conversionType}
+                      onChange={(e) =>
+                        updateUnitConversion(
+                          i,
+                          "conversionType",
+                          e.target.value,
+                        )
+                      }
+                    >
+                      <option value="FIXED">Fixed</option>
+                      <option value="FORMULA">Formula</option>
+                    </select>
+                  </div>
+
+                  {/* FIXED */}
+                  {c.conversionType === "FIXED" && (
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Factor (kg)</label>
+                      <input
+                        style={styles.input}
+                        type="number"
+                        placeholder="e.g. 10"
+                        value={c.factor}
+                        onChange={(e) =>
+                          updateUnitConversion(i, "factor", e.target.value)
+                        }
+                      />
+                    </div>
+                  )}
+
+                  {/* FORMULA */}
+                  {c.conversionType === "FORMULA" && (
+                    <>
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Length (m)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.length}
+                          onChange={(e) =>
+                            updateUnitConversion(i, "length", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Width (m)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.width}
+                          onChange={(e) =>
+                            updateUnitConversion(i, "width", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Thickness (mm)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.thickness}
+                          onChange={(e) =>
+                            updateUnitConversion(i, "thickness", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Density (kg/m³)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          value={c.density}
+                          onChange={(e) =>
+                            updateUnitConversion(i, "density", e.target.value)
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* LIVE KG PREVIEW */}
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: calculatedKg === null ? "#fff1f2" : "#f1f5f9",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: 14,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: "#475569" }}>
+                    1 {c.fromUnit}
+                  </span>
+
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      color: calculatedKg === null ? "#991b1b" : "#0f172a",
+                    }}
+                  >
+                    {calculatedKg !== null
+                      ? `= ${calculatedKg.toFixed(3)} kg`
+                      : "Invalid conversion"}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </section>
 
       {/* TAX LINKING */}

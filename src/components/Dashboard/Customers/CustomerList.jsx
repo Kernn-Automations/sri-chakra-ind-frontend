@@ -153,7 +153,7 @@ function CustomerList({ navigate, isAdmin }) {
         } catch (putError) {
           console.log(
             "🔄 PUT to /customers/{id} failed:",
-            putError.response?.status
+            putError.response?.status,
           );
         }
 
@@ -168,7 +168,7 @@ function CustomerList({ navigate, isAdmin }) {
           } catch (patchError) {
             console.log(
               "🔄 PATCH to /customers/{id} failed:",
-              patchError.response?.status
+              patchError.response?.status,
             );
           }
         }
@@ -184,7 +184,7 @@ function CustomerList({ navigate, isAdmin }) {
           } catch (statusError) {
             console.log(
               "🔄 PUT to /customers/{id}/status failed:",
-              statusError.response?.status
+              statusError.response?.status,
             );
           }
         }
@@ -195,17 +195,17 @@ function CustomerList({ navigate, isAdmin }) {
             const endpoint =
               statusValue === "Active" ? "activate" : "deactivate";
             response = await axiosAPI.put(
-              `/customers/${customerId}/${endpoint}`
+              `/customers/${customerId}/${endpoint}`,
             );
             console.log(
               `🔄 PUT to /customers/{id}/${endpoint} success:`,
-              response
+              response,
             );
             success = true;
           } catch (activateError) {
             console.log(
               "🔄 PUT to /customers/{id}/activate|deactivate failed:",
-              activateError.response?.status
+              activateError.response?.status,
             );
           }
         }
@@ -229,7 +229,7 @@ function CustomerList({ navigate, isAdmin }) {
         // If the API endpoint doesn't exist (404), simulate the update for development
         if (apiError.response?.status === 404) {
           console.warn(
-            "Customer activation endpoint not available, simulating update for development"
+            "Customer activation endpoint not available, simulating update for development",
           );
           // Simulate API delay
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -249,16 +249,16 @@ function CustomerList({ navigate, isAdmin }) {
         prev?.map((customer) =>
           customer.id === customerId
             ? { ...customer, status: statusValue }
-            : customer
-        )
+            : customer,
+        ),
       );
 
       setFilteredCustomers((prev) =>
         prev?.map((customer) =>
           customer.id === customerId
             ? { ...customer, status: statusValue }
-            : customer
-        )
+            : customer,
+        ),
       );
 
       // Also update allCustomers to maintain consistency
@@ -266,13 +266,13 @@ function CustomerList({ navigate, isAdmin }) {
         prev?.map((customer) =>
           customer.id === customerId
             ? { ...customer, status: statusValue }
-            : customer
-        )
+            : customer,
+        ),
       );
 
       // Show success message
       setSuccessMessage(
-        `Customer ${statusValue === "Active" ? "activated" : "deactivated"} successfully!`
+        `Customer ${statusValue === "Active" ? "activated" : "deactivated"} successfully!`,
       );
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (e) {
@@ -281,20 +281,20 @@ function CustomerList({ navigate, isAdmin }) {
       // Handle specific error cases
       if (e.response?.status === 404) {
         setError(
-          "Customer activation endpoint not available. Please contact your administrator to enable this feature."
+          "Customer activation endpoint not available. Please contact your administrator to enable this feature.",
         );
       } else if (e.response?.status === 403) {
         setError(
-          "You don't have permission to modify customer activation status."
+          "You don't have permission to modify customer activation status.",
         );
       } else if (e.response?.status === 400) {
         setError(
-          "Invalid request. Please check the customer data and try again."
+          "Invalid request. Please check the customer data and try again.",
         );
       } else {
         setError(
           e.response?.data?.message ||
-            "Failed to update customer activation status. Please try again."
+            "Failed to update customer activation status. Please try again.",
         );
       }
 
@@ -318,7 +318,7 @@ function CustomerList({ navigate, isAdmin }) {
   const handleConfirmedAction = () => {
     if (showConfirmation.action === "deactivate") {
       const customer = customers?.find(
-        (c) => c.id === showConfirmation.customerId
+        (c) => c.id === showConfirmation.customerId,
       );
       if (customer) {
         handleActivationToggle(customer.id, customer.status === "Active");
@@ -331,7 +331,7 @@ function CustomerList({ navigate, isAdmin }) {
   const hasPersistedChanges = () => {
     const keys = Object.keys(localStorage);
     const activationKeys = keys.filter((key) =>
-      key.startsWith("customer_activation_")
+      key.startsWith("customer_activation_"),
     );
     return activationKeys.length > 0;
   };
@@ -340,13 +340,13 @@ function CustomerList({ navigate, isAdmin }) {
   const clearPersistedActivationStatus = () => {
     const keys = Object.keys(localStorage);
     const activationKeys = keys.filter((key) =>
-      key.startsWith("customer_activation_")
+      key.startsWith("customer_activation_"),
     );
     activationKeys.forEach((key) => localStorage.removeItem(key));
     console.log(
       "🧹 Cleared persisted activation status for",
       activationKeys.length,
-      "customers"
+      "customers",
     );
   };
 
@@ -383,7 +383,7 @@ function CustomerList({ navigate, isAdmin }) {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `customer_activation_status_${new Date().toISOString().split("T")[0]}.csv`
+        `customer_activation_status_${new Date().toISOString().split("T")[0]}.csv`,
       );
       link.style.visibility = "hidden";
       document.body.appendChild(link);
@@ -418,7 +418,7 @@ function CustomerList({ navigate, isAdmin }) {
 
         console.log(
           "CustomerList - Fetching warehouses with endpoint:",
-          warehousesEndpoint
+          warehousesEndpoint,
         );
         console.log("CustomerList - Division ID:", currentDivisionId);
         console.log("CustomerList - Division Name:", currentDivisionName);
@@ -475,13 +475,13 @@ function CustomerList({ navigate, isAdmin }) {
         console.log("CustomerList - Selected warehouse:", warehouse);
         console.log(
           "CustomerList - Warehouse filter applied:",
-          warehouse && warehouse !== "all"
+          warehouse && warehouse !== "all",
         );
         console.log("CustomerList - Division ID:", currentDivisionId);
         console.log("CustomerList - Division Name:", currentDivisionName);
         console.log(
           "CustomerList - Division parameters added:",
-          query.includes("divisionId") || query.includes("showAllDivisions")
+          query.includes("divisionId") || query.includes("showAllDivisions"),
         );
 
         const res = await axiosAPI.get(query);
@@ -746,7 +746,7 @@ function CustomerList({ navigate, isAdmin }) {
                         });
                         console.log(
                           "🔄 Current allCustomers length:",
-                          allCustomers.length
+                          allCustomers.length,
                         );
                         setLimit(newLimit);
                       }}
@@ -774,7 +774,7 @@ function CustomerList({ navigate, isAdmin }) {
                       {filteredCustomers && filteredCustomers.length > 0
                         ? Math.min(
                             pageNo * limit,
-                            (pageNo - 1) * limit + filteredCustomers.length
+                            (pageNo - 1) * limit + filteredCustomers.length,
                           )
                         : 0}{" "}
                       of {allCustomers ? allCustomers.length : 0} entries
@@ -790,7 +790,6 @@ function CustomerList({ navigate, isAdmin }) {
                       <th>Customer ID</th>
                       <th>Customer Name</th>
                       <th>Firm Name</th>
-                      <th>SE Name</th>
                       <th>Warehouse</th>
                       <th>
                         Activation
@@ -820,7 +819,6 @@ function CustomerList({ navigate, isAdmin }) {
                         <td>
                           {customer.firmName || customer.firm_name || "N/A"}
                         </td>
-                        <td>{customer.salesExecutive?.name}</td>
                         <td>{customer.warehouse?.name}</td>
                         <td className={styles["activation-column"]}>
                           {isAdmin && isActivationEnabled ? (
@@ -834,13 +832,13 @@ function CustomerList({ navigate, isAdmin }) {
                                     // Show confirmation for deactivation
                                     showDeactivationConfirmation(
                                       customer.id,
-                                      customer.name
+                                      customer.name,
                                     );
                                   } else {
                                     // Direct activation
                                     handleActivationToggle(
                                       customer.id,
-                                      customer.status === "Active"
+                                      customer.status === "Active",
                                     );
                                   }
                                 }}

@@ -26,6 +26,7 @@ function Orders({
   setFrom,
   to,
   setTo,
+  isAdmin,
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [onsubmit, setonsubmit] = useState(false);
@@ -34,8 +35,8 @@ function Orders({
   const [customer, setCustomer] = useState();
   const [trigger, setTrigger] = useState(false);
   const getInitialStatus = () => {
-    const statusParam = searchParams.get('status');
-    if (!statusParam || statusParam === 'null') return '';
+    const statusParam = searchParams.get("status");
+    if (!statusParam || statusParam === "null") return "";
     return statusParam;
   };
   const [status, setStatus] = useState(getInitialStatus);
@@ -91,14 +92,14 @@ function Orders({
 
   // Handle URL parameter changes for status filter
   useEffect(() => {
-    const statusParam = searchParams.get('status');
+    const statusParam = searchParams.get("status");
     const normalizedStatus =
-      statusParam && statusParam !== 'null' ? statusParam : '';
+      statusParam && statusParam !== "null" ? statusParam : "";
 
     if (normalizedStatus !== status) {
       setStatus(normalizedStatus);
       setPageNo(1); // Reset to first page when status changes
-      setTrigger(prev => !prev); // Trigger data refetch
+      setTrigger((prev) => !prev); // Trigger data refetch
     }
   }, [searchParams]);
 
@@ -121,18 +122,17 @@ function Orders({
         // ✅ Consolidate division parameters - prioritize filter state, then global context
         let divisionParam = "";
         const effectiveDivisionId = divisionId || currentDivisionId;
-        
+
         if (effectiveDivisionId && effectiveDivisionId !== "1") {
           divisionParam = `&divisionId=${effectiveDivisionId}`;
         }
-        // If it's "1" (All Divisions), we send nothing according to user request 
-        // that showAllDivisions causes issues. The backend should handle omission as "all" 
+        // If it's "1" (All Divisions), we send nothing according to user request
+        // that showAllDivisions causes issues. The backend should handle omission as "all"
         // or we just don't force a specific division.
-
 
         console.log(
           "Orders - Fetching orders with warehouse filter:",
-          warehouse
+          warehouse,
         );
         console.log("Orders - Warehouse parameter:", warehouseParam);
         console.log("Orders - Division ID:", currentDivisionId);
@@ -141,28 +141,29 @@ function Orders({
 
         // Map dropdown status values to backend-expected values
         const getStatusForBackend = (statusValue) => {
-          if (!statusValue || statusValue === 'all' || statusValue === '') return '';
-          
+          if (!statusValue || statusValue === "all" || statusValue === "")
+            return "";
+
           const statusMap = {
-            'Pending': 'Pending',
-            'Confirmed': 'Confirmed',
-            'Dispatched': 'Dispatched',
-            'Delivered': 'Delivered',
-            'Cancelled': 'Cancelled',
-            'pendingPaymentApprovals': 'awaitingPaymentConfirmation', // Map to actual backend value
+            Pending: "Pending",
+            Confirmed: "Confirmed",
+            Dispatched: "Dispatched",
+            Delivered: "Delivered",
+            Cancelled: "Cancelled",
+            pendingPaymentApprovals: "awaitingPaymentConfirmation", // Map to actual backend value
           };
-          
+
           return statusMap[statusValue] || statusValue;
         };
-        
+
         // Only add status parameter if status is explicitly set and not empty
-        const trimmedStatus = typeof status === 'string' ? status.trim() : '';
+        const trimmedStatus = typeof status === "string" ? status.trim() : "";
         const backendStatus = getStatusForBackend(trimmedStatus);
         // Don't add status parameter if backendStatus is empty - this ensures all orders are fetched
         const statusParamForQuery =
-          backendStatus && backendStatus !== '' && backendStatus !== 'all' 
-            ? `&status=${backendStatus}` 
-            : '';
+          backendStatus && backendStatus !== "" && backendStatus !== "all"
+            ? `&status=${backendStatus}`
+            : "";
 
         const query = `/sales-orders?fromDate=${from}&toDate=${to}${warehouseParam}${divisionParam}${
           customer ? `&customerId=${customer}` : ""
@@ -188,7 +189,22 @@ function Orders({
       }
     }
     fetch();
-  }, [trigger, pageNo, limit, status, from, to, warehouse, customer, divisionId, zoneId, subZoneId, teamsId, employeeId, axiosAPI]);
+  }, [
+    trigger,
+    pageNo,
+    limit,
+    status,
+    from,
+    to,
+    warehouse,
+    customer,
+    divisionId,
+    zoneId,
+    subZoneId,
+    teamsId,
+    employeeId,
+    axiosAPI,
+  ]);
 
   // Add ESC key functionality to exit search mode
   useEffect(() => {
@@ -252,13 +268,13 @@ function Orders({
       const orderIdHeader = document.querySelector("[data-orderid-header]");
       const warehouseHeader = document.querySelector("[data-warehouse-header]");
       const customerIdHeader = document.querySelector(
-        "[data-customerid-header]"
+        "[data-customerid-header]",
       );
       const customerNameHeader = document.querySelector(
-        "[data-customername-header]"
+        "[data-customername-header]",
       );
       const paymentModeHeader = document.querySelector(
-        "[data-paymentmode-header]"
+        "[data-paymentmode-header]",
       );
 
       if (showDateSearch && dateHeader && !dateHeader.contains(event.target)) {
@@ -375,11 +391,11 @@ function Orders({
 
   // Apply table header search filters to a given orders array
   const matchesStatusSelection = (orderStatus) => {
-    const selectedStatus = status || '';
-    const orderStatusValue = orderStatus || '';
+    const selectedStatus = status || "";
+    const orderStatusValue = orderStatus || "";
 
     // If no status selected or "all", show all orders
-    if (!selectedStatus || selectedStatus === 'all' || selectedStatus === '') {
+    if (!selectedStatus || selectedStatus === "all" || selectedStatus === "") {
       return true;
     }
 
@@ -388,10 +404,10 @@ function Orders({
     const normalizedOrderStatus = orderStatusValue.toLowerCase();
 
     // Handle payment pending status mapping
-    if (normalizedSelectedStatus === 'pendingpaymentapprovals') {
+    if (normalizedSelectedStatus === "pendingpaymentapprovals") {
       return (
-        normalizedOrderStatus === 'pendingpaymentapprovals' ||
-        normalizedOrderStatus === 'awaitingpaymentconfirmation'
+        normalizedOrderStatus === "pendingpaymentapprovals" ||
+        normalizedOrderStatus === "awaitingpaymentconfirmation"
       );
     }
 
@@ -401,9 +417,13 @@ function Orders({
     }
 
     // Additional fallback: check if statuses match when both are capitalized
-    const capitalizedSelected = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1).toLowerCase();
-    const capitalizedOrder = orderStatusValue.charAt(0).toUpperCase() + orderStatusValue.slice(1).toLowerCase();
-    
+    const capitalizedSelected =
+      selectedStatus.charAt(0).toUpperCase() +
+      selectedStatus.slice(1).toLowerCase();
+    const capitalizedOrder =
+      orderStatusValue.charAt(0).toUpperCase() +
+      orderStatusValue.slice(1).toLowerCase();
+
     return capitalizedOrder === capitalizedSelected;
   };
 
@@ -412,8 +432,10 @@ function Orders({
     let filtered = ordersList.filter((order) => {
       const matches = matchesStatusSelection(order?.orderStatus);
       // Debug logging for status filtering
-      if (status && status !== 'all' && status !== '') {
-        console.log(`Status filter: Selected="${status}", Order status="${order?.orderStatus}", Matches=${matches}`);
+      if (status && status !== "all" && status !== "") {
+        console.log(
+          `Status filter: Selected="${status}", Order status="${order?.orderStatus}", Matches=${matches}`,
+        );
       }
       return matches;
     });
@@ -442,25 +464,41 @@ function Orders({
 
         if (warehouseSearchTerm) {
           const warehouseName = order.warehouse?.name || "";
-          if (!warehouseName.toLowerCase().includes(warehouseSearchTerm.toLowerCase()))
+          if (
+            !warehouseName
+              .toLowerCase()
+              .includes(warehouseSearchTerm.toLowerCase())
+          )
             pass = false;
         }
 
         if (customerIdSearchTerm) {
           const customerId = order.customer?.customer_id || "";
-          if (!customerId.toLowerCase().includes(customerIdSearchTerm.toLowerCase()))
+          if (
+            !customerId
+              .toLowerCase()
+              .includes(customerIdSearchTerm.toLowerCase())
+          )
             pass = false;
         }
 
         if (customerNameSearchTerm) {
           const customerName = order.customer?.name || "";
-          if (!customerName.toLowerCase().includes(customerNameSearchTerm.toLowerCase()))
+          if (
+            !customerName
+              .toLowerCase()
+              .includes(customerNameSearchTerm.toLowerCase())
+          )
             pass = false;
         }
 
         if (paymentModeSearchTerm) {
           const paymentMode = "UPI";
-          if (!paymentMode.toLowerCase().includes(paymentModeSearchTerm.toLowerCase()))
+          if (
+            !paymentMode
+              .toLowerCase()
+              .includes(paymentModeSearchTerm.toLowerCase())
+          )
             pass = false;
         }
 
@@ -486,7 +524,8 @@ function Orders({
       // Handle both number and string types, and null/undefined
       const amount = order?.totalAmount;
       if (amount !== null && amount !== undefined) {
-        const numAmount = typeof amount === "number" ? amount : parseFloat(amount);
+        const numAmount =
+          typeof amount === "number" ? amount : parseFloat(amount);
         if (!isNaN(numAmount)) {
           totalValue += numAmount;
         }
@@ -509,7 +548,8 @@ function Orders({
             } else if (unit === "tons") {
               // Convert tons to bags using package weight (kg per bag)
               if (packageWeight > 0) {
-                const bags = ((Number(item?.quantity) || 0) * 1000) / packageWeight;
+                const bags =
+                  ((Number(item?.quantity) || 0) * 1000) / packageWeight;
                 totalBags += bags;
               }
             }
@@ -549,7 +589,17 @@ function Orders({
     const filteredOrders = applyFilters(orders || []);
     const totals = getPageTotals(filteredOrders);
     setPageTotalsByPage((prev) => ({ ...prev, [pageNo]: totals }));
-  }, [orders, pageNo, status, dateSearchTerm, orderIdSearchTerm, warehouseSearchTerm, customerIdSearchTerm, customerNameSearchTerm, paymentModeSearchTerm]);
+  }, [
+    orders,
+    pageNo,
+    status,
+    dateSearchTerm,
+    orderIdSearchTerm,
+    warehouseSearchTerm,
+    customerIdSearchTerm,
+    customerNameSearchTerm,
+    paymentModeSearchTerm,
+  ]);
 
   // pdf code -----------------------------------
 
@@ -594,7 +644,7 @@ function Orders({
           "TNX Amount": order.totalAmount,
           "Payment Mode": "UPI",
           Status: order.orderStatus,
-        })
+        }),
       );
       setTableData(arr);
 
@@ -671,7 +721,9 @@ function Orders({
           subZoneId={subZoneId}
           teamsId={teamsId}
           zoneId={zoneId}
-          isDivisionDisabled={selectedDivision?.id !== "all" && selectedDivision?.id !== 1}
+          isDivisionDisabled={
+            selectedDivision?.id !== "all" && selectedDivision?.id !== 1
+          }
         />
       </div>
 
@@ -694,13 +746,14 @@ function Orders({
             {/* Awaiting Payment */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'pendingPaymentApprovals' || status === 'awaitingPaymentConfirmation'
-                  ? 'active'
-                  : ''
+                status === "pendingPaymentApprovals" ||
+                status === "awaitingPaymentConfirmation"
+                  ? "active"
+                  : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'pendingPaymentApprovals');
+                newParams.set("status", "pendingPaymentApprovals");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -716,8 +769,12 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'pendingPaymentApprovals' || status === 'awaitingPaymentConfirmation' ? '#F3C623' : '#000',
-                  transition: 'all 0.2s ease'
+                  color:
+                    status === "pendingPaymentApprovals" ||
+                    status === "awaitingPaymentConfirmation"
+                      ? "#F3C623"
+                      : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Awaiting Payment
@@ -727,11 +784,11 @@ function Orders({
             {/* Confirmed */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'Confirmed' ? 'active' : ''
+                status === "Confirmed" ? "active" : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'Confirmed');
+                newParams.set("status", "Confirmed");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -747,8 +804,8 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'Confirmed' ? '#0065F8' : '#000',
-                  transition: 'all 0.2s ease'
+                  color: status === "Confirmed" ? "#0065F8" : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Confirmed
@@ -758,11 +815,11 @@ function Orders({
             {/* Dispatched */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'Dispatched' ? 'active' : ''
+                status === "Dispatched" ? "active" : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'Dispatched');
+                newParams.set("status", "Dispatched");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -778,8 +835,8 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'Dispatched' ? '#F3C623' : '#000',
-                  transition: 'all 0.2s ease'
+                  color: status === "Dispatched" ? "#F3C623" : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Dispatched
@@ -789,11 +846,11 @@ function Orders({
             {/* Delivered */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'Delivered' ? 'active' : ''
+                status === "Delivered" ? "active" : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'Delivered');
+                newParams.set("status", "Delivered");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -809,8 +866,8 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'Delivered' ? '#5CB338' : '#000',
-                  transition: 'all 0.2s ease'
+                  color: status === "Delivered" ? "#5CB338" : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Delivered
@@ -820,11 +877,11 @@ function Orders({
             {/* Cancelled */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'Cancelled' ? 'active' : ''
+                status === "Cancelled" ? "active" : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'Cancelled');
+                newParams.set("status", "Cancelled");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -840,8 +897,8 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'Cancelled' ? '#EA3323' : '#000',
-                  transition: 'all 0.2s ease'
+                  color: status === "Cancelled" ? "#EA3323" : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Cancelled
@@ -851,11 +908,11 @@ function Orders({
             {/* Pending */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                status === 'Pending' ? 'active' : ''
+                status === "Pending" ? "active" : ""
               }`}
               onClick={() => {
                 const newParams = new URLSearchParams(searchParams);
-                newParams.set('status', 'Pending');
+                newParams.set("status", "Pending");
                 setSearchParams(newParams, { replace: true });
                 setPageNo(1);
               }}
@@ -871,8 +928,8 @@ function Orders({
               </svg>
               <span
                 style={{
-                  color: status === 'Pending' ? '#EA7300' : '#000',
-                  transition: 'all 0.2s ease'
+                  color: status === "Pending" ? "#EA7300" : "#000",
+                  transition: "all 0.2s ease",
                 }}
               >
                 Pending
@@ -882,19 +939,19 @@ function Orders({
             {/* All Orders */}
             <div
               className={`d-flex align-items-center gap-2 ${styles.statusFilterLink} ${
-                !status || status === '' ? 'active' : ''
+                !status || status === "" ? "active" : ""
               }`}
               onClick={() => {
                 // Remove status from URL params first
                 const newParams = new URLSearchParams(searchParams);
-                newParams.delete('status');
+                newParams.delete("status");
                 setSearchParams(newParams, { replace: true });
                 // Clear status immediately
-                setStatus('');
+                setStatus("");
                 // Reset page and trigger fetch
                 setPageNo(1);
                 // Force trigger by toggling
-                setTrigger(prev => !prev);
+                setTrigger((prev) => !prev);
               }}
             >
               <svg
@@ -902,15 +959,15 @@ function Orders({
                 height="20px"
                 viewBox="0 -960 960 960"
                 width="20px"
-                fill={!status || status === '' ? '#0065F8' : '#000'}
+                fill={!status || status === "" ? "#0065F8" : "#000"}
               >
                 <path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
               </svg>
               <span
                 style={{
-                  color: !status || status === '' ? '#0065F8' : '#000',
-                  fontWeight: !status || status === '' ? 'bold' : 'normal',
-                  transition: 'all 0.2s ease'
+                  color: !status || status === "" ? "#0065F8" : "#000",
+                  fontWeight: !status || status === "" ? "bold" : "normal",
+                  transition: "all 0.2s ease",
                 }}
               >
                 All
@@ -1192,7 +1249,7 @@ function Orders({
                       {(() => {
                         // Use same filtering logic as table body
                         let filteredOrders = orders || [];
-                        if (status && status !== '' && status !== 'all') {
+                        if (status && status !== "" && status !== "all") {
                           filteredOrders = applyFilters(orders || []);
                         } else if (
                           dateSearchTerm ||
@@ -1205,32 +1262,58 @@ function Orders({
                           filteredOrders = filteredOrders.filter((order) => {
                             let pass = true;
                             if (dateSearchTerm) {
-                              const orderDate = order.createdAt ? order.createdAt.slice(0, 10) : "";
-                              if (!orderDate.includes(dateSearchTerm)) pass = false;
+                              const orderDate = order.createdAt
+                                ? order.createdAt.slice(0, 10)
+                                : "";
+                              if (!orderDate.includes(dateSearchTerm))
+                                pass = false;
                             }
                             if (orderIdSearchTerm) {
                               const orderId = order.orderNumber || "";
-                              if (!orderId.toLowerCase().includes(orderIdSearchTerm.toLowerCase()))
+                              if (
+                                !orderId
+                                  .toLowerCase()
+                                  .includes(orderIdSearchTerm.toLowerCase())
+                              )
                                 pass = false;
                             }
                             if (warehouseSearchTerm) {
                               const warehouseName = order.warehouse?.name || "";
-                              if (!warehouseName.toLowerCase().includes(warehouseSearchTerm.toLowerCase()))
+                              if (
+                                !warehouseName
+                                  .toLowerCase()
+                                  .includes(warehouseSearchTerm.toLowerCase())
+                              )
                                 pass = false;
                             }
                             if (customerIdSearchTerm) {
-                              const customerId = order.customer?.customer_id || "";
-                              if (!customerId.toLowerCase().includes(customerIdSearchTerm.toLowerCase()))
+                              const customerId =
+                                order.customer?.customer_id || "";
+                              if (
+                                !customerId
+                                  .toLowerCase()
+                                  .includes(customerIdSearchTerm.toLowerCase())
+                              )
                                 pass = false;
                             }
                             if (customerNameSearchTerm) {
                               const customerName = order.customer?.name || "";
-                              if (!customerName.toLowerCase().includes(customerNameSearchTerm.toLowerCase()))
+                              if (
+                                !customerName
+                                  .toLowerCase()
+                                  .includes(
+                                    customerNameSearchTerm.toLowerCase(),
+                                  )
+                              )
                                 pass = false;
                             }
                             if (paymentModeSearchTerm) {
                               const paymentMode = "UPI";
-                              if (!paymentMode.toLowerCase().includes(paymentModeSearchTerm.toLowerCase()))
+                              if (
+                                !paymentMode
+                                  .toLowerCase()
+                                  .includes(paymentModeSearchTerm.toLowerCase())
+                              )
                                 pass = false;
                             }
                             return pass;
@@ -1247,9 +1330,9 @@ function Orders({
                   // When status is empty (All orders), don't apply status filter
                   // Backend already returns all orders when no status param is provided
                   let filteredOrders = orders || [];
-                  
+
                   // Only apply filters if status is explicitly set (not empty)
-                  if (status && status !== '' && status !== 'all') {
+                  if (status && status !== "" && status !== "all") {
                     filteredOrders = applyFilters(orders || []);
                   } else {
                     // When showing all orders, only apply search filters (not status filter)
@@ -1265,37 +1348,59 @@ function Orders({
                         let pass = true;
 
                         if (dateSearchTerm) {
-                          const orderDate = order.createdAt ? order.createdAt.slice(0, 10) : "";
+                          const orderDate = order.createdAt
+                            ? order.createdAt.slice(0, 10)
+                            : "";
                           if (!orderDate.includes(dateSearchTerm)) pass = false;
                         }
 
                         if (orderIdSearchTerm) {
                           const orderId = order.orderNumber || "";
-                          if (!orderId.toLowerCase().includes(orderIdSearchTerm.toLowerCase()))
+                          if (
+                            !orderId
+                              .toLowerCase()
+                              .includes(orderIdSearchTerm.toLowerCase())
+                          )
                             pass = false;
                         }
 
                         if (warehouseSearchTerm) {
                           const warehouseName = order.warehouse?.name || "";
-                          if (!warehouseName.toLowerCase().includes(warehouseSearchTerm.toLowerCase()))
+                          if (
+                            !warehouseName
+                              .toLowerCase()
+                              .includes(warehouseSearchTerm.toLowerCase())
+                          )
                             pass = false;
                         }
 
                         if (customerIdSearchTerm) {
                           const customerId = order.customer?.customer_id || "";
-                          if (!customerId.toLowerCase().includes(customerIdSearchTerm.toLowerCase()))
+                          if (
+                            !customerId
+                              .toLowerCase()
+                              .includes(customerIdSearchTerm.toLowerCase())
+                          )
                             pass = false;
                         }
 
                         if (customerNameSearchTerm) {
                           const customerName = order.customer?.name || "";
-                          if (!customerName.toLowerCase().includes(customerNameSearchTerm.toLowerCase()))
+                          if (
+                            !customerName
+                              .toLowerCase()
+                              .includes(customerNameSearchTerm.toLowerCase())
+                          )
                             pass = false;
                         }
 
                         if (paymentModeSearchTerm) {
                           const paymentMode = "UPI";
-                          if (!paymentMode.toLowerCase().includes(paymentModeSearchTerm.toLowerCase()))
+                          if (
+                            !paymentMode
+                              .toLowerCase()
+                              .includes(paymentModeSearchTerm.toLowerCase())
+                          )
                             pass = false;
                         }
 
@@ -1423,89 +1528,124 @@ function Orders({
                 })()}
               </tbody>
             </table>
-            {orders.length > 0 && (() => {
-              // Calculate totals for current page only
-              // Backend already sends paginated and status-filtered orders
-              // Only apply search filters if they exist
-              let ordersForTotals = orders || [];
-              
-              // Apply only search filters (not status filter, as backend already filtered)
-              if (
-                dateSearchTerm ||
-                orderIdSearchTerm ||
-                warehouseSearchTerm ||
-                customerIdSearchTerm ||
-                customerNameSearchTerm ||
-                paymentModeSearchTerm
-              ) {
-                ordersForTotals = ordersForTotals.filter((order) => {
-                  let pass = true;
+            {orders.length > 0 &&
+              (() => {
+                // Calculate totals for current page only
+                // Backend already sends paginated and status-filtered orders
+                // Only apply search filters if they exist
+                let ordersForTotals = orders || [];
 
-                  if (dateSearchTerm) {
-                    const orderDate = order.createdAt ? order.createdAt.slice(0, 10) : "";
-                    if (!orderDate.includes(dateSearchTerm)) pass = false;
-                  }
+                // Apply only search filters (not status filter, as backend already filtered)
+                if (
+                  dateSearchTerm ||
+                  orderIdSearchTerm ||
+                  warehouseSearchTerm ||
+                  customerIdSearchTerm ||
+                  customerNameSearchTerm ||
+                  paymentModeSearchTerm
+                ) {
+                  ordersForTotals = ordersForTotals.filter((order) => {
+                    let pass = true;
 
-                  if (orderIdSearchTerm) {
-                    const orderId = order.orderNumber || "";
-                    if (!orderId.toLowerCase().includes(orderIdSearchTerm.toLowerCase()))
-                      pass = false;
-                  }
+                    if (dateSearchTerm) {
+                      const orderDate = order.createdAt
+                        ? order.createdAt.slice(0, 10)
+                        : "";
+                      if (!orderDate.includes(dateSearchTerm)) pass = false;
+                    }
 
-                  if (warehouseSearchTerm) {
-                    const warehouseName = order.warehouse?.name || "";
-                    if (!warehouseName.toLowerCase().includes(warehouseSearchTerm.toLowerCase()))
-                      pass = false;
-                  }
+                    if (orderIdSearchTerm) {
+                      const orderId = order.orderNumber || "";
+                      if (
+                        !orderId
+                          .toLowerCase()
+                          .includes(orderIdSearchTerm.toLowerCase())
+                      )
+                        pass = false;
+                    }
 
-                  if (customerIdSearchTerm) {
-                    const customerId = order.customer?.customer_id || "";
-                    if (!customerId.toLowerCase().includes(customerIdSearchTerm.toLowerCase()))
-                      pass = false;
-                  }
+                    if (warehouseSearchTerm) {
+                      const warehouseName = order.warehouse?.name || "";
+                      if (
+                        !warehouseName
+                          .toLowerCase()
+                          .includes(warehouseSearchTerm.toLowerCase())
+                      )
+                        pass = false;
+                    }
 
-                  if (customerNameSearchTerm) {
-                    const customerName = order.customer?.name || "";
-                    if (!customerName.toLowerCase().includes(customerNameSearchTerm.toLowerCase()))
-                      pass = false;
-                  }
+                    if (customerIdSearchTerm) {
+                      const customerId = order.customer?.customer_id || "";
+                      if (
+                        !customerId
+                          .toLowerCase()
+                          .includes(customerIdSearchTerm.toLowerCase())
+                      )
+                        pass = false;
+                    }
 
-                  if (paymentModeSearchTerm) {
-                    const paymentMode = "UPI";
-                    if (!paymentMode.toLowerCase().includes(paymentModeSearchTerm.toLowerCase()))
-                      pass = false;
-                  }
+                    if (customerNameSearchTerm) {
+                      const customerName = order.customer?.name || "";
+                      if (
+                        !customerName
+                          .toLowerCase()
+                          .includes(customerNameSearchTerm.toLowerCase())
+                      )
+                        pass = false;
+                    }
 
-                  return pass;
-                });
-              }
-              
-              const currentPageTotals = getPageTotals(ordersForTotals);
-              const { totalValue, totalBags, totalTons } = currentPageTotals;
-              const formattedValue = (totalValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-              const formattedBags = Math.round(totalBags || 0);
-              const formattedTons = (totalTons || 0).toFixed(3);
-              return (
-                <div className="d-flex justify-content-end pe-0 py-2 w-100">
-                  <table className="table table-borderless table-sm w-auto mb-0 text-center ms-auto" style={{ fontSize: "13px" }}>
-                    <thead>
-                      <tr>
-                        <th className="px-3 text-center">Total</th>
-                        <th className="px-3 text-center">Number of bags</th>
-                        <th className="px-3 text-center">Weight in Tons</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="px-3 text-center align-middle">{formattedValue}</td>
-                        <td className="px-3 text-center align-middle">{formattedBags}</td>
-                        <td className="px-3 text-center align-middle">{formattedTons}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              );
-            })()}
+                    if (paymentModeSearchTerm) {
+                      const paymentMode = "UPI";
+                      if (
+                        !paymentMode
+                          .toLowerCase()
+                          .includes(paymentModeSearchTerm.toLowerCase())
+                      )
+                        pass = false;
+                    }
+
+                    return pass;
+                  });
+                }
+
+                const currentPageTotals = getPageTotals(ordersForTotals);
+                const { totalValue, totalBags, totalTons } = currentPageTotals;
+                const formattedValue = (totalValue || 0).toLocaleString(
+                  "en-IN",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                );
+                const formattedBags = Math.round(totalBags || 0);
+                const formattedTons = (totalTons || 0).toFixed(3);
+                return (
+                  <div className="d-flex justify-content-end pe-0 py-2 w-100">
+                    <table
+                      className="table table-borderless table-sm w-auto mb-0 text-center ms-auto"
+                      style={{ fontSize: "13px" }}
+                    >
+                      <thead>
+                        <tr>
+                          <th className="px-3 text-center">Total</th>
+                          <th className="px-3 text-center">Number of bags</th>
+                          <th className="px-3 text-center">Weight in Tons</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="px-3 text-center align-middle">
+                            {formattedValue}
+                          </td>
+                          <td className="px-3 text-center align-middle">
+                            {formattedBags}
+                          </td>
+                          <td className="px-3 text-center align-middle">
+                            {formattedTons}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
 
             <div className="row m-0 p-0 pt-3 justify-content-between">
               <div className={`col-2 m-0 p-0 ${styles.buttonbox}`}>
