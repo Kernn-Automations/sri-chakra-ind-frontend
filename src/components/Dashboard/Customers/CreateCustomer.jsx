@@ -34,11 +34,12 @@ function CreateCustomer({ navigate }) {
     location: { lat: 17.4065, lng: 78.4772 },
   });
   const isValidAadhaar = (value) => /^\d{12}$/.test(value);
-  const isValidPAN = (value) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value.toUpperCase());
+  const isValidPAN = (value) =>
+    /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value.toUpperCase());
   const isValidGSTIN = (value) =>
-  /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9]{1}[A-Z]{2}$/.test(
-    value.toUpperCase()
-  );
+    /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9]{1}[A-Z]{2}$/.test(
+      value.toUpperCase(),
+    );
   const [photo, setPhoto] = useState();
   const [aadhaarFront, setAadhaarFront] = useState();
   const [aadhaarBack, setAadhaarBack] = useState();
@@ -47,7 +48,8 @@ function CreateCustomer({ navigate }) {
 
   const [businessOfficers, setBusinessOfficers] = useState([]);
   // New: employee association and warehouse
-  const [isAssociatedWithEmployee, setIsAssociatedWithEmployee] = useState(false);
+  const [isAssociatedWithEmployee, setIsAssociatedWithEmployee] =
+    useState(false);
   const [associatedEmployeeId, setAssociatedEmployeeId] = useState("");
   const [employees, setEmployees] = useState([]);
   const [employeeHierarchy, setEmployeeHierarchy] = useState(null);
@@ -96,6 +98,33 @@ function CreateCustomer({ navigate }) {
     fetchBusinessOfficers();
   }, []);
 
+  const fetchAddressFromPincode = async (pincode) => {
+    if (!/^\d{6}$/.test(pincode)) return;
+
+    try {
+      const res = await axios.get(
+        `https://api.postalpincode.in/pincode/${pincode}`,
+      );
+
+      const data = res.data?.[0];
+      if (data?.Status !== "Success") return;
+
+      const postOffice = data.PostOffice?.[0];
+      if (!postOffice) return;
+
+      setForm((prev) => ({
+        ...prev,
+        area: postOffice.Name || "",
+        mandal: postOffice.Block || "",
+        city: postOffice.Division || "",
+        district: postOffice.District || "",
+        state: postOffice.State || "",
+      }));
+    } catch (err) {
+      console.error("Failed to fetch address from pincode", err);
+    }
+  };
+
   // Load employees for association
   useEffect(() => {
     async function loadEmployees() {
@@ -114,15 +143,21 @@ function CreateCustomer({ navigate }) {
     async function loadHierarchy(employeeId) {
       if (!employeeId) return;
       try {
-        const res = await axiosAPI.get(`/customers/employees/${employeeId}/hierarchy`);
+        const res = await axiosAPI.get(
+          `/customers/employees/${employeeId}/hierarchy`,
+        );
         const data = res.data?.data;
         setEmployeeHierarchy(data || null);
-        const divId = data?.employee?.division?.id || data?.employee?.divisionId || null;
+        const divId =
+          data?.employee?.division?.id || data?.employee?.divisionId || null;
         setDivisionId(divId);
         // Auto-select warehouse from team assignment if present
         try {
           const firstTeam = data?.teamAssignments?.[0];
-          const inferredWarehouseId = firstTeam?.warehouseId || firstTeam?.warehouseID || firstTeam?.warehouse_id;
+          const inferredWarehouseId =
+            firstTeam?.warehouseId ||
+            firstTeam?.warehouseID ||
+            firstTeam?.warehouse_id;
           if (inferredWarehouseId) {
             setWarehouseId(String(inferredWarehouseId));
           }
@@ -132,7 +167,9 @@ function CreateCustomer({ navigate }) {
       } catch (err) {
         setEmployeeHierarchy(null);
         setDivisionId(null);
-        setError(err.response?.data?.message || "Failed to load employee hierarchy");
+        setError(
+          err.response?.data?.message || "Failed to load employee hierarchy",
+        );
         setIsModalOpen(true);
       }
     }
@@ -149,7 +186,9 @@ function CreateCustomer({ navigate }) {
         return;
       }
       try {
-        const res = await axiosAPI.get(`/customers/warehouses/division/${divId}`);
+        const res = await axiosAPI.get(
+          `/customers/warehouses/division/${divId}`,
+        );
         setWarehouses(res.data?.data?.warehouses || []);
       } catch (err) {
         setWarehouses([]);
@@ -160,14 +199,15 @@ function CreateCustomer({ navigate }) {
 
     const effectiveDivisionId = isAssociatedWithEmployee
       ? divisionId
-      : (selectedDivision && selectedDivision.id !== "all" ? selectedDivision.id : null);
+      : selectedDivision && selectedDivision.id !== "all"
+        ? selectedDivision.id
+        : null;
     // keep local state in sync for submission
     if (effectiveDivisionId !== divisionId) {
       setDivisionId(effectiveDivisionId);
     }
     loadWarehouses(effectiveDivisionId);
   }, [isAssociatedWithEmployee, divisionId, selectedDivision]);
-
 
   const handleCreate = async () => {
     const formData = new FormData();
@@ -191,11 +231,16 @@ function CreateCustomer({ navigate }) {
     try {
       setLoading(true);
       // validations
-      if (!isAssociatedWithEmployee && !warehouseId) throw new Error("Please select a warehouse");
-      if (isAssociatedWithEmployee && !associatedEmployeeId) throw new Error("Please select an employee to associate");
+      if (!isAssociatedWithEmployee && !warehouseId)
+        throw new Error("Please select a warehouse");
+      if (isAssociatedWithEmployee && !associatedEmployeeId)
+        throw new Error("Please select an employee to associate");
 
       // Append new association fields
-      formData.append("isAssociatedWithEmployee", isAssociatedWithEmployee ? "true" : "false");
+      formData.append(
+        "isAssociatedWithEmployee",
+        isAssociatedWithEmployee ? "true" : "false",
+      );
       if (isAssociatedWithEmployee && associatedEmployeeId) {
         formData.append("associatedEmployeeId", String(associatedEmployeeId));
       }
@@ -203,20 +248,20 @@ function CreateCustomer({ navigate }) {
         formData.append("warehouseId", String(warehouseId));
       }
 
-      const res = await axios.post(
-        `${VITE_API}/customers/add`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await axios.post(`${VITE_API}/customers/add`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       alert(res.data.message);
       navigate("/customers");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Customer creation failed");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Customer creation failed",
+      );
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -260,7 +305,9 @@ function CreateCustomer({ navigate }) {
             required
           />
           {form.aadhaarNumber && !isValidAadhaar(form.aadhaarNumber) && (
-            <small className="text-danger">Enter a valid 12-digit Aadhaar number</small>
+            <small className="text-danger">
+              Enter a valid 12-digit Aadhaar number
+            </small>
           )}
         </div>
 
@@ -274,11 +321,13 @@ function CreateCustomer({ navigate }) {
             required
           />
           {form.panNumber && !isValidPAN(form.panNumber) && (
-            <small className="text-danger">Enter valid PAN (e.g. ABCDE1234F)</small>
+            <small className="text-danger">
+              Enter valid PAN (e.g. ABCDE1234F)
+            </small>
           )}
         </div>
 
-        {/* GSTIN */}  
+        {/* GSTIN */}
         <div className={`col-3 ${styles.longform}`}>
           <label>GSTIN :</label>
           <input
@@ -292,7 +341,7 @@ function CreateCustomer({ navigate }) {
               GSTIN must be 15 characters (e.g. 27ABCDE1234F1IJ)
             </small>
           )}
-        </div>  
+        </div>
         <div className={`col-3 ${styles.longform}`}>
           <label>Discount Type :</label>
           <select
@@ -343,12 +392,17 @@ function CreateCustomer({ navigate }) {
               setAssociatedEmployeeId("");
               setEmployeeHierarchy(null);
               if (!checked) {
-                const sd = selectedDivision && selectedDivision.id !== "all" ? selectedDivision.id : null;
+                const sd =
+                  selectedDivision && selectedDivision.id !== "all"
+                    ? selectedDivision.id
+                    : null;
                 setDivisionId(sd);
               }
             }}
           />
-          <label htmlFor="associateEmployee" className="form-check-label mb-0">associated with employee</label>
+          <label htmlFor="associateEmployee" className="form-check-label mb-0">
+            associated with employee
+          </label>
         </div>
 
         {isAssociatedWithEmployee && (
@@ -379,9 +433,15 @@ function CreateCustomer({ navigate }) {
                   return (
                     <div className="small">
                       <div>Team ID: {t.teamId}</div>
-                      <div>Team: {t.teamName} ({t.teamCode})</div>
-                      <div>Team Head: {t.teamHeadName || t.teamHead || "-"}</div>
-                      <div>Warehouse: {t.warehouseName || t.warehouse?.name || "-"}</div>
+                      <div>
+                        Team: {t.teamName} ({t.teamCode})
+                      </div>
+                      <div>
+                        Team Head: {t.teamHeadName || t.teamHead || "-"}
+                      </div>
+                      <div>
+                        Warehouse: {t.warehouseName || t.warehouse?.name || "-"}
+                      </div>
                     </div>
                   );
                 })()
@@ -397,7 +457,10 @@ function CreateCustomer({ navigate }) {
         {!isAssociatedWithEmployee && (
           <div className={`col-3 ${styles.longform}`}>
             <label>Warehouse :</label>
-            <select value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}>
+            <select
+              value={warehouseId}
+              onChange={(e) => setWarehouseId(e.target.value)}
+            >
               <option value="">Select Warehouse</option>
               {warehouses.map((wh) => (
                 <option key={wh.id} value={wh.id}>
@@ -429,12 +492,12 @@ function CreateCustomer({ navigate }) {
             )}
           </div>
         </div>
-
       </div>
 
       {/* Address Fields */}
       <div className="row m-0 p-3">
         <h5 className={styles.headmdl}>Address</h5>
+
         {[
           "plot",
           "street",
@@ -447,10 +510,25 @@ function CreateCustomer({ navigate }) {
         ].map((field) => (
           <div key={field} className={`col-3 ${styles.longform}`}>
             <label>{field.charAt(0).toUpperCase() + field.slice(1)} :</label>
+
             <input
               type="text"
               value={form[field]}
-              onChange={(e) => handleChange(field, e.target.value)}
+              onChange={(e) => {
+                let value = e.target.value;
+
+                // 👇 Special handling ONLY for pincode
+                if (field === "pincode") {
+                  value = value.replace(/\D/g, "").slice(0, 6);
+                  handleChange("pincode", value);
+
+                  if (value.length === 6) {
+                    fetchAddressFromPincode(value);
+                  }
+                } else {
+                  handleChange(field, value);
+                }
+              }}
             />
           </div>
         ))}

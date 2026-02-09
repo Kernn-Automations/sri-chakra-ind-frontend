@@ -18,7 +18,7 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
   const [state, setState] = useState();
   const [country, setCountry] = useState();
   const [pincode, setPincode] = useState();
-  const [type, setType] = useState();
+  const [type, setType] = useState("local");
 
   const [managerId, setManagerId] = useState();
   const [showMap, setShowMap] = useState(false);
@@ -68,11 +68,33 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
     if (!district) newErrors.district = true;
     if (!state) newErrors.state = true;
     if (!country) newErrors.country = true;
-    if (!pincode) newErrors.pincode = true;
     if (!type) newErrors.pincode = true;
     if (!location?.lat || !location?.lng) newErrors.location = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const fetchAddressFromPincode = async (pin) => {
+    if (!/^\d{6}$/.test(pin)) return;
+
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+      const data = await res.json();
+
+      const result = data?.[0];
+      if (result?.Status !== "Success") return;
+
+      const po = result.PostOffice?.[0];
+      if (!po) return;
+
+      setArea(po.Name || "");
+      setCity(po.Division || "");
+      setDistrict(po.District || "");
+      setState(po.State || "");
+      setCountry("India"); // sensible default
+    } catch (err) {
+      console.error("Failed to fetch address from pincode", err);
+    }
   };
 
   const onError = (e, vari, setter) => {
@@ -293,10 +315,18 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
           <label>Pincode</label>
           <input
             value={pincode || ""}
-            onChange={(e) => onError(e, pincode, setPincode)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setPincode(value);
+
+              if (value.length === 6) {
+                fetchAddressFromPincode(value);
+              }
+            }}
             className={errors.pincode ? styles.errorField : ""}
           />
         </div>
+
         <div className={`col-4  ${styles.longformmdl}`}>
           <label>Manager</label>
           <select

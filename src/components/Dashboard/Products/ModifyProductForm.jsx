@@ -42,6 +42,7 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
 
   const getInventoryUnit = () => {
     if (measurementType === "weight") return "kg";
+    if (measurementType === "volume") return "l"; // 🆕 base stock in litres
     if (measurementType === "length") return "m";
     if (measurementType === "area") return "sq_m";
     if (measurementType === "count") return "nos";
@@ -52,23 +53,31 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
    * UNIT MAPS
    * ------------------------- */
   const MEASUREMENT_UNITS = {
-    weight: ["mg", "g", "kg", "ton", "mt"],
+    weight: ["mg", "g", "kg"],
+    volume: ["ml", "l"], // 🆕 Pesticide / liquid support
     length: ["mm", "cm", "m", "ft", "inch", "yard", "rmt"],
     area: ["sq_mm", "sq_cm", "sq_m", "sq_ft", "sq_yd"],
     count: ["nos", "pcs", "bundle", "sheet", "coil", "panel", "set"],
   };
 
   const ALL_UNITS = [
+    // Weight
     "mg",
     "g",
     "kg",
-    "ton",
-    "mt",
+
+    // 🆕 Volume
+    "ml",
+    "l",
+
+    // Area
     "sq_mm",
     "sq_cm",
     "sq_m",
     "sq_ft",
     "sq_yd",
+
+    // Length
     "mm",
     "cm",
     "m",
@@ -76,6 +85,8 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
     "inch",
     "yard",
     "rmt",
+
+    // Count
     "nos",
     "pcs",
     "bundle",
@@ -83,6 +94,19 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
     "coil",
     "panel",
     "set",
+  ];
+
+  const PACKAGE_UNITS = [
+    "g",
+    "kg",
+    "ml",
+    "l", // 🆕 liquid packs
+    "ton",
+    "mt",
+    "pcs",
+    "bundle",
+    "coil",
+    "sheet",
   ];
 
   const filteredTaxes = taxeslist.filter(
@@ -183,6 +207,12 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
             roundingRule: c.roundingRule || "NONE",
           })),
         );
+
+        if (p.productType === "packed") {
+          setMeasurementType("count");
+          setUnit("pcs");
+          setUnitConversions([]); // ignore any old conversions
+        }
       } catch (e) {
         setError("Failed to load product");
         setIsModalOpen(true);
@@ -194,6 +224,8 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
   }, [productId, axiosAPI]);
 
   useEffect(() => {
+    if (productType === "packed") return; // ❌ skip conversions
+
     const inventoryUnit = getInventoryUnit();
     if (!inventoryUnit) return;
 
@@ -295,7 +327,14 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
    * UNIT PRICE HANDLERS
    * ------------------------- */
   const addUnitPrice = () => {
-    setUnitPrices((p) => [...p, { unit: "", price: "", isDefault: false }]);
+    setUnitPrices((p) => [
+      ...p,
+      {
+        unit: productType === "packed" ? "pcs" : "",
+        price: "",
+        isDefault: false,
+      },
+    ]);
   };
 
   const updateUnitPrice = (index, key, value) => {
@@ -502,9 +541,18 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
               style={styles.input}
               value={productType}
               onChange={(e) => {
-                setProductType(e.target.value);
-                setMeasurementType("");
-                setUnit("");
+                const type = e.target.value;
+                setProductType(type);
+
+                if (type === "packed") {
+                  setMeasurementType("count"); // ✅ force count
+                  setUnit("pcs"); // ✅ selling unit
+                  setUnitConversions([]); // ❌ no conversions for packed
+                } else {
+                  setMeasurementType("");
+                  setUnit("");
+                }
+
                 setUnitPrices([]);
               }}
             >
@@ -519,10 +567,10 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
             <select
               style={{
                 ...styles.input,
-                ...(!productType && styles.inputDisabled),
+                ...(productType === "packed" && styles.inputDisabled),
               }}
               value={measurementType}
-              disabled={!productType}
+              disabled={!productType || productType === "packed"}
               onChange={(e) => {
                 setMeasurementType(e.target.value);
                 setUnit("");
@@ -555,6 +603,35 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
           )}
         </div>
       </section>
+
+      {productType === "packed" && (
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Package Weight *</label>
+            <input
+              style={styles.input}
+              type="number"
+              placeholder="Enter package weight"
+              value={packageWeight}
+              onChange={(e) => setPackageWeight(e.target.value)}
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Package Weight Unit *</label>
+            <select
+              style={styles.input}
+              value={packageWeightUnit}
+              onChange={(e) => setPackageWeightUnit(e.target.value)}
+            >
+              <option value="">Select unit</option>
+              {PACKAGE_UNITS.map((u) => (
+                <option key={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* UNIT PRICING */}
       <section style={styles.card}>
@@ -651,159 +728,165 @@ function ModifyProductForm({ onViewClick, productId, isAdmin }) {
 
       {/* UNIT CONVERSIONS */}
       {/* UNIT CONVERSIONS */}
-      <section style={styles.card}>
-        <div style={styles.cardHeader}>
-          <h4 style={styles.cardTitle}>Unit Conversions</h4>
-          <span style={styles.infoText}>
-            Required for selling in multiple units
-          </span>
-        </div>
+      {productType !== "packed" && (
+        <section style={styles.card}>
+          <div style={styles.cardHeader}>
+            <h4 style={styles.cardTitle}>Unit Conversions</h4>
+            <span style={styles.infoText}>
+              Required for selling in multiple units
+            </span>
+          </div>
 
-        {unitConversions.length === 0 ? (
-          <p style={{ fontSize: 14, color: "#64748b" }}>
-            No unit conversions required
-          </p>
-        ) : (
-          unitConversions.map((c, i) => {
-            const calculatedKg = calculateKg(c);
+          {unitConversions.length === 0 ? (
+            <p style={{ fontSize: 14, color: "#64748b" }}>
+              No unit conversions required
+            </p>
+          ) : (
+            unitConversions.map((c, i) => {
+              const calculatedKg = calculateKg(c);
 
-            return (
-              <div
-                key={`${c.fromUnit}_${c.toUnit}`}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 16,
-                }}
-              >
-                <strong>
-                  {c.fromUnit} → {c.toUnit}
-                </strong>
-
-                <div style={styles.grid}>
-                  {/* CONVERSION TYPE */}
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Conversion Type</label>
-                    <select
-                      style={styles.input}
-                      value={c.conversionType}
-                      onChange={(e) =>
-                        updateUnitConversion(
-                          i,
-                          "conversionType",
-                          e.target.value,
-                        )
-                      }
-                    >
-                      <option value="FIXED">Fixed</option>
-                      <option value="FORMULA">Formula</option>
-                    </select>
-                  </div>
-
-                  {/* FIXED */}
-                  {c.conversionType === "FIXED" && (
-                    <div style={styles.inputGroup}>
-                      <label style={styles.label}>Factor (kg)</label>
-                      <input
-                        style={styles.input}
-                        type="number"
-                        placeholder="e.g. 10"
-                        value={c.factor}
-                        onChange={(e) =>
-                          updateUnitConversion(i, "factor", e.target.value)
-                        }
-                      />
-                    </div>
-                  )}
-
-                  {/* FORMULA */}
-                  {c.conversionType === "FORMULA" && (
-                    <>
-                      <div style={styles.inputGroup}>
-                        <label style={styles.label}>Length (m)</label>
-                        <input
-                          style={styles.input}
-                          type="number"
-                          value={c.length}
-                          onChange={(e) =>
-                            updateUnitConversion(i, "length", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div style={styles.inputGroup}>
-                        <label style={styles.label}>Width (m)</label>
-                        <input
-                          style={styles.input}
-                          type="number"
-                          value={c.width}
-                          onChange={(e) =>
-                            updateUnitConversion(i, "width", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div style={styles.inputGroup}>
-                        <label style={styles.label}>Thickness (mm)</label>
-                        <input
-                          style={styles.input}
-                          type="number"
-                          value={c.thickness}
-                          onChange={(e) =>
-                            updateUnitConversion(i, "thickness", e.target.value)
-                          }
-                        />
-                      </div>
-
-                      <div style={styles.inputGroup}>
-                        <label style={styles.label}>Density (kg/m³)</label>
-                        <input
-                          style={styles.input}
-                          type="number"
-                          value={c.density}
-                          onChange={(e) =>
-                            updateUnitConversion(i, "density", e.target.value)
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* LIVE KG PREVIEW */}
+              return (
                 <div
+                  key={`${c.fromUnit}_${c.toUnit}`}
                   style={{
-                    marginTop: 14,
-                    padding: "10px 14px",
-                    borderRadius: 10,
-                    background: calculatedKg === null ? "#fff1f2" : "#f1f5f9",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontSize: 14,
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 16,
                   }}
                 >
-                  <span style={{ fontWeight: 600, color: "#475569" }}>
-                    1 {c.fromUnit}
-                  </span>
+                  <strong>
+                    {c.fromUnit} → {c.toUnit}
+                  </strong>
 
-                  <span
+                  <div style={styles.grid}>
+                    {/* CONVERSION TYPE */}
+                    <div style={styles.inputGroup}>
+                      <label style={styles.label}>Conversion Type</label>
+                      <select
+                        style={styles.input}
+                        value={c.conversionType}
+                        onChange={(e) =>
+                          updateUnitConversion(
+                            i,
+                            "conversionType",
+                            e.target.value,
+                          )
+                        }
+                      >
+                        <option value="FIXED">Fixed</option>
+                        <option value="FORMULA">Formula</option>
+                      </select>
+                    </div>
+
+                    {/* FIXED */}
+                    {c.conversionType === "FIXED" && (
+                      <div style={styles.inputGroup}>
+                        <label style={styles.label}>Factor (kg)</label>
+                        <input
+                          style={styles.input}
+                          type="number"
+                          placeholder="e.g. 10"
+                          value={c.factor}
+                          onChange={(e) =>
+                            updateUnitConversion(i, "factor", e.target.value)
+                          }
+                        />
+                      </div>
+                    )}
+
+                    {/* FORMULA */}
+                    {c.conversionType === "FORMULA" && (
+                      <>
+                        <div style={styles.inputGroup}>
+                          <label style={styles.label}>Length (m)</label>
+                          <input
+                            style={styles.input}
+                            type="number"
+                            value={c.length}
+                            onChange={(e) =>
+                              updateUnitConversion(i, "length", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div style={styles.inputGroup}>
+                          <label style={styles.label}>Width (m)</label>
+                          <input
+                            style={styles.input}
+                            type="number"
+                            value={c.width}
+                            onChange={(e) =>
+                              updateUnitConversion(i, "width", e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div style={styles.inputGroup}>
+                          <label style={styles.label}>Thickness (mm)</label>
+                          <input
+                            style={styles.input}
+                            type="number"
+                            value={c.thickness}
+                            onChange={(e) =>
+                              updateUnitConversion(
+                                i,
+                                "thickness",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div style={styles.inputGroup}>
+                          <label style={styles.label}>Density (kg/m³)</label>
+                          <input
+                            style={styles.input}
+                            type="number"
+                            value={c.density}
+                            onChange={(e) =>
+                              updateUnitConversion(i, "density", e.target.value)
+                            }
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* LIVE KG PREVIEW */}
+                  <div
                     style={{
-                      fontWeight: 700,
-                      color: calculatedKg === null ? "#991b1b" : "#0f172a",
+                      marginTop: 14,
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      background: calculatedKg === null ? "#fff1f2" : "#f1f5f9",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: 14,
                     }}
                   >
-                    {calculatedKg !== null
-                      ? `= ${calculatedKg.toFixed(3)} kg`
-                      : "Invalid conversion"}
-                  </span>
+                    <span style={{ fontWeight: 600, color: "#475569" }}>
+                      1 {c.fromUnit}
+                    </span>
+
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: calculatedKg === null ? "#991b1b" : "#0f172a",
+                      }}
+                    >
+                      {calculatedKg !== null
+                        ? `= ${calculatedKg.toFixed(3)} kg`
+                        : "Invalid conversion"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
-      </section>
+              );
+            })
+          )}
+        </section>
+      )}
 
       {/* TAX LINKING */}
       <section style={styles.card}>
