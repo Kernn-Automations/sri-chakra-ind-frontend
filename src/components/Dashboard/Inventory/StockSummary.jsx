@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Inventory.module.css";
+import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/Auth";
 import ErrorModal from "@/components/ErrorModal";
 import Loading from "@/components/Loading";
 
 function StockSummary({ navigate }) {
   const { axiosAPI } = useAuth();
-
   const today = new Date().toISOString().slice(0, 10);
 
   const [warehouses, setWarehouses] = useState([]);
@@ -17,60 +17,124 @@ function StockSummary({ navigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [unitMode, setUnitMode] = useState("display"); // display | base
 
   const closeModal = () => setIsModalOpen(false);
 
-  /* ---------------- LOAD WAREHOUSES ---------------- */
+  /* ================= STYLES ================= */
+
+  const styles = {
+    pageContainer: {
+      padding: "30px 20px",
+      background: "#f6f8fc",
+      minHeight: "100vh",
+    },
+    card: {
+      background: "#fff",
+      borderRadius: "16px",
+      padding: "20px",
+      boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+      marginBottom: "25px",
+    },
+    label: {
+      fontWeight: 600,
+      fontSize: "13px",
+      marginBottom: "6px",
+      display: "block",
+    },
+    input: {
+      borderRadius: "10px",
+      padding: "10px",
+      border: "1px solid #dee2e6",
+      width: "100%",
+    },
+    buttonPrimary: {
+      background: "#2563eb",
+      color: "#fff",
+      border: "none",
+      padding: "10px 16px",
+      borderRadius: "10px",
+      cursor: "pointer",
+      fontWeight: 600,
+      width: "100%",
+    },
+    statGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+      gap: "16px",
+      marginBottom: "25px",
+    },
+    statCard: {
+      background: "#fff",
+      padding: "18px",
+      borderRadius: "14px",
+      boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+    },
+    tableContainer: {
+      background: "#fff",
+      borderRadius: "16px",
+      overflow: "hidden",
+      boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
+    },
+    table: {
+      width: "100%",
+      borderCollapse: "collapse",
+    },
+    th: {
+      background: "#f1f5f9",
+      padding: "12px",
+      fontWeight: 600,
+      textAlign: "left",
+    },
+    td: {
+      padding: "12px",
+      borderTop: "1px solid #f0f0f0",
+    },
+    toggleButton: {
+      padding: "6px 12px",
+      borderRadius: "8px",
+      border: "1px solid #ddd",
+      cursor: "pointer",
+      marginLeft: "10px",
+      fontSize: "13px",
+      background: "#f8fafc",
+    },
+  };
+
+  /* ================= API ================= */
+
   useEffect(() => {
-    async function fetchWarehouses() {
-      try {
-        const currentDivisionId = localStorage.getItem("currentDivisionId");
-        let endpoint = "/warehouses";
-
-        if (currentDivisionId && currentDivisionId !== "1") {
-          endpoint += `?divisionId=${currentDivisionId}`;
-        } else if (currentDivisionId === "1") {
-          endpoint += `?showAllDivisions=true`;
-        }
-
-        const res = await axiosAPI.get(endpoint);
-        setWarehouses(res.data.warehouses || []);
-      } catch {
-        setError("Failed to load warehouse list");
-        setIsModalOpen(true);
-      }
-    }
-
     fetchWarehouses();
   }, []);
 
-  /* ---------------- FETCH STOCK SUMMARY ---------------- */
+  const fetchWarehouses = async () => {
+    try {
+      const res = await axiosAPI.get("/warehouses");
+      setWarehouses(res.data.warehouses || []);
+    } catch {
+      setError("Failed to load warehouse list");
+      setIsModalOpen(true);
+    }
+  };
+
   const fetchStock = async () => {
     if (!fromDate || !toDate) {
-      setError("Please select both From and To dates.");
+      setError("Please select both dates.");
       setIsModalOpen(true);
       return;
     }
 
     setLoading(true);
     try {
-      const currentDivisionId = localStorage.getItem("currentDivisionId");
+      const res = await axiosAPI.get(
+        `/inventory/stock-summary?fromDate=${fromDate}&toDate=${toDate}${
+          warehouseId ? `&warehouseId=${warehouseId}` : ""
+        }`,
+      );
 
-      let divisionParam = "";
-      if (currentDivisionId && currentDivisionId !== "1") {
-        divisionParam = `&divisionId=${currentDivisionId}`;
-      } else if (currentDivisionId === "1") {
-        divisionParam = `&showAllDivisions=true`;
-      }
-
-      const query = `/warehouse/stock-summary?fromDate=${fromDate}&toDate=${toDate}${
-        warehouseId ? `&warehouseId=${warehouseId}` : ""
-      }${divisionParam}`;
-
-      const res = await axiosAPI.get(query);
       setStockData(res.data.data || []);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch stock summary.");
+    } catch {
+      setError("Failed to fetch stock summary.");
       setIsModalOpen(true);
     } finally {
       setLoading(false);
@@ -84,46 +148,76 @@ function StockSummary({ navigate }) {
     setStockData([]);
   };
 
+  /* ================= UNIT LOGIC ================= */
+
+  const getValue = (item, field) => {
+    if (unitMode === "base") return item[`${field}Kg`] || 0;
+    return item[field] || 0;
+  };
+
+  const totals = stockData.reduce(
+    (acc, item) => {
+      acc.opening += getValue(item, "opening");
+      acc.inward += getValue(item, "inward");
+      acc.outward += getValue(item, "outward");
+      acc.closing += getValue(item, "closing");
+      return acc;
+    },
+    { opening: 0, inward: 0, outward: 0, closing: 0 },
+  );
+
+  const unitLabel =
+    unitMode === "base" ? "kg" : stockData[0]?.displayUnit || "kg";
+
   return (
-    <>
-      <p className="path">
-        <span onClick={() => navigate("/inventory")}>Inventory</span>{" "}
-        <i className="bi bi-chevron-right"></i> Stock Summary
-      </p>
+    <div style={styles.pageContainer}>
+      <h3>
+        Stock Summary
+        <button
+          style={styles.toggleButton}
+          onClick={() => setUnitMode(unitMode === "base" ? "display" : "base")}
+        >
+          Switch to {unitMode === "base" ? "Display Unit" : "KG"}
+        </button>
+      </h3>
 
-      <div className="container py-3">
-        <h4>Stock Summary</h4>
-
-        {/* FILTERS */}
-        <div className="row g-3 mb-4">
-          <div className={`col-md-3 ${styles.dateForms}`}>
-            <label className="form-label">From Date</label>
+      {/* FILTERS */}
+      <motion.div style={styles.card}>
+        <div
+          style={{
+            display: "grid",
+            gap: "16px",
+            gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+          }}
+        >
+          <div>
+            <label style={styles.label}>From Date</label>
             <input
               type="date"
-              className="form-control"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
+              style={styles.input}
             />
           </div>
 
-          <div className={`col-md-3 ${styles.dateForms}`}>
-            <label className="form-label">To Date</label>
+          <div>
+            <label style={styles.label}>To Date</label>
             <input
               type="date"
-              className="form-control"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
+              style={styles.input}
             />
           </div>
 
-          <div className={`col-md-3 ${styles.dateForms}`}>
-            <label className="form-label">Warehouse</label>
+          <div>
+            <label style={styles.label}>Warehouse</label>
             <select
-              className="form-select"
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
+              style={styles.input}
             >
-              <option value="">-- All Warehouses --</option>
+              <option value="">All Warehouses</option>
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.name}
@@ -132,74 +226,90 @@ function StockSummary({ navigate }) {
             </select>
           </div>
 
-          <div className="col-md-3 d-flex align-items-end">
-            <button onClick={fetchStock} className="submitbtn me-2">
+          <div style={{ display: "flex", alignItems: "end" }}>
+            <button style={styles.buttonPrimary} onClick={fetchStock}>
               Submit
             </button>
-            <button onClick={resetFilters} className="cancelbtn">
-              Cancel
+            <button
+              style={{
+                ...styles.buttonPrimary,
+                background: "#e5e7eb",
+                marginLeft: "8px",
+              }}
+              onClick={resetFilters}
+            >
+              <RefreshCw size={18} />
             </button>
           </div>
         </div>
+      </motion.div>
 
-        {/* TABLE */}
-        {stockData.length > 0 ? (
-          <div className="table-responsive">
-            <table className="table table-bordered borderedtable">
-              <thead className="table-light">
-                <tr>
-                  <th>Product Name</th>
-                  <th>Opening</th>
-                  <th>Inward (PO)</th>
-                  <th>Outward (SO)</th>
-                  <th>Stock In (Transfer)</th>
-                  <th>Stock Out (Transfer)</th>
-                  <th>Closing Balance</th>
-                  <th>Type</th>
-                  <th>Package Info</th>
+      {/* SUMMARY CARDS */}
+      {stockData.length > 0 && (
+        <div style={styles.statGrid}>
+          {["opening", "inward", "outward", "closing"].map((key) => (
+            <div key={key} style={styles.statCard}>
+              <div style={{ fontSize: "13px", color: "#6b7280" }}>
+                {key.toUpperCase()}
+              </div>
+              <div style={{ fontSize: "22px", fontWeight: 700 }}>
+                {totals[key].toLocaleString()} {unitLabel}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TABLE */}
+      {loading ? (
+        <Loading />
+      ) : stockData.length > 0 ? (
+        <div style={styles.tableContainer}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Product</th>
+                <th style={styles.th}>Opening</th>
+                <th style={styles.th}>Inward</th>
+                <th style={styles.th}>Outward</th>
+                <th style={styles.th}>Closing</th>
+                <th style={styles.th}>Unit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockData.map((item) => (
+                <tr key={item.productId}>
+                  <td style={styles.td}>{item.productName}</td>
+                  <td style={styles.td}>
+                    {getValue(item, "opening")} {unitLabel}
+                  </td>
+                  <td style={{ ...styles.td, color: "green" }}>
+                    {getValue(item, "inward")} {unitLabel}
+                  </td>
+                  <td style={{ ...styles.td, color: "red" }}>
+                    {getValue(item, "outward")} {unitLabel}
+                  </td>
+                  <td style={{ ...styles.td, fontWeight: 600 }}>
+                    {getValue(item, "closing")} {unitLabel}
+                  </td>
+                  <td style={styles.td}>
+                    {unitMode === "base" ? "kg" : item.displayUnit || "kg"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {stockData.map((item) => (
-                  <tr key={item.productId}>
-                    <td>{item.productName}</td>
-                    <td>{item.opening?.toFixed(2)}</td>
-                    <td className="text-success">{item.inward?.toFixed(2)}</td>
-                    <td className="text-danger">{item.outward?.toFixed(2)}</td>
-                    <td className="text-primary">{item.stockIn?.toFixed(2)}</td>
-                    <td className="text-warning">
-                      {item.stockOut?.toFixed(2)}
-                    </td>
-                    <td className="fw-bold">{item.closing?.toFixed(2)}</td>
-                    <td>{item.productType}</td>
-                    <td>
-                      {item.productType === "packed"
-                        ? `${item.packageWeight} ${item.packageWeightUnit}`
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          !loading && (
-            <p className="text-muted">
-              No stock data found for selected filters.
-            </p>
-          )
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div style={{ padding: "60px", textAlign: "center", color: "#6b7280" }}>
+          No Stock Data Found
+        </div>
+      )}
 
-        {loading && <Loading />}
-        {isModalOpen && (
-          <ErrorModal
-            isOpen={isModalOpen}
-            message={error}
-            onClose={closeModal}
-          />
-        )}
-      </div>
-    </>
+      {isModalOpen && (
+        <ErrorModal isOpen={isModalOpen} message={error} onClose={closeModal} />
+      )}
+    </div>
   );
 }
 
