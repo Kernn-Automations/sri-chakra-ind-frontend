@@ -114,6 +114,12 @@ function InventoryHome({ navigate }) {
       {/* Buttons - Always visible */}
       <div className="row m-0 p-3">
         <div className="col">
+              <button
+      className="homebtn"
+      onClick={() => navigate("/inventory/manual-stock-in")}
+    >
+      + Manual Stock In
+    </button>
             <button className='homebtn' onClick={() => navigate('/inventory/incoming-stock')}>Incoming Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/outgoing-stock')}>Outgoing Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/current-stock')}>Current Stock</button>
