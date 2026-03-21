@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-//import axios from "axios";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ApiService from "../../../services/apiService";
 import { useAuth } from "@/Auth";
@@ -1179,6 +1179,59 @@ export default function SalesOrderWizard() {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [loadingProductIds, setLoadingProductIds] = useState(new Set());
 
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
+
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    mobile: "",
+    gstin: "",
+    firmName: "",
+    email: "",
+    plot: "",
+    street: "",
+    area: "",
+    city: "",
+    district: "",
+    state: "",
+    pincode: "",
+  });
+
+  const [warehouses, setWarehouses] = useState([]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState("");
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      try {
+        setWarehouseLoading(true);
+
+        let url = "/warehouses";
+        const divisionId = localStorage.getItem("currentDivisionId");
+
+        if (divisionId && divisionId !== "1") {
+          url += `?divisionId=${divisionId}`;
+        } else {
+          url += `?showAllDivisions=true`;
+        }
+
+        const res = await axiosAPI.get(url);
+        console.log(res);
+        setWarehouses(res.data?.warehouses || []);
+      } catch (err) {
+        console.error("Failed to fetch warehouses", err);
+        showToast({
+          title: "Failed to load warehouses",
+          status: "error",
+        });
+      } finally {
+        setWarehouseLoading(false);
+      }
+    };
+
+    fetchWarehouses();
+  }, []);
+
   const skipLogisticsStep = () => {
     // Set a safe default so backend validation passes
     setSelectedWarehouseType("local");
@@ -1236,6 +1289,81 @@ export default function SalesOrderWizard() {
   const [editedGrandTotals, setEditedGrandTotals] = useState({});
   // Store original values for each item
   const [originalItemValues, setOriginalItemValues] = useState({});
+
+  const fetchAddressFromPincode = async (pincode) => {
+    if (!/^\d{6}$/.test(pincode)) return;
+
+    try {
+      const res = await axios.get(
+        `https://api.postalpincode.in/pincode/${pincode}`,
+      );
+
+      const data = res.data?.[0];
+      if (data?.Status !== "Success") return;
+
+      const postOffice = data.PostOffice?.[0];
+      if (!postOffice) return;
+
+      setNewCustomer((prev) => ({
+        ...prev,
+        area: postOffice.Name || "",
+        city: postOffice.Division || "",
+        district: postOffice.District || "",
+        state: postOffice.State || "",
+      }));
+    } catch (err) {
+      console.error("Pincode fetch failed", err);
+    }
+  };
+
+  const handleCustomerChange = (field, value) => {
+    if (field === "pincode") {
+      value = value.replace(/\D/g, "").slice(0, 6);
+      fetchAddressFromPincode(value);
+    }
+
+    setNewCustomer((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCreateCustomer = async () => {
+    try {
+      setCreatingCustomer(true);
+
+      const payload = {
+        ...newCustomer,
+        warehouseId: selectedWarehouse, // ⚠️ adjust this (important)
+        isAssociatedWithEmployee: false,
+        associatedEmployeeId: null,
+      };
+
+      const res = await axiosAPI.post("/customers/add", payload);
+
+      const createdCustomer = res.data?.data || res.data;
+
+      // add to list
+      setCustomers((prev) => [...prev, createdCustomer]);
+
+      // auto select
+      setSelectedCustomer(createdCustomer.id);
+
+      setShowCustomerModal(false);
+
+      showToast({
+        title: "Customer created successfully",
+        status: "success",
+      });
+    } catch (err) {
+      showToast({
+        title: err.response?.data?.message || "Failed to create customer",
+        status: "error",
+      });
+    } finally {
+      setCreatingCustomer(false);
+    }
+  };
 
   // Function to calculate order totals via backend
   const calculateOrderTotals = useCallback(
@@ -1463,7 +1591,7 @@ export default function SalesOrderWizard() {
         console.log("Customers URL with division params:", customersUrl);
         const res = await axiosAPI.get(customersUrl);
         console.log("Customers:", res);
-        setCustomers(res.data.customers || []);
+        setCustomers(res.data?.customers || []);
       } catch (e) {
         console.error("Sales Order - Failed to load customers:", e);
         console.error("Sales Order - Error details:", {
@@ -2677,11 +2805,8 @@ export default function SalesOrderWizard() {
         <h2 style={styles.sectionTitle}>Select Customer</h2>
 
         <div style={{ marginBottom: "20px" }}>
-          <div className="row m-0 p-3">
-            <div
-              className="customer-filter-wrapper"
-              style={{ width: "100%", maxWidth: "600px" }}
-            >
+          <div style={{ ...styles.flexRow, alignItems: "center" }}>
+            <div style={{ flex: 1 }}>
               <CustomSearchDropdown
                 label="Customers"
                 onSelect={(customerId) => {
@@ -2694,6 +2819,14 @@ export default function SalesOrderWizard() {
                 showSelectAll={false}
               />
             </div>
+
+            <Button
+              variant="primary"
+              onClick={() => setShowCustomerModal(true)}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              + New Customer
+            </Button>
           </div>
           <style>{`
             .customer-filter-wrapper .formcontent {
@@ -5231,6 +5364,145 @@ export default function SalesOrderWizard() {
         {step === 2 && renderLogisticsStep()}
         {step === 3 && renderReviewStep()}
         {step === 4 && renderPaymentStep()}
+
+        {showCustomerModal && (
+          <div style={styles.modal}>
+            <div style={styles.modalContent}>
+              {/* HEADER */}
+              <div style={styles.modalHeader}>
+                <h3 style={styles.modalTitle}>Add Customer</h3>
+                <button
+                  style={styles.closeButton}
+                  onClick={() => setShowCustomerModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* BODY */}
+              <div
+                style={{ ...styles.modalBody, display: "grid", gap: "10px" }}
+              >
+                <Input
+                  placeholder="Name *"
+                  value={newCustomer.name}
+                  onChange={(e) => handleCustomerChange("name", e.target.value)}
+                />
+
+                <Input
+                  placeholder="Mobile *"
+                  value={newCustomer.mobile}
+                  onChange={(e) =>
+                    handleCustomerChange("mobile", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="GSTIN"
+                  value={newCustomer.gstin}
+                  onChange={(e) =>
+                    handleCustomerChange("gstin", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="Firm Name"
+                  value={newCustomer.firmName}
+                  onChange={(e) =>
+                    handleCustomerChange("firmName", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="Email"
+                  value={newCustomer.email}
+                  onChange={(e) =>
+                    handleCustomerChange("email", e.target.value)
+                  }
+                />
+                <Select
+                  value={selectedWarehouse}
+                  onChange={(e) => setSelectedWarehouse(e.target.value)}
+                >
+                  <option value="">Select Warehouse *</option>
+
+                  {warehouses.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} ({w.city})
+                    </option>
+                  ))}
+                </Select>
+
+                <Input
+                  placeholder="Pincode *"
+                  value={newCustomer.pincode}
+                  onChange={(e) =>
+                    handleCustomerChange("pincode", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="Plot *"
+                  value={newCustomer.plot}
+                  onChange={(e) => handleCustomerChange("plot", e.target.value)}
+                />
+
+                <Input
+                  placeholder="Street *"
+                  value={newCustomer.street}
+                  onChange={(e) =>
+                    handleCustomerChange("street", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="Area *"
+                  value={newCustomer.area}
+                  onChange={(e) => handleCustomerChange("area", e.target.value)}
+                />
+
+                <Input
+                  placeholder="City *"
+                  value={newCustomer.city}
+                  onChange={(e) => handleCustomerChange("city", e.target.value)}
+                />
+
+                <Input
+                  placeholder="District *"
+                  value={newCustomer.district}
+                  onChange={(e) =>
+                    handleCustomerChange("district", e.target.value)
+                  }
+                />
+
+                <Input
+                  placeholder="State *"
+                  value={newCustomer.state}
+                  onChange={(e) =>
+                    handleCustomerChange("state", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* FOOTER */}
+              <div style={styles.modalFooter}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCustomerModal(false)}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  onClick={handleCreateCustomer}
+                  disabled={!selectedWarehouse || creatingCustomer}
+                >
+                  {creatingCustomer ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quantity Modal */}
         <QuantityModal
