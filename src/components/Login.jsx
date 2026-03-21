@@ -102,8 +102,10 @@ function Login() {
     const selectedDivision = localStorage.getItem("selectedDivision");
     if (activeView === "admin" && selectedDivision && login) {
       console.log(
-        "Login.jsx - User already has admin view and division selected, skipping login routing logic",
+        "Login.jsx - User already has division, redirecting to dashboard",
       );
+
+      navigate("/"); // or your main dashboard route
       return;
     }
 
@@ -303,10 +305,25 @@ function Login() {
       !isAreaBusinessManagerUser
     ) {
       console.log(
-        "Login.jsx - Admin/SuperAdmin/DivisionHead detected (not store manager), showing role choice",
+        "Login.jsx - Admin/SuperAdmin/DivisionHead detected, redirecting directly to /divs",
       );
-      // Show chooser popup
-      setShowRoleChoice(true);
+
+      const token = localStorage.getItem("accessToken");
+
+      if (token) {
+        localStorage.setItem("activeView", "admin");
+        navigate("/divs");
+      } else {
+        const timer = setTimeout(() => {
+          const tokenCheck = localStorage.getItem("accessToken");
+          if (tokenCheck) {
+            localStorage.setItem("activeView", "admin");
+            navigate("/divs");
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+
       return;
     }
 

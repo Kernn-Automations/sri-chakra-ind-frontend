@@ -5366,14 +5366,49 @@ export default function SalesOrderWizard() {
         {step === 4 && renderPaymentStep()}
 
         {showCustomerModal && (
-          <div style={styles.modal}>
-            <div style={styles.modalContent}>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "16px",
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "900px",
+                maxHeight: "90vh",
+                background: "#fff",
+                borderRadius: "12px",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+              }}
+            >
               {/* HEADER */}
-              <div style={styles.modalHeader}>
-                <h3 style={styles.modalTitle}>Add Customer</h3>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px 20px",
+                  borderBottom: "1px solid #eee",
+                }}
+              >
+                <h3 style={{ margin: 0 }}>Add Customer</h3>
                 <button
-                  style={styles.closeButton}
                   onClick={() => setShowCustomerModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "20px",
+                    cursor: "pointer",
+                  }}
                 >
                   ×
                 </button>
@@ -5381,111 +5416,138 @@ export default function SalesOrderWizard() {
 
               {/* BODY */}
               <div
-                style={{ ...styles.modalBody, display: "grid", gap: "10px" }}
+                style={{
+                  padding: "16px 20px",
+                  overflowY: "auto",
+                }}
               >
-                <Input
-                  placeholder="Name *"
-                  value={newCustomer.name}
-                  onChange={(e) => handleCustomerChange("name", e.target.value)}
-                />
-
-                <Input
-                  placeholder="Mobile *"
-                  value={newCustomer.mobile}
-                  onChange={(e) =>
-                    handleCustomerChange("mobile", e.target.value)
-                  }
-                />
-
-                <Input
-                  placeholder="GSTIN"
-                  value={newCustomer.gstin}
-                  onChange={(e) =>
-                    handleCustomerChange("gstin", e.target.value)
-                  }
-                />
-
-                <Input
-                  placeholder="Firm Name"
-                  value={newCustomer.firmName}
-                  onChange={(e) =>
-                    handleCustomerChange("firmName", e.target.value)
-                  }
-                />
-
-                <Input
-                  placeholder="Email"
-                  value={newCustomer.email}
-                  onChange={(e) =>
-                    handleCustomerChange("email", e.target.value)
-                  }
-                />
-                <Select
-                  value={selectedWarehouse}
-                  onChange={(e) => setSelectedWarehouse(e.target.value)}
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "12px",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  }}
                 >
-                  <option value="">Select Warehouse *</option>
+                  <Input
+                    placeholder="Name *"
+                    value={newCustomer.name}
+                    onChange={(e) =>
+                      handleCustomerChange("name", e.target.value)
+                    }
+                  />
 
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name} ({w.city})
-                    </option>
-                  ))}
-                </Select>
+                  <Input
+                    placeholder="Mobile *"
+                    value={newCustomer.mobile}
+                    onChange={(e) =>
+                      handleCustomerChange("mobile", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="Pincode *"
-                  value={newCustomer.pincode}
-                  onChange={(e) =>
-                    handleCustomerChange("pincode", e.target.value)
-                  }
-                />
+                  <Input
+                    placeholder="GSTIN"
+                    value={newCustomer.gstin}
+                    onChange={(e) =>
+                      handleCustomerChange("gstin", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="Plot *"
-                  value={newCustomer.plot}
-                  onChange={(e) => handleCustomerChange("plot", e.target.value)}
-                />
+                  <Input
+                    placeholder="Firm Name"
+                    value={newCustomer.firmName}
+                    onChange={(e) =>
+                      handleCustomerChange("firmName", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="Street *"
-                  value={newCustomer.street}
-                  onChange={(e) =>
-                    handleCustomerChange("street", e.target.value)
-                  }
-                />
+                  <Input
+                    placeholder="Email"
+                    value={newCustomer.email}
+                    onChange={(e) =>
+                      handleCustomerChange("email", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="Area *"
-                  value={newCustomer.area}
-                  onChange={(e) => handleCustomerChange("area", e.target.value)}
-                />
+                  <Select
+                    value={selectedWarehouse}
+                    onChange={(e) => setSelectedWarehouse(e.target.value)}
+                  >
+                    <option value="">Select Warehouse *</option>
+                    {warehouses.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name} ({w.city})
+                      </option>
+                    ))}
+                  </Select>
 
-                <Input
-                  placeholder="City *"
-                  value={newCustomer.city}
-                  onChange={(e) => handleCustomerChange("city", e.target.value)}
-                />
+                  <Input
+                    placeholder="Pincode *"
+                    value={newCustomer.pincode}
+                    onChange={(e) =>
+                      handleCustomerChange("pincode", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="District *"
-                  value={newCustomer.district}
-                  onChange={(e) =>
-                    handleCustomerChange("district", e.target.value)
-                  }
-                />
+                  <Input
+                    placeholder="Plot *"
+                    value={newCustomer.plot}
+                    onChange={(e) =>
+                      handleCustomerChange("plot", e.target.value)
+                    }
+                  />
 
-                <Input
-                  placeholder="State *"
-                  value={newCustomer.state}
-                  onChange={(e) =>
-                    handleCustomerChange("state", e.target.value)
-                  }
-                />
+                  <Input
+                    placeholder="Street *"
+                    value={newCustomer.street}
+                    onChange={(e) =>
+                      handleCustomerChange("street", e.target.value)
+                    }
+                  />
+
+                  <Input
+                    placeholder="Area *"
+                    value={newCustomer.area}
+                    onChange={(e) =>
+                      handleCustomerChange("area", e.target.value)
+                    }
+                  />
+
+                  <Input
+                    placeholder="City *"
+                    value={newCustomer.city}
+                    onChange={(e) =>
+                      handleCustomerChange("city", e.target.value)
+                    }
+                  />
+
+                  <Input
+                    placeholder="District *"
+                    value={newCustomer.district}
+                    onChange={(e) =>
+                      handleCustomerChange("district", e.target.value)
+                    }
+                  />
+
+                  <Input
+                    placeholder="State *"
+                    value={newCustomer.state}
+                    onChange={(e) =>
+                      handleCustomerChange("state", e.target.value)
+                    }
+                  />
+                </div>
               </div>
 
               {/* FOOTER */}
-              <div style={styles.modalFooter}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  padding: "16px 20px",
+                  borderTop: "1px solid #eee",
+                }}
+              >
                 <Button
                   variant="secondary"
                   onClick={() => setShowCustomerModal(false)}
