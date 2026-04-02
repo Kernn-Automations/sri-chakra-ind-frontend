@@ -1,439 +1,638 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
-  Plus,
-  Trash2,
   ArrowLeft,
+  CalendarDays,
+  FileText,
   PackagePlus,
-  Warehouse,
+  Plus,
   Search,
-  DollarSign
+  Trash2,
+  Truck,
+  Warehouse,
 } from "lucide-react";
-import { useAuth } from "@/Auth";
 import { FaRupeeSign } from "react-icons/fa";
+import { useAuth } from "@/Auth";
 
 const MotionDiv = motion.div;
 
 const styles = {
-  page:{
-    padding:"40px",
-    minHeight:"100vh",
-    fontFamily:"Inter, sans-serif",
-    background:"linear-gradient(135deg,#eef2ff,#f8fafc)"
+  page: {
+    minHeight: "100vh",
+    padding: "32px",
+    background:
+      "radial-gradient(circle at top left, #fff4d6 0%, #f7fbff 38%, #eef8f1 100%)",
+    fontFamily: "'Segoe UI', sans-serif",
   },
-
-  header:{
-    display:"flex",
-    justifyContent:"space-between",
-    alignItems:"center",
-    marginBottom:"35px"
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "24px",
+    gap: "16px",
+    flexWrap: "wrap",
   },
-
-  title:{
-    display:"flex",
-    alignItems:"center",
-    gap:"10px",
-    fontSize:"24px",
-    fontWeight:"600",
-    color:"#4f46e5"
+  hero: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
   },
-
-  backBtn:{
-    display:"flex",
-    alignItems:"center",
-    gap:"6px",
-    padding:"8px 14px",
-    background:"#fff",
-    border:"1px solid #e2e8f0",
-    borderRadius:"8px",
-    cursor:"pointer",
-    transition:"0.2s"
+  heroIcon: {
+    width: "56px",
+    height: "56px",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg, #ff8a00, #ffbd59)",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 14px 28px rgba(255, 138, 0, 0.24)",
   },
-
-  card:{
-    background:"#fff",
-    borderRadius:"16px",
-    padding:"26px",
-    marginBottom:"28px",
-    boxShadow:"0 8px 30px rgba(0,0,0,0.06)"
+  title: {
+    margin: 0,
+    fontSize: "28px",
+    fontWeight: 700,
+    color: "#0f172a",
   },
-
-  cardTitle:{
-    fontWeight:"600",
-    marginBottom:"15px",
-    display:"flex",
-    alignItems:"center",
-    gap:"8px"
+  subtitle: {
+    margin: "6px 0 0",
+    fontSize: "14px",
+    color: "#475569",
+    maxWidth: "640px",
+    lineHeight: 1.6,
   },
-
-  row:{
-    display:"flex",
-    gap:"20px",
-    flexWrap:"wrap"
+  backBtn: {
+    border: "1px solid #d6e1ef",
+    background: "#fff",
+    borderRadius: "12px",
+    padding: "10px 16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+    color: "#0f172a",
+    fontWeight: 600,
   },
-
-  inputGroup:{
-    display:"flex",
-    flexDirection:"column",
-    gap:"6px",
-    flex:1
+  card: {
+    background: "rgba(255,255,255,0.94)",
+    border: "1px solid rgba(203, 213, 225, 0.75)",
+    borderRadius: "22px",
+    padding: "24px",
+    boxShadow: "0 20px 45px rgba(15, 23, 42, 0.06)",
+    marginBottom: "22px",
   },
-
-  label:{
-    fontSize:"13px",
-    color:"#475569",
-    fontWeight:"500"
+  cardTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    margin: "0 0 16px",
+    color: "#0f172a",
+    fontWeight: 700,
+    fontSize: "18px",
   },
-
-  input:{
-    padding:"10px",
-    borderRadius:"10px",
-    border:"1px solid #e2e8f0",
-    fontSize:"14px",
-    outline:"none"
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "16px",
   },
-
-  itemRow:{
-    display:"grid",
-    gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr auto",
-    gap:"10px",
-    marginBottom:"14px"
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
   },
-
-  deleteBtn:{
-    background:"#fee2e2",
-    border:"none",
-    borderRadius:"8px",
-    padding:"8px",
-    cursor:"pointer"
+  label: {
+    fontSize: "13px",
+    color: "#475569",
+    fontWeight: 600,
   },
-
-  addBtn:{
-    display:"flex",
-    alignItems:"center",
-    gap:"6px",
-    padding:"10px 16px",
-    background:"#eef2ff",
-    borderRadius:"10px",
-    border:"none",
-    cursor:"pointer"
+  input: {
+    width: "100%",
+    borderRadius: "12px",
+    border: "1px solid #d7e3ef",
+    background: "#fff",
+    padding: "12px 14px",
+    fontSize: "14px",
+    color: "#0f172a",
+    outline: "none",
   },
-
-  summaryBar:{
-    display:"flex",
-    justifyContent:"space-between",
-    alignItems:"center",
-    marginTop:"10px",
-    padding:"12px 16px",
-    borderRadius:"10px",
-    background:"#f1f5f9"
+  textarea: {
+    minHeight: "92px",
+    resize: "vertical",
   },
-
-  submitArea:{
-    display:"flex",
-    justifyContent:"flex-end",
-    marginTop:"25px"
+  itemHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "16px",
+    flexWrap: "wrap",
   },
-
-  submitBtn:{
-    background:"#4f46e5",
-    color:"#fff",
-    padding:"12px 30px",
-    border:"none",
-    borderRadius:"12px",
-    cursor:"pointer",
-    fontSize:"15px"
+  searchWrap: {
+    position: "relative",
+    maxWidth: "360px",
+    width: "100%",
   },
-
-  floatingAdd:{
-    position:"fixed",
-    bottom:"40px",
-    right:"40px",
-    background:"#4f46e5",
-    color:"#fff",
-    borderRadius:"50%",
-    width:"60px",
-    height:"60px",
-    border:"none",
-    display:"flex",
-    alignItems:"center",
-    justifyContent:"center",
-    boxShadow:"0 10px 25px rgba(79,70,229,0.4)",
-    cursor:"pointer"
-  }
+  searchIcon: {
+    position: "absolute",
+    left: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "#64748b",
+  },
+  searchInput: {
+    paddingLeft: "40px",
+  },
+  itemRow: {
+    display: "grid",
+    gridTemplateColumns: "minmax(220px, 2fr) repeat(3, minmax(120px, 1fr)) 90px 52px",
+    gap: "10px",
+    alignItems: "center",
+    marginBottom: "12px",
+  },
+  inlineValue: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontWeight: 700,
+    color: "#0f172a",
+  },
+  deleteBtn: {
+    border: "none",
+    borderRadius: "12px",
+    background: "#ffe4e6",
+    color: "#be123c",
+    padding: "10px",
+    cursor: "pointer",
+  },
+  addBtn: {
+    border: "none",
+    borderRadius: "12px",
+    background: "#fff1cf",
+    color: "#92400e",
+    padding: "12px 16px",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  summary: {
+    marginTop: "18px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "16px",
+    padding: "18px 20px",
+    background: "linear-gradient(135deg, #0f172a, #1e293b)",
+    color: "#fff",
+    borderRadius: "18px",
+    flexWrap: "wrap",
+  },
+  summaryLabel: {
+    fontSize: "13px",
+    opacity: 0.8,
+    marginBottom: "4px",
+  },
+  summaryValue: {
+    fontSize: "24px",
+    fontWeight: 700,
+  },
+  submitArea: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "12px",
+    flexWrap: "wrap",
+  },
+  primaryBtn: {
+    border: "none",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #0ea5e9, #2563eb)",
+    color: "#fff",
+    padding: "14px 22px",
+    fontWeight: 700,
+    cursor: "pointer",
+    minWidth: "220px",
+    boxShadow: "0 16px 30px rgba(37, 99, 235, 0.24)",
+  },
+  mutedBox: {
+    padding: "14px 16px",
+    borderRadius: "14px",
+    background: "#f8fafc",
+    color: "#475569",
+    fontSize: "13px",
+    lineHeight: 1.6,
+    border: "1px dashed #cbd5e1",
+  },
 };
 
 function ManualStockIn({ navigate }) {
-
   const { axiosAPI } = useAuth();
 
-  const [warehouses,setWarehouses]=useState([]);
-  const [products,setProducts]=useState([]);
-  const [warehouseId,setWarehouseId]=useState("");
-  const [reason,setReason]=useState("");
-  const [loading,setLoading]=useState(false);
-  const [search,setSearch]=useState("");
-
-  const [items,setItems]=useState([
-    {productId:"",quantity:"",unit:"",unitCost:""}
+  const [warehouses, setWarehouses] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    warehouseId: "",
+    supplierName: "",
+    supplierInvoiceNumber: "",
+    supplierInvoiceDate: "",
+    transactionDate: new Date().toISOString().slice(0, 10),
+    vehicleNumber: "",
+    referenceNumber: "",
+    reason: "",
+    remarks: "",
+  });
+  const [items, setItems] = useState([
+    { productId: "", quantity: "", unit: "", unitCost: "" },
   ]);
 
-  useEffect(()=>{
-    async function load(){
-      const [w,p]=await Promise.all([
-        axiosAPI.get("/warehouses",{params:{divisionId:"all"}}),
-        axiosAPI.get("/products",{params:{divisionId:"all"}})
+  useEffect(() => {
+    async function load() {
+      const [warehousesRes, productsRes] = await Promise.all([
+        axiosAPI.get("/warehouses", { params: { divisionId: "all" } }),
+        axiosAPI.get("/products", { params: { divisionId: "all" } }),
       ]);
 
-      setWarehouses(w.data.warehouses);
-      setProducts(p.data.products);
+      setWarehouses(warehousesRes.data.warehouses || []);
+      setProducts(productsRes.data.products || []);
     }
 
     load();
-  },[]);
+  }, [axiosAPI]);
 
-  const filteredProducts=useMemo(()=>{
-    return products.filter(p=>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.SKU.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return products;
+
+    return products.filter((product) => {
+      const name = product.name?.toLowerCase() || "";
+      const sku = product.SKU?.toLowerCase() || "";
+      return name.includes(term) || sku.includes(term);
+    });
+  }, [products, search]);
+
+  const totalValue = useMemo(
+    () =>
+      items.reduce(
+        (sum, item) =>
+          sum +
+          (Number(item.quantity || 0) || 0) * (Number(item.unitCost || 0) || 0),
+        0,
+      ),
+    [items],
+  );
+
+  const updateForm = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleProductSelect = (index, productId) => {
+    const product = products.find((entry) => String(entry.id) === String(productId));
+    setItems((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex !== index
+          ? item
+          : {
+              ...item,
+              productId,
+              unit: product?.inventoryUnit || product?.defaultUnit || product?.unit || "kg",
+              unitCost: product?.purchasePrice || "",
+            },
+      ),
     );
-  },[products,search]);
-
-  const handleProductSelect=(index,id)=>{
-
-    const product=products.find(p=>p.id==id);
-
-    const updated=[...items];
-
-    updated[index].productId=id;
-    updated[index].unit=product.defaultUnit || product.unit;
-    updated[index].unitCost=product.purchasePrice;
-
-    setItems(updated);
   };
 
-  const handleChange=(index,field,val)=>{
-    const updated=[...items];
-    updated[index][field]=val;
-    setItems(updated);
+  const updateItem = (index, field, value) => {
+    setItems((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
   };
 
-  const addRow=()=>{
-    setItems([...items,{productId:"",quantity:"",unit:"",unitCost:""}]);
+  const addRow = () => {
+    setItems((prev) => [...prev, { productId: "", quantity: "", unit: "", unitCost: "" }]);
   };
 
-  const removeRow=index=>{
-    setItems(items.filter((_,i)=>i!==index));
+  const removeRow = (index) => {
+    setItems((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
   };
 
-  const totalValue=useMemo(()=>{
-    return items.reduce((sum,i)=>sum+(i.quantity*i.unitCost||0),0);
-  },[items]);
+  const resetForm = () => {
+    setForm({
+      warehouseId: "",
+      supplierName: "",
+      supplierInvoiceNumber: "",
+      supplierInvoiceDate: "",
+      transactionDate: new Date().toISOString().slice(0, 10),
+      vehicleNumber: "",
+      referenceNumber: "",
+      reason: "",
+      remarks: "",
+    });
+    setItems([{ productId: "", quantity: "", unit: "", unitCost: "" }]);
+    setSearch("");
+  };
 
-  const handleSubmit=async()=>{
-
-    const payload={
-      warehouseId:Number(warehouseId),
-      reason,
-      items:items.map(i=>({
-        productId:Number(i.productId),
-        quantity:Number(i.quantity),
-        unit:i.unit,
-        unitCost:Number(i.unitCost)
-      }))
-    };
-
-    try{
-
-      setLoading(true);
-
-      await axiosAPI.post("/warehouse/inventory/manual-stock-in",payload);
-
-      alert("Stock added successfully");
-
-      setItems([{productId:"",quantity:"",unit:"",unitCost:""}]);
-
-    }catch(err){
-      alert(err?.response?.data?.message || "Failed");
+  const handleSubmit = async () => {
+    if (!form.warehouseId || !form.reason || form.reason.trim().length < 5) {
+      alert("Select warehouse and enter a clear reason with at least 5 characters.");
+      return;
     }
 
-    setLoading(false);
+    const cleanItems = items
+      .filter((item) => item.productId && item.quantity)
+      .map((item) => ({
+        productId: Number(item.productId),
+        quantity: Number(item.quantity),
+        unit: item.unit || "kg",
+        unitCost: item.unitCost ? Number(item.unitCost) : null,
+      }));
+
+    if (!cleanItems.length) {
+      alert("Add at least one valid product line.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await axiosAPI.post("/warehouses/inventory/manual-stock-in", {
+        warehouseId: Number(form.warehouseId),
+        supplierName: form.supplierName || null,
+        supplierInvoiceNumber: form.supplierInvoiceNumber || null,
+        supplierInvoiceDate: form.supplierInvoiceDate || null,
+        transactionDate: form.transactionDate || null,
+        vehicleNumber: form.vehicleNumber || null,
+        referenceNumber: form.referenceNumber || null,
+        reason: form.reason,
+        remarks: form.remarks || null,
+        items: cleanItems,
+      });
+
+      alert("Direct stock in recorded successfully.");
+      resetForm();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Failed to complete direct stock in");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return(
+  return (
     <div style={styles.page}>
-
-      {/* HEADER */}
-
-      <MotionDiv style={styles.header} initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}}>
-
-        <div style={styles.title}>
-          <PackagePlus size={28}/>
-          Manual Stock In
+      <MotionDiv
+        style={styles.header}
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div style={styles.hero}>
+          <div style={styles.heroIcon}>
+            <PackagePlus size={28} />
+          </div>
+          <div>
+            <h1 style={styles.title}>Direct Stock In</h1>
+            <p style={styles.subtitle}>
+              Record supplier stock directly into inventory with bill date, truck
+              reference, and item-wise cost so today&apos;s stock and backdated stock
+              stay clean for billing.
+            </p>
+          </div>
         </div>
 
-        <button style={styles.backBtn} onClick={()=>navigate("/inventory")}>
-          <ArrowLeft size={18}/> Back
+        <button style={styles.backBtn} onClick={() => navigate("/inventory")}>
+          <ArrowLeft size={18} />
+          Back
         </button>
-
       </MotionDiv>
 
+      <MotionDiv style={styles.card} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h2 style={styles.cardTitle}>
+          <Warehouse size={18} />
+          Stock Entry Details
+        </h2>
 
-      {/* BASIC DETAILS */}
-
-      <MotionDiv style={styles.card}>
-
-        <div style={styles.cardTitle}>
-          <Warehouse size={18}/>
-          Warehouse Details
-        </div>
-
-        <div style={styles.row}>
-
+        <div style={styles.grid}>
           <div style={styles.inputGroup}>
             <label style={styles.label}>Warehouse</label>
-            <select style={styles.input} value={warehouseId} onChange={e=>setWarehouseId(e.target.value)}>
+            <select
+              style={styles.input}
+              value={form.warehouseId}
+              onChange={(e) => updateForm("warehouseId", e.target.value)}
+            >
               <option value="">Select warehouse</option>
-              {warehouses.map(w=>(
-                <option key={w.id} value={w.id}>
-                  {w.name} — {w.city}
+              {warehouses.map((warehouse) => (
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div style={styles.inputGroup}>
-            <label style={styles.label}>Reason</label>
+            <label style={styles.label}>Supplier Name</label>
             <input
               style={styles.input}
-              value={reason}
-              onChange={e=>setReason(e.target.value)}
-              placeholder="Manual stock reason"
+              value={form.supplierName}
+              onChange={(e) => updateForm("supplierName", e.target.value)}
+              placeholder="JSW Steel, vendor, mill name"
             />
           </div>
 
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Supplier Invoice No.</label>
+            <input
+              style={styles.input}
+              value={form.supplierInvoiceNumber}
+              onChange={(e) => updateForm("supplierInvoiceNumber", e.target.value)}
+              placeholder="Enter supplier bill number"
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Supplier Invoice Date</label>
+            <div style={{ position: "relative" }}>
+              <CalendarDays size={16} style={{ position: "absolute", right: 14, top: 14, color: "#64748b" }} />
+              <input
+                style={styles.input}
+                type="date"
+                value={form.supplierInvoiceDate}
+                onChange={(e) => updateForm("supplierInvoiceDate", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Stock Transaction Date</label>
+            <input
+              style={styles.input}
+              type="date"
+              value={form.transactionDate}
+              onChange={(e) => updateForm("transactionDate", e.target.value)}
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Vehicle Number</label>
+            <div style={{ position: "relative" }}>
+              <Truck size={16} style={{ position: "absolute", right: 14, top: 14, color: "#64748b" }} />
+              <input
+                style={styles.input}
+                value={form.vehicleNumber}
+                onChange={(e) => updateForm("vehicleNumber", e.target.value)}
+                placeholder="Truck / lorry number"
+              />
+            </div>
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Reference Number</label>
+            <input
+              style={styles.input}
+              value={form.referenceNumber}
+              onChange={(e) => updateForm("referenceNumber", e.target.value)}
+              placeholder="PO ref / LR no / challan ref"
+            />
+          </div>
         </div>
 
+        <div style={{ ...styles.grid, marginTop: "16px" }}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Reason</label>
+            <input
+              style={styles.input}
+              value={form.reason}
+              onChange={(e) => updateForm("reason", e.target.value)}
+              placeholder="Example: JSW direct stock receipt for roofing sheet order"
+            />
+          </div>
+
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Remarks</label>
+            <textarea
+              style={{ ...styles.input, ...styles.textarea }}
+              value={form.remarks}
+              onChange={(e) => updateForm("remarks", e.target.value)}
+              placeholder="Any loading, material, or QC note for billing and stock team"
+            />
+          </div>
+        </div>
       </MotionDiv>
 
+      <MotionDiv style={styles.card} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div style={styles.itemHeader}>
+          <h2 style={styles.cardTitle}>
+            <FileText size={18} />
+            Item Lines
+          </h2>
 
-      {/* PRODUCTS */}
-
-      <MotionDiv style={styles.card}>
-
-        <div style={styles.cardTitle}>
-          <Search size={18}/>
-          Add Products
+          <div style={styles.searchWrap}>
+            <Search size={16} style={styles.searchIcon} />
+            <input
+              style={{ ...styles.input, ...styles.searchInput }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search product by name or SKU"
+            />
+          </div>
         </div>
 
-        <input
-          style={{...styles.input,marginBottom:"15px"}}
-          placeholder="Search products by name or SKU..."
-          value={search}
-          onChange={e=>setSearch(e.target.value)}
-        />
+        {items.map((item, index) => {
+          const selectedProduct = products.find(
+            (product) => String(product.id) === String(item.productId),
+          );
+          const supportedUnits =
+            selectedProduct?.supportedUnits?.length
+              ? selectedProduct.supportedUnits
+              : [selectedProduct?.inventoryUnit || selectedProduct?.unit || "kg"];
 
-        <AnimatePresence>
-
-        {items.map((item,index)=>{
-
-          const product=products.find(p=>p.id==item.productId);
-
-          const units=product?.unitPrices?.map(u=>u.unit)||[];
-
-          return(
-
-            <MotionDiv
-              key={index}
-              style={styles.itemRow}
-              initial={{opacity:0,y:10}}
-              animate={{opacity:1,y:0}}
-              exit={{opacity:0}}
-            >
-
+          return (
+            <div key={`${index}-${item.productId || "new"}`} style={styles.itemRow}>
               <select
                 style={styles.input}
                 value={item.productId}
-                onChange={e=>handleProductSelect(index,e.target.value)}
+                onChange={(e) => handleProductSelect(index, e.target.value)}
               >
-
                 <option value="">Select product</option>
-
-                {filteredProducts.map(p=>(
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.SKU})
+                {filteredProducts.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} ({product.SKU})
                   </option>
                 ))}
-
               </select>
 
               <input
                 style={styles.input}
                 type="number"
+                min="0"
+                step="0.01"
                 value={item.quantity}
+                onChange={(e) => updateItem(index, "quantity", e.target.value)}
                 placeholder="Qty"
-                onChange={e=>handleChange(index,"quantity",e.target.value)}
               />
 
               <select
                 style={styles.input}
                 value={item.unit}
-                onChange={e=>handleChange(index,"unit",e.target.value)}
+                onChange={(e) => updateItem(index, "unit", e.target.value)}
               >
-                {units.map(u=>(
-                  <option key={u}>{u}</option>
+                {supportedUnits.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
                 ))}
               </select>
 
               <input
                 style={styles.input}
                 type="number"
+                min="0"
+                step="0.01"
                 value={item.unitCost}
-                onChange={e=>handleChange(index,"unitCost",e.target.value)}
+                onChange={(e) => updateItem(index, "unitCost", e.target.value)}
+                placeholder="Rate"
               />
 
-              <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-                <FaRupeeSign size={16}/>
-                {(item.quantity*item.unitCost||0).toFixed(2)}
+              <div style={styles.inlineValue}>
+                <FaRupeeSign size={13} />
+                {(
+                  (Number(item.quantity || 0) || 0) * (Number(item.unitCost || 0) || 0)
+                ).toFixed(2)}
               </div>
 
-              <button style={styles.deleteBtn} onClick={()=>removeRow(index)}>
-                <Trash2 size={16}/>
+              <button style={styles.deleteBtn} onClick={() => removeRow(index)}>
+                <Trash2 size={16} />
               </button>
-
-            </MotionDiv>
-
-          )
-
+            </div>
+          );
         })}
 
-        </AnimatePresence>
-
         <button style={styles.addBtn} onClick={addRow}>
-          <Plus size={16}/> Add Item
+          <Plus size={16} />
+          Add another line
         </button>
 
-        <div style={styles.summaryBar}>
-          <span>Total Inventory Value</span>
-          <strong>₹ {totalValue.toFixed(2)}</strong>
+        <div style={styles.summary}>
+          <div>
+            <div style={styles.summaryLabel}>Estimated inward stock value</div>
+            <div style={styles.summaryValue}>Rs. {totalValue.toFixed(2)}</div>
+          </div>
+          <div style={styles.mutedBox}>
+            Use this screen for supplier stock receipts. Use stock adjustment only for
+            correction entries, shortages, excess, or audit differences.
+          </div>
         </div>
-
       </MotionDiv>
 
-
       <div style={styles.submitArea}>
-        <button style={styles.submitBtn} onClick={handleSubmit} disabled={loading}>
-          {loading ? "Processing..." : "Confirm Stock In"}
+        <button style={styles.backBtn} onClick={resetForm}>
+          Reset
+        </button>
+        <button style={styles.primaryBtn} onClick={handleSubmit} disabled={loading}>
+          {loading ? "Saving direct stock in..." : "Confirm Direct Stock In"}
         </button>
       </div>
-
-
-      {/* FLOATING BUTTON */}
-
-      <button style={styles.floatingAdd} onClick={addRow}>
-        <Plus size={26}/>
-      </button>
-
     </div>
   );
 }

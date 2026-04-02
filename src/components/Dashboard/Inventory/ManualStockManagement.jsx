@@ -223,11 +223,11 @@ function ManualStockManagement({ navigate }) {
     <>
       <p className="path">
         <span onClick={() => navigate("/inventory")}>Inventory</span>{" "}
-        <i className="bi bi-chevron-right"></i> Manage Stock
+        <i className="bi bi-chevron-right"></i> Stock Adjustment
       </p>
 
       <div className="row m-0 p-3">
-        <h5 className={styles.head}>Manage Stock</h5>
+        <h5 className={styles.head}>Stock Adjustment</h5>
         
         {/* Warehouse Selection */}
         <div className={`col-4 ${styles.longform}`}>
@@ -334,7 +334,7 @@ function ManualStockManagement({ navigate }) {
         <div className="row m-0 p-3 justify-content-center">
           <div className="col-3">
             <button className="submitbtn" onClick={handleSubmit}>
-              Create Movement
+              Save Adjustment
             </button>
             <button
               className="cancelbtn"

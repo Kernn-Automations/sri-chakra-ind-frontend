@@ -36,6 +36,14 @@ function InventoryRoutes() {
   }
 />
       <Route
+        path="/direct-stock-in"
+        element={
+          <Suspense fallback={<PageSkeleton />}>
+            <ManualStockIn navigate={navigate} />
+          </Suspense>
+        }
+      />
+      <Route
         path="/incoming-stock"
         element={
           <Suspense fallback={<PageSkeleton />}>

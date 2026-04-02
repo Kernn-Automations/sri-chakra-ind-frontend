@@ -114,18 +114,18 @@ function InventoryHome({ navigate }) {
       {/* Buttons - Always visible */}
       <div className="row m-0 p-3">
         <div className="col">
-              <button
+            <button
       className="homebtn"
-      onClick={() => navigate("/inventory/manual-stock-in")}
+      onClick={() => navigate("/inventory/direct-stock-in")}
     >
-      + Manual Stock In
+      + Direct Stock In
     </button>
             <button className='homebtn' onClick={() => navigate('/inventory/incoming-stock')}>Incoming Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/outgoing-stock')}>Outgoing Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/current-stock')}>Current Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/stock-summary')}>Stock Summary</button>
             <button className='homebtn' onClick={() => navigate('/inventory/damaged-goods')}>Damaged Goods</button>
-            <button className='homebtn' onClick={() => navigate('/inventory/manage-stock')}>Manage Stock</button>
+            <button className='homebtn' onClick={() => navigate('/inventory/manage-stock')}>Stock Adjustment</button>
         </div>
       </div>
 

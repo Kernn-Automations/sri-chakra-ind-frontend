@@ -103,6 +103,19 @@ function CurrentStock({ navigate }) {
       borderBottom: "1px solid #f3f4f6",
       fontSize: "14px",
     },
+    quantityBlock: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+    },
+    quantityPrimary: {
+      fontWeight: 700,
+      color: "#111827",
+    },
+    quantityHint: {
+      fontSize: "12px",
+      color: "#6b7280",
+    },
 
     badge: {
       padding: "5px 10px",
@@ -202,6 +215,17 @@ function CurrentStock({ navigate }) {
     return { ...base, background: "#10b981" };
   };
 
+  const formatDerivedMetrics = (metrics = []) =>
+    metrics
+      .slice(0, 2)
+      .map(
+        (metric) =>
+          `${Number(metric.quantity || 0).toLocaleString("en-IN", {
+            maximumFractionDigits: 2,
+          })} ${metric.unit}`,
+      )
+      .join(" • ");
+
   return (
     <div style={styles.page}>
       {loading && (
@@ -246,8 +270,9 @@ function CurrentStock({ navigate }) {
               background: "linear-gradient(135deg,#10b981,#059669)",
             }}
           >
-            <div>Total Quantity (kg)</div>
+            <div>Total Quantity</div>
             <h2>{summary.currentStockQuantityKg}</h2>
+            <div style={{ fontSize: "12px", opacity: 0.9 }}>kg in stock</div>
           </div>
 
           <div
@@ -331,7 +356,7 @@ function CurrentStock({ navigate }) {
               <th style={styles.th}>SKU</th>
               <th style={styles.th}>Warehouse</th>
               <th style={styles.th}>Quantity</th>
-              <th style={styles.th}>Unit</th>
+              <th style={styles.th}>Measure</th>
               <th style={styles.th}>Value</th>
               <th style={styles.th}>Status</th>
             </tr>
@@ -353,8 +378,27 @@ function CurrentStock({ navigate }) {
                   <td style={styles.td}>{item.product?.name}</td>
                   <td style={styles.td}>{item.product?.SKU}</td>
                   <td style={styles.td}>{item.warehouse?.name}</td>
-                  <td style={styles.td}>{item.stockQuantity}</td>
-                  <td style={styles.td}>{item.product?.unit}</td>
+                  <td style={styles.td}>
+                    <div style={styles.quantityBlock}>
+                      <span style={styles.quantityPrimary}>
+                        {Number(item.stockQuantity || 0).toLocaleString(
+                          "en-IN",
+                          {
+                            maximumFractionDigits: 3,
+                          },
+                        )}{" "}
+                        {item.product?.inventoryUnit || "kg"}
+                      </span>
+                      {item.derivedMetrics?.length > 0 && (
+                        <span style={styles.quantityHint}>
+                          {formatDerivedMetrics(item.derivedMetrics)}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    {item.product?.measurementType || item.product?.unit || "-"}
+                  </td>
                   <td style={styles.td}>
                     ₹{Number(item.stockValue || 0).toLocaleString()}
                   </td>

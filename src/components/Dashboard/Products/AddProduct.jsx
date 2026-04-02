@@ -6,6 +6,12 @@ import ErrorModal from "@/components/ErrorModal";
 import Loading from "@/components/Loading";
 import axios from "axios";
 import { CheckCircle, X, AlertCircle } from "lucide-react";
+import {
+  getInventoryUnit as getInventoryUnitForMeasurement,
+  STEEL_ALL_UNITS,
+  STEEL_MEASUREMENT_UNITS,
+  STEEL_PACKAGE_UNITS,
+} from "@/constants/productMeasurement";
 
 function AddProduct({ navigate }) {
   const { axiosAPI } = useAuth();
@@ -50,19 +56,10 @@ function AddProduct({ navigate }) {
 
   const [conversionUnits, setConversionUnits] = useState([]);
 
-  const getInventoryUnit = () => {
-    if (measurementType === "weight") return "kg";
-    if (measurementType === "volume") return "l"; // 🆕 base stock in litres
-    if (measurementType === "length") return "m";
-    if (measurementType === "area") return "sq_m";
-    if (measurementType === "count") return "nos";
-    return "";
-  };
-
   useEffect(() => {
     if (productType === "packed") return; // ❌ skip conversions
 
-    const inventoryUnit = getInventoryUnit();
+    const inventoryUnit = getInventoryUnitForMeasurement(measurementType);
     if (!inventoryUnit) return;
 
     setConversionUnits((prev) => {
@@ -121,62 +118,9 @@ function AddProduct({ navigate }) {
   /* -------------------------
    * UNIT MAPS
    * ------------------------- */
-  const MEASUREMENT_UNITS = {
-    weight: ["mg", "g", "kg"],
-    volume: ["ml", "l"], // 🆕 Pesticide / liquid support
-    length: ["mm", "cm", "m", "ft", "inch", "yard", "rmt"],
-    area: ["sq_mm", "sq_cm", "sq_m", "sq_ft", "sq_yd"],
-    count: ["nos", "pcs", "bundle", "sheet", "coil", "panel", "set"],
-  };
-
-  const ALL_UNITS = [
-    // Weight
-    "mg",
-    "g",
-    "kg",
-
-    // 🆕 Volume
-    "ml",
-    "l",
-
-    // Area
-    "sq_mm",
-    "sq_cm",
-    "sq_m",
-    "sq_ft",
-    "sq_yd",
-
-    // Length
-    "mm",
-    "cm",
-    "m",
-    "ft",
-    "inch",
-    "yard",
-    "rmt",
-
-    // Count
-    "nos",
-    "pcs",
-    "bundle",
-    "sheet",
-    "coil",
-    "panel",
-    "set",
-  ];
-
-  const PACKAGE_UNITS = [
-    "g",
-    "kg",
-    "ml",
-    "l", // 🆕 liquid packs
-    "ton",
-    "mt",
-    "pcs",
-    "bundle",
-    "coil",
-    "sheet",
-  ];
+  const MEASUREMENT_UNITS = STEEL_MEASUREMENT_UNITS;
+  const ALL_UNITS = STEEL_ALL_UNITS;
+  const PACKAGE_UNITS = STEEL_PACKAGE_UNITS;
 
   /* -------------------------
    * FETCH MASTER DATA
@@ -1462,3 +1406,5 @@ const styles = {
 };
 
 export default AddProduct;
+
+
