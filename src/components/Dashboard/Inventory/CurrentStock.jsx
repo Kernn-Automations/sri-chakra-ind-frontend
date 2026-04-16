@@ -103,6 +103,19 @@ function CurrentStock({ navigate }) {
       borderBottom: "1px solid #f3f4f6",
       fontSize: "14px",
     },
+    quantityBlock: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+    },
+    quantityPrimary: {
+      fontWeight: 700,
+      color: "#111827",
+    },
+    quantityHint: {
+      fontSize: "12px",
+      color: "#6b7280",
+    },
 
     badge: {
       padding: "5px 10px",
@@ -111,6 +124,16 @@ function CurrentStock({ navigate }) {
       fontWeight: 600,
       color: "#fff",
       textTransform: "capitalize",
+    },
+    helpBox: {
+      marginBottom: "20px",
+      padding: "16px 18px",
+      borderRadius: "16px",
+      background: "linear-gradient(135deg,#fff7ed,#eff6ff)",
+      border: "1px solid #dbeafe",
+      color: "#334155",
+      lineHeight: 1.7,
+      fontSize: "13px",
     },
 
     loadingOverlay: {
@@ -202,6 +225,17 @@ function CurrentStock({ navigate }) {
     return { ...base, background: "#10b981" };
   };
 
+  const formatDerivedMetrics = (metrics = []) =>
+    metrics
+      .slice(0, 2)
+      .map(
+        (metric) =>
+          `${Number(metric.quantity || 0).toLocaleString("en-IN", {
+            maximumFractionDigits: 2,
+          })} ${metric.unit}`,
+      )
+      .join(" • ");
+
   return (
     <div style={styles.page}>
       {loading && (
@@ -225,6 +259,10 @@ function CurrentStock({ navigate }) {
         />
       </div>
 
+      <div style={styles.helpBox}>
+        Stock is controlled in one stock-keeping unit, but this page also shows business-friendly views using each product&apos;s conversion rules. If the views look wrong, update that product&apos;s setup instead of manually adjusting stock.
+      </div>
+
       {/* SUMMARY CARDS */}
       {summary && (
         <div style={styles.cardGrid}>
@@ -246,8 +284,9 @@ function CurrentStock({ navigate }) {
               background: "linear-gradient(135deg,#10b981,#059669)",
             }}
           >
-            <div>Total Quantity (kg)</div>
+            <div>Total Quantity</div>
             <h2>{summary.currentStockQuantityKg}</h2>
+            <div style={{ fontSize: "12px", opacity: 0.9 }}>kg in stock</div>
           </div>
 
           <div
@@ -328,10 +367,11 @@ function CurrentStock({ navigate }) {
             <tr>
               <th style={styles.th}>#</th>
               <th style={styles.th}>Product</th>
+              <th style={styles.th}>Steel Spec</th>
               <th style={styles.th}>SKU</th>
               <th style={styles.th}>Warehouse</th>
               <th style={styles.th}>Quantity</th>
-              <th style={styles.th}>Unit</th>
+              <th style={styles.th}>Measure</th>
               <th style={styles.th}>Value</th>
               <th style={styles.th}>Status</th>
             </tr>
@@ -340,7 +380,7 @@ function CurrentStock({ navigate }) {
             {filteredInventory.length === 0 ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="9"
                   style={{ textAlign: "center", padding: "30px" }}
                 >
                   No stock found
@@ -350,11 +390,51 @@ function CurrentStock({ navigate }) {
               filteredInventory.slice(0, limit).map((item, index) => (
                 <tr key={item.id}>
                   <td style={styles.td}>{index + 1}</td>
-                  <td style={styles.td}>{item.product?.name}</td>
+                  <td style={styles.td}>
+                    <div style={styles.quantityBlock}>
+                      <span style={styles.quantityPrimary}>{item.product?.name}</span>
+                      <span style={styles.quantityHint}>
+                        {(item.product?.productFamily || "general").replaceAll("_", " ")}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    {[
+                      item.product?.steelConfig?.brand,
+                      item.product?.steelConfig?.thicknessMm
+                        ? `${item.product.steelConfig.thicknessMm} mm`
+                        : null,
+                      item.product?.steelConfig?.widthMm
+                        ? `${item.product.steelConfig.widthMm} mm`
+                        : null,
+                      item.product?.steelConfig?.grade,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ") || "-"}
+                  </td>
                   <td style={styles.td}>{item.product?.SKU}</td>
                   <td style={styles.td}>{item.warehouse?.name}</td>
-                  <td style={styles.td}>{item.stockQuantity}</td>
-                  <td style={styles.td}>{item.product?.unit}</td>
+                  <td style={styles.td}>
+                    <div style={styles.quantityBlock}>
+                      <span style={styles.quantityPrimary}>
+                        {Number(item.stockQuantity || 0).toLocaleString(
+                          "en-IN",
+                          {
+                            maximumFractionDigits: 3,
+                          },
+                        )}{" "}
+                        {item.product?.inventoryUnit || "kg"}
+                      </span>
+                      {item.derivedMetrics?.length > 0 && (
+                        <span style={styles.quantityHint}>
+                          {formatDerivedMetrics(item.derivedMetrics)}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    {item.product?.measurementType || item.product?.unit || "-"}
+                  </td>
                   <td style={styles.td}>
                     ₹{Number(item.stockValue || 0).toLocaleString()}
                   </td>

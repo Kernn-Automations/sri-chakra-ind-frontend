@@ -15,6 +15,7 @@ const ProtectedRoute = lazy(() => import("./ProtectedRoute"));
 const Divs = lazy(() => import("./pages/Divs"));
 const StoreSelector = lazy(() => import("./pages/StoreSelector"));
 const StoreDashboard = lazy(() => import("./components/Store/StoreDashboard"));
+const PublicDocumentVerifier = lazy(() => import("./pages/PublicDocumentVerifier"));
 
 const getNormalizedUser = () => {
   try {
@@ -111,6 +112,14 @@ export default function App() {
       />
 
       <Route path="/divs" element={<Divs />} />
+      <Route
+        path="/verify/document/:verificationKey"
+        element={
+          <Suspense fallback={<DashboardSkeleton />}>
+            <PublicDocumentVerifier />
+          </Suspense>
+        }
+      />
       
       {/* Store Selector Route */}
       <Route path="/store-selector" element={

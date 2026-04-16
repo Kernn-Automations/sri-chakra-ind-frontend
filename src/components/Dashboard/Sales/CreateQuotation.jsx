@@ -411,6 +411,10 @@ function CreateQuotation() {
         </button>
       </div>
 
+      <div style={styles.infoBox}>
+        <strong>Workflow:</strong> quotation is only the commercial offer, sales order is the confirmed booking, and invoice is created only after sales order. Product prices come from the configured pricing engine first, and you can still override a line price when the customer negotiation needs it.
+      </div>
+
       {/* PROGRESS STEPPER */}
       <div style={styles.stepper}>
         <div style={styles.stepperContainer}>
@@ -1083,6 +1087,16 @@ const styles = {
     fontWeight: 600,
     fontSize: "14px",
     color: "#64748b",
+  },
+  infoBox: {
+    marginBottom: "20px",
+    padding: "16px 18px",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg, #fff7ed, #eff6ff)",
+    border: "1px solid #dbeafe",
+    color: "#334155",
+    lineHeight: 1.7,
+    fontSize: "13px",
   },
 
   // STEPPER

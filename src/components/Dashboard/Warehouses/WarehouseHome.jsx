@@ -14,6 +14,19 @@ function WarehouseHome({ navigate, managers, products, isAdmin }) {
     <>
       <div className="row m-0 p-3">
         <div className="col">
+          <div
+            style={{
+              marginBottom: "16px",
+              padding: "16px 18px",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, #fff7ed, #eff6ff)",
+              border: "1px solid #dbeafe",
+              color: "#334155",
+              lineHeight: 1.7,
+            }}
+          >
+            <strong>Warehouse setup guide:</strong> Create the warehouse first, then enter only opening stock you already physically hold. For steel items, keep one clean stock unit in the product master and let the system show derived views like sheets, coils, bundles, or rmt from that same stock.
+          </div>
           {isAdmin && (
             <>
               <NewWarehouseViewModal
