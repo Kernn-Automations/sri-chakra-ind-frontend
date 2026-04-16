@@ -1,11 +1,128 @@
 import { useState } from "react";
-import styles from "./Login.module.css";
 import axios from "axios";
 import Loading from "./Loading";
 import ErrorModal from "./ErrorModal";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { normalizeLoginUser } from "../utils/normalizeLoginUser";
 import { useAuth } from "../Auth";
+
+const styles = {
+  inputbox: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  wel: {
+    marginBottom: "4px",
+  },
+  welHeading: {
+    fontSize: "22px",
+    fontWeight: "700",
+    color: "#1e293b",
+    margin: "0",
+  },
+  p: {
+    fontSize: "13px",
+    color: "#64748b",
+    margin: "0 0 20px",
+  },
+  label: {
+    display: "block",
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: "6px",
+    marginTop: "14px",
+  },
+  input: {
+    width: "100%",
+    padding: "10px 14px",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px",
+    fontSize: "14px",
+    color: "#1e293b",
+    background: "#f8fafc",
+    outline: "none",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+  },
+  inputFocused: {
+    borderColor: "#2563eb",
+    boxShadow: "0 0 0 3px rgba(37,99,235,0.1)",
+    background: "#ffffff",
+  },
+  passwordWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  passwordInput: {
+    width: "100%",
+    padding: "10px 40px 10px 14px",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px",
+    fontSize: "14px",
+    color: "#1e293b",
+    background: "#f8fafc",
+    outline: "none",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: "12px",
+    color: "#94a3b8",
+    cursor: "pointer",
+    fontSize: "14px",
+    display: "flex",
+    alignItems: "center",
+    userSelect: "none",
+  },
+  sendbutton: {
+    width: "100%",
+    marginTop: "24px",
+    padding: "11px",
+    background: "#2563eb",
+    border: "none",
+    borderRadius: "8px",
+    color: "#ffffff",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "background 0.2s",
+  },
+  sendbuttonDisabled: {
+    background: "#93c5fd",
+    cursor: "not-allowed",
+  },
+  /* Change password modal */
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  },
+  modalBox: {
+    background: "#ffffff",
+    borderRadius: "12px",
+    padding: "32px 28px",
+    width: "90%",
+    maxWidth: "400px",
+    boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+    display: "flex",
+    flexDirection: "column",
+  },
+  modalHeading: {
+    fontSize: "18px",
+    fontWeight: "700",
+    color: "#1e293b",
+    margin: "0 0 6px",
+  },
+};
 
 function Input({ setLogin, setUser }) {
   const { saveTokens } = useAuth();
@@ -21,6 +138,11 @@ function Input({ setLogin, setUser }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [employeeId, setEmployeeId] = useState(null);
+
+  const [mobileFocused, setMobileFocused] = useState(false);
+  const [passFocused, setPassFocused] = useState(false);
+  const [newPassFocused, setNewPassFocused] = useState(false);
+  const [confirmPassFocused, setConfirmPassFocused] = useState(false);
 
   const onChangeMobile = (e) => {
     setEmail(e.target.value.replace(/[^0-9]/g, ""));
@@ -127,43 +249,58 @@ function Input({ setLogin, setUser }) {
 
   return (
     <>
-      <div className={styles.inputbox}>
-        <div className={styles.wel}>
-          <h1>Welcome!</h1>
+      <div style={styles.inputbox}>
+        <div style={styles.wel}>
+          <h1 style={styles.welHeading}>Welcome!</h1>
         </div>
 
         <form onSubmit={onSubmit}>
-          <p className={styles.p}>Login to continue</p>
+          <p style={styles.p}>Login to continue</p>
 
-          <label className={styles.label}>Mobile number</label>
+          <label style={styles.label}>Mobile number</label>
           <input
             type="tel"
             maxLength={10}
             value={email}
             onChange={onChangeMobile}
-            className={styles.input}
+            onFocus={() => setMobileFocused(true)}
+            onBlur={() => setMobileFocused(false)}
+            style={{
+              ...styles.input,
+              ...(mobileFocused ? styles.inputFocused : {}),
+            }}
             required
           />
 
-          <label className={styles.label}>Password</label>
-
-          <div className={styles.passwordWrapper}>
+          <label style={styles.label}>Password</label>
+          <div style={styles.passwordWrapper}>
             <input
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
+              onFocus={() => setPassFocused(true)}
+              onBlur={() => setPassFocused(false)}
+              style={{
+                ...styles.passwordInput,
+                ...(passFocused ? styles.inputFocused : {}),
+              }}
               required
             />
             <span
-              className={styles.eyeIcon}
+              style={styles.eyeIcon}
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-          <button className={styles.sendbutton} disabled={loading}>
+          <button
+            style={{
+              ...styles.sendbutton,
+              ...(loading ? styles.sendbuttonDisabled : {}),
+            }}
+            disabled={loading}
+          >
             Login
           </button>
         </form>
@@ -178,32 +315,46 @@ function Input({ setLogin, setUser }) {
           />
         )}
       </div>
+
       {showChangePassword && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalBox}>
-            <h3>Change Password</h3>
-            <p className={styles.p}>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalBox}>
+            <h3 style={styles.modalHeading}>Change Password</h3>
+            <p style={styles.p}>
               You must change your password before continuing.
             </p>
 
-            <label className={styles.label}>New Password</label>
+            <label style={styles.label}>New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className={styles.input}
+              onFocus={() => setNewPassFocused(true)}
+              onBlur={() => setNewPassFocused(false)}
+              style={{
+                ...styles.input,
+                ...(newPassFocused ? styles.inputFocused : {}),
+              }}
             />
 
-            <label className={styles.label}>Confirm Password</label>
+            <label style={styles.label}>Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={styles.input}
+              onFocus={() => setConfirmPassFocused(true)}
+              onBlur={() => setConfirmPassFocused(false)}
+              style={{
+                ...styles.input,
+                ...(confirmPassFocused ? styles.inputFocused : {}),
+              }}
             />
 
             <button
-              className={styles.sendbutton}
+              style={{
+                ...styles.sendbutton,
+                ...(loading ? styles.sendbuttonDisabled : {}),
+              }}
               onClick={handleChangePassword}
               disabled={loading}
             >

@@ -11,9 +11,14 @@ function TaxModal({ tax, trigger, setTrigger }) {
   const [name, setName] = useState(tax.name);
   const [percentage, setPercentage] = useState(tax.percentage || "");
   const [description, setDescription] = useState(tax.description || "");
-  const [hsnCode, setHsnCode] = useState(tax.hsnCode || "");
   const [taxNature, setTaxNature] = useState(tax.taxNature || "Taxable");
   const [applicableOn, setApplicableOn] = useState(tax.applicableOn || "Both");
+  const [effectiveFrom, setEffectiveFrom] = useState(
+    tax.effectiveFrom ? String(tax.effectiveFrom).slice(0, 10) : "",
+  );
+  const [effectiveTo, setEffectiveTo] = useState(
+    tax.effectiveTo ? String(tax.effectiveTo).slice(0, 10) : "",
+  );
 
   const [successfull, setSuccessfull] = useState(null);
   const [error, setError] = useState();
@@ -26,7 +31,7 @@ function TaxModal({ tax, trigger, setTrigger }) {
   const onEditClick = () => setEditclick(true);
 
   const validateFields = () => {
-    if (!name || !hsnCode) return false;
+    if (!name) return false;
     if (taxNature !== "Exempt" && percentage === "") return false;
     return true;
   };
@@ -44,9 +49,10 @@ function TaxModal({ tax, trigger, setTrigger }) {
       const payload = {
         name,
         description,
-        hsnCode,
         taxNature,
         applicableOn,
+        effectiveFrom,
+        effectiveTo,
       };
 
       // Percentage handling based on tax nature
@@ -117,19 +123,6 @@ function TaxModal({ tax, trigger, setTrigger }) {
         </div>
       </div>
 
-      {/* HSN CODE */}
-      <div className="row justify-content-center">
-        <div className="col-4 inputcolumn-mdl">
-          <label>HSN Code :</label>
-          <input
-            type="text"
-            value={hsnCode}
-            onChange={(e) => setHsnCode(e.target.value)}
-            disabled={!editclick}
-          />
-        </div>
-      </div>
-
       {/* CONDITIONAL FIELDS */}
       {taxNature !== "Exempt" && (
         <>
@@ -175,6 +168,30 @@ function TaxModal({ tax, trigger, setTrigger }) {
           </div>
         </>
       )}
+
+      <div className="row justify-content-center">
+        <div className="col-4 inputcolumn-mdl">
+          <label>WEF Date :</label>
+          <input
+            type="date"
+            value={effectiveFrom}
+            onChange={(e) => setEffectiveFrom(e.target.value)}
+            disabled={!editclick}
+          />
+        </div>
+      </div>
+
+      <div className="row justify-content-center">
+        <div className="col-4 inputcolumn-mdl">
+          <label>Valid Till :</label>
+          <input
+            type="date"
+            value={effectiveTo}
+            onChange={(e) => setEffectiveTo(e.target.value)}
+            disabled={!editclick}
+          />
+        </div>
+      </div>
 
       {/* ACTION BUTTONS */}
       {!editclick && (

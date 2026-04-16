@@ -74,13 +74,14 @@ function Taxes({ navigate, isAdmin }) {
                     <th>Date</th>
                     <th>Tax Name</th>
                     <th>Tax Value</th>
+                    <th>WEF</th>
                     {isAdmin && <th>Action</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {taxes.length === 0 && (
                     <tr>
-                      <td colSpan={isAdmin ? 5 : 4}>NO DATA FOUND</td>
+                      <td colSpan={isAdmin ? 6 : 5}>NO DATA FOUND</td>
                     </tr>
                   )}
                   {taxes.length > 0 &&
@@ -99,6 +100,15 @@ function Taxes({ navigate, isAdmin }) {
                             : tax.percentage !== null
                               ? `${tax.percentage}%`
                               : "-"}
+                        </td>
+                        <td>
+                          {tax.effectiveFrom
+                            ? `${String(tax.effectiveFrom).slice(0, 10)}${
+                                tax.effectiveTo
+                                  ? ` to ${String(tax.effectiveTo).slice(0, 10)}`
+                                  : ""
+                              }`
+                            : "Immediate"}
                         </td>
 
                         {isAdmin && (

@@ -114,12 +114,31 @@ function InventoryHome({ navigate }) {
       {/* Buttons - Always visible */}
       <div className="row m-0 p-3">
         <div className="col">
+            <div
+              style={{
+                marginBottom: "16px",
+                padding: "16px 18px",
+                borderRadius: "18px",
+                background: "linear-gradient(135deg, #fff7ed, #eff6ff)",
+                border: "1px solid #dbeafe",
+                color: "#334155",
+                lineHeight: 1.7,
+              }}
+            >
+              <strong>First-time inventory setup:</strong> Set products with one clean stock unit, add selling units with conversion rules, then use `Direct Stock In` for opening or supplier stock. Warehouse stock will stay in one system value while staff can still see it as sheets, coils, or rmt.
+            </div>
+            <button
+      className="homebtn"
+      onClick={() => navigate("/inventory/direct-stock-in")}
+    >
+      + Direct Stock In
+    </button>
             <button className='homebtn' onClick={() => navigate('/inventory/incoming-stock')}>Incoming Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/outgoing-stock')}>Outgoing Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/current-stock')}>Current Stock</button>
             <button className='homebtn' onClick={() => navigate('/inventory/stock-summary')}>Stock Summary</button>
             <button className='homebtn' onClick={() => navigate('/inventory/damaged-goods')}>Damaged Goods</button>
-            <button className='homebtn' onClick={() => navigate('/inventory/manage-stock')}>Manage Stock</button>
+            <button className='homebtn' onClick={() => navigate('/inventory/manage-stock')}>Stock Adjustment</button>
         </div>
       </div>
 

@@ -91,6 +91,20 @@ function InventoryTab({ inventory = [], warehouse, onInventoryUpdated }) {
  
   return (
     <div>
+    <div
+      style={{
+        marginBottom: "16px",
+        padding: "14px 16px",
+        borderRadius: "16px",
+        background: "linear-gradient(135deg,#fff7ed,#eff6ff)",
+        border: "1px solid #dbeafe",
+        color: "#334155",
+        lineHeight: 1.7,
+        fontSize: "13px",
+      }}
+    >
+      This warehouse keeps stock in the product&apos;s stock unit. Business views like sheets, coils, bundles, or rmt come from conversion rules on the product, so update the product setup if these interpretations need correction.
+    </div>
     <div className={styles.gridContainer}>
       {inventory.length === 0 ? (
         <div className={styles.emptyState}>No inventory available.</div>
@@ -111,9 +125,36 @@ function InventoryTab({ inventory = [], warehouse, onInventoryUpdated }) {
               <div className={styles.cardBody}>
                 <h5 className={styles.productName}>{item.name}</h5>
                 <p className={styles.productDetails}>
-                  Quantity: <strong>{item.quantity}</strong>{" "}
-                  {item.productType === "packed" ? "packets" : item.unit}
+                  <strong>SKU:</strong> {item.SKU || "-"}
                 </p>
+                <p className={styles.productDetails}>
+                  <strong>Steel Spec:</strong>{" "}
+                  {[
+                    item.productFamily?.replaceAll("_", " "),
+                    item.steelConfig?.thicknessMm
+                      ? `${item.steelConfig.thicknessMm} mm`
+                      : null,
+                    item.steelConfig?.widthMm
+                      ? `${item.steelConfig.widthMm} mm`
+                      : null,
+                    item.steelConfig?.grade,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ") || "-"}
+                </p>
+                <p className={styles.productDetails}>
+                  Quantity: <strong>{item.quantity}</strong>{" "}
+                  {item.inventoryUnit || (item.productType === "packed" ? "packets" : item.unit)}
+                </p>
+                {item.derivedMetrics?.length > 0 && (
+                  <p className={styles.packInfo}>
+                    Business View:{" "}
+                    {item.derivedMetrics
+                      .slice(0, 2)
+                      .map((metric) => `${Number(metric.quantity || 0).toFixed(2)} ${metric.unit}`)
+                      .join(" • ")}
+                  </p>
+                )}
                 {item.productType === "packed" && (
                   <p className={styles.packInfo}>
                     Pack: {item.packageWeight} {item.packageWeightUnit}

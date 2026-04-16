@@ -6,6 +6,8 @@ const PDFPreviewModal = ({
   triggerText = "Preview PDF",
   pdfUrl,
   filename = "document.pdf",
+  triggerClassName = "submitbtn",
+  triggerStyle = undefined,
 }) => {
   const [open, setOpen] = useState(false);
   const [blobUrl, setBlobUrl] = useState(null);
@@ -111,9 +113,19 @@ const PDFPreviewModal = ({
 
   return (
     <>
-      <button className="submitbtn" onClick={() => setOpen(true)}>
-        {triggerText}
-      </button>
+      {React.isValidElement(triggerText) ? (
+        React.cloneElement(triggerText, {
+          onClick: () => setOpen(true),
+        })
+      ) : (
+        <button
+          className={triggerClassName}
+          style={triggerStyle}
+          onClick={() => setOpen(true)}
+        >
+          {triggerText}
+        </button>
+      )}
 
       {open && (
         <div

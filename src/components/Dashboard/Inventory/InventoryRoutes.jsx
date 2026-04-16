@@ -12,6 +12,7 @@ const CurrentStock = lazy(() => import("./CurrentStock"))
 const DamagedGoods = lazy(() => import("./DamagedGoods"));
 const ManualStockManagement = lazy(() => import("./ManualStockManagement"));
 const ManualStockAPITest = lazy(() => import("./ManualStockAPITest"));
+const ManualStockIn = lazy(() => import("./ManualStockIn"));
 
 function InventoryRoutes() {
   const navigate = useNavigate();
@@ -23,6 +24,22 @@ function InventoryRoutes() {
         element={
           <Suspense fallback={<PageSkeleton />}>
             <InventoryHome navigate={navigate} />
+          </Suspense>
+        }
+      />
+      <Route
+  path="/manual-stock-in"
+  element={
+    <Suspense fallback={<PageSkeleton />}>
+      <ManualStockIn navigate={navigate} />
+    </Suspense>
+  }
+/>
+      <Route
+        path="/direct-stock-in"
+        element={
+          <Suspense fallback={<PageSkeleton />}>
+            <ManualStockIn navigate={navigate} />
           </Suspense>
         }
       />
