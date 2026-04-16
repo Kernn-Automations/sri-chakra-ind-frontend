@@ -6,12 +6,14 @@ import { useAuth } from "@/Auth";
 import { DialogActionTrigger } from "@/components/ui/dialog";
 
 function TaxAddModal({ trigger, setTrigger }) {
+  const today = new Date(Date.now()).toISOString().slice(0, 10);
   const [name, setName] = useState("");
   const [percentage, setPercentage] = useState("");
   const [description, setDescription] = useState("");
-  const [hsnCode, setHsnCode] = useState("");
   const [taxNature, setTaxNature] = useState("Taxable");
   const [applicableOn, setApplicableOn] = useState("Both");
+  const [effectiveFrom, setEffectiveFrom] = useState(today);
+  const [effectiveTo, setEffectiveTo] = useState("");
 
   const [successfull, setSuccessfull] = useState(null);
   const [error, setError] = useState();
@@ -19,7 +21,6 @@ function TaxAddModal({ trigger, setTrigger }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const today = new Date(Date.now()).toISOString().slice(0, 10);
   const closeModal = () => setIsModalOpen(false);
 
   const { axiosAPI } = useAuth();
@@ -27,7 +28,6 @@ function TaxAddModal({ trigger, setTrigger }) {
   const validateFields = () => {
     const newErrors = {};
     if (!name) newErrors.name = true;
-    if (!hsnCode) newErrors.hsnCode = true;
     if (taxNature !== "Exempt" && percentage === "") newErrors.percentage = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -47,9 +47,10 @@ function TaxAddModal({ trigger, setTrigger }) {
           name,
           percentage,
           description,
-          hsnCode,
           taxNature,
           applicableOn,
+          effectiveFrom,
+          effectiveTo,
         });
 
         setTrigger(!trigger);
@@ -107,18 +108,6 @@ function TaxAddModal({ trigger, setTrigger }) {
         </select>
       </div>
     </div>
-    {/* HSN CODE */}
-    <div className="row justify-content-center">
-      <div className="col-4 inputcolumn-mdl">
-        <label>HSN Code:</label>
-        <input
-          type="text"
-          value={hsnCode}
-          onChange={(e) => setHsnCode(e.target.value)}
-        />
-      </div>
-    </div>
-
     {/* Render all other fields ONLY if taxNature is not Exempt */}
     {taxNature !== "Exempt" && (
       <>
@@ -150,9 +139,6 @@ function TaxAddModal({ trigger, setTrigger }) {
             </select>
           </div>
         </div>
-
-
-        
         {/* DESCRIPTION */}
         <div className="row justify-content-center">
           <div className="col-4 inputcolumn-mdl">
@@ -165,6 +151,28 @@ function TaxAddModal({ trigger, setTrigger }) {
         </div>
       </>
     )}
+
+    <div className="row justify-content-center">
+      <div className="col-4 inputcolumn-mdl">
+        <label>WEF Date:</label>
+        <input
+          type="date"
+          value={effectiveFrom}
+          onChange={(e) => setEffectiveFrom(e.target.value)}
+        />
+      </div>
+    </div>
+
+    <div className="row justify-content-center">
+      <div className="col-4 inputcolumn-mdl">
+        <label>Valid Till:</label>
+        <input
+          type="date"
+          value={effectiveTo}
+          onChange={(e) => setEffectiveTo(e.target.value)}
+        />
+      </div>
+    </div>
 
     {/* ACTIONS */}
     {!loading && !successfull && (

@@ -75,7 +75,8 @@ function TaxSelector({ selectedTaxes = [], setSelectedTaxes }) {
               <div><b>Percentage:</b> {tax.percentage}%</div>
               <div><b>Nature:</b> {tax.taxNature}</div>
               <div><b>Applicable On:</b> {tax.applicableOn}</div>
-              {tax.hsnCode && <div><b>HSN Code:</b> {tax.hsnCode}</div>}
+              <div><b>WEF:</b> {tax.effectiveFrom ? String(tax.effectiveFrom).slice(0, 10) : "Immediate"}</div>
+              {tax.effectiveTo && <div><b>Valid Till:</b> {String(tax.effectiveTo).slice(0, 10)}</div>}
               {tax.description && <div><b>Description:</b> {tax.description}</div>}
               {tax.isCess && (
                 <div>

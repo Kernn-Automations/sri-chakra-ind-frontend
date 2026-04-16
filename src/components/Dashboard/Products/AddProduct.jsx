@@ -7,7 +7,10 @@ import Loading from "@/components/Loading";
 import axios from "axios";
 import { CheckCircle, X, AlertCircle } from "lucide-react";
 import {
+  DEFAULT_STEEL_DENSITY,
+  FIRST_TIME_PRODUCT_HELP,
   getInventoryUnit as getInventoryUnitForMeasurement,
+  PRODUCT_FAMILIES,
   STEEL_ALL_UNITS,
   STEEL_MEASUREMENT_UNITS,
   STEEL_PACKAGE_UNITS,
@@ -35,8 +38,28 @@ function AddProduct({ navigate }) {
    * ------------------------- */
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
+  const [hsnCode, setHsnCode] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [productFamily, setProductFamily] = useState("general");
+  const [steelConfig, setSteelConfig] = useState({
+    brand: "",
+    grade: "",
+    coating: "",
+    finishColor: "",
+    thicknessMm: "",
+    widthMm: "",
+    standardLengthM: "",
+    densityKgPerM3: DEFAULT_STEEL_DENSITY,
+  });
+  const [inventoryPolicy, setInventoryPolicy] = useState({
+    stockKeepingUnit: "",
+    preferredStockViews: [],
+    preferredIssueUnit: "",
+    requireConversionsForSalesUnits: true,
+    allowFractionalStock: true,
+    onboardingNote: "",
+  });
 
   const [purchasePrice, setPurchasePrice] = useState("");
   const [thresholdValue, setThresholdValue] = useState("");
@@ -251,6 +274,8 @@ function AddProduct({ navigate }) {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("SKU", sku);
+    formData.append("hsnCode", hsnCode);
+    formData.append("productFamily", productFamily);
     formData.append("description", description);
     formData.append("categoryId", category);
     formData.append("purchasePrice", purchasePrice);
@@ -265,6 +290,16 @@ function AddProduct({ navigate }) {
     }
 
     formData.append("unitPrices", JSON.stringify(unitPrices));
+    formData.append("steelConfig", JSON.stringify(steelConfig));
+    formData.append(
+      "inventoryPolicy",
+      JSON.stringify({
+        ...inventoryPolicy,
+        stockKeepingUnit:
+          inventoryPolicy.stockKeepingUnit ||
+          getInventoryUnitForMeasurement(measurementType),
+      }),
+    );
     selectedTaxes.forEach((t) => formData.append("taxIds[]", t));
     images.forEach((img) => img && formData.append("images", img.file));
 
@@ -298,7 +333,27 @@ function AddProduct({ navigate }) {
         setName("");
         setSku("");
         setCategory("");
+        setHsnCode("");
         setDescription("");
+        setProductFamily("general");
+        setSteelConfig({
+          brand: "",
+          grade: "",
+          coating: "",
+          finishColor: "",
+          thicknessMm: "",
+          widthMm: "",
+          standardLengthM: "",
+          densityKgPerM3: DEFAULT_STEEL_DENSITY,
+        });
+        setInventoryPolicy({
+          stockKeepingUnit: "",
+          preferredStockViews: [],
+          preferredIssueUnit: "",
+          requireConversionsForSalesUnits: true,
+          allowFractionalStock: true,
+          onboardingNote: "",
+        });
         setPurchasePrice("");
         setThresholdValue("");
         setProductType("");
@@ -345,6 +400,21 @@ function AddProduct({ navigate }) {
         </p>
       </div>
 
+      <section style={{ ...styles.card, background: "linear-gradient(135deg,#fff7ed,#eff6ff)" }}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>First Time Setup Help</h4>
+          <span style={styles.badge}>Guide</span>
+        </div>
+        <div style={{ display: "grid", gap: "10px" }}>
+          {FIRST_TIME_PRODUCT_HELP.map((line) => (
+            <div key={line} style={styles.infoBox}>
+              <AlertCircle size={16} />
+              <span>{line}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* PRODUCT DETAILS */}
       <section style={styles.card}>
         <div style={styles.cardHeader}>
@@ -371,6 +441,29 @@ function AddProduct({ navigate }) {
             />
           </div>
           <div style={styles.inputGroup}>
+            <label style={styles.label}>HSN / SAC Code</label>
+            <input
+              style={styles.input}
+              placeholder="Enter product HSN code"
+              value={hsnCode}
+              onChange={(e) => setHsnCode(e.target.value)}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Product Family *</label>
+            <select
+              style={styles.input}
+              value={productFamily}
+              onChange={(e) => setProductFamily(e.target.value)}
+            >
+              {PRODUCT_FAMILIES.map((family) => (
+                <option key={family.value} value={family.value}>
+                  {family.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.inputGroup}>
             <label style={styles.label}>Category *</label>
             <select
               style={styles.input}
@@ -394,6 +487,106 @@ function AddProduct({ navigate }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+        </div>
+      </section>
+
+      <section style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h4 style={styles.cardTitle}>Steel Profile And Inventory Rules</h4>
+          <span style={styles.badge}>Flexible</span>
+        </div>
+        <div style={styles.infoBox}>
+          <AlertCircle size={16} />
+          <span>
+            Use this only for business meaning. Stock is still controlled by unit prices and conversion rules, so you can support rolls, sheets, rmt, bundles, and future selling styles without hardcoding.
+          </span>
+        </div>
+        <div style={styles.grid}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Brand</label>
+            <input style={styles.input} value={steelConfig.brand} onChange={(e) => setSteelConfig((prev) => ({ ...prev, brand: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Grade</label>
+            <input style={styles.input} value={steelConfig.grade} onChange={(e) => setSteelConfig((prev) => ({ ...prev, grade: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Coating / Finish</label>
+            <input style={styles.input} value={steelConfig.coating} onChange={(e) => setSteelConfig((prev) => ({ ...prev, coating: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Color</label>
+            <input style={styles.input} value={steelConfig.finishColor} onChange={(e) => setSteelConfig((prev) => ({ ...prev, finishColor: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Thickness (mm)</label>
+            <input style={styles.input} type="number" value={steelConfig.thicknessMm} onChange={(e) => setSteelConfig((prev) => ({ ...prev, thicknessMm: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Width (mm)</label>
+            <input style={styles.input} type="number" value={steelConfig.widthMm} onChange={(e) => setSteelConfig((prev) => ({ ...prev, widthMm: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Standard Length (m)</label>
+            <input style={styles.input} type="number" value={steelConfig.standardLengthM} onChange={(e) => setSteelConfig((prev) => ({ ...prev, standardLengthM: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Density (kg/m3)</label>
+            <input style={styles.input} type="number" value={steelConfig.densityKgPerM3} onChange={(e) => setSteelConfig((prev) => ({ ...prev, densityKgPerM3: e.target.value }))} />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Stock Keeping Unit</label>
+            <select
+              style={styles.input}
+              value={inventoryPolicy.stockKeepingUnit}
+              onChange={(e) => setInventoryPolicy((prev) => ({ ...prev, stockKeepingUnit: e.target.value }))}
+            >
+              <option value="">Auto from measurement</option>
+              {ALL_UNITS.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Preferred Issue Unit</label>
+            <select
+              style={styles.input}
+              value={inventoryPolicy.preferredIssueUnit}
+              onChange={(e) => setInventoryPolicy((prev) => ({ ...prev, preferredIssueUnit: e.target.value }))}
+            >
+              <option value="">Choose later</option>
+              {ALL_UNITS.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Preferred Stock Views</label>
+            <select
+              multiple
+              style={{ ...styles.input, minHeight: "120px" }}
+              value={inventoryPolicy.preferredStockViews}
+              onChange={(e) =>
+                setInventoryPolicy((prev) => ({
+                  ...prev,
+                  preferredStockViews: Array.from(e.target.selectedOptions).map((option) => option.value),
+                }))
+              }
+            >
+              {ALL_UNITS.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>First Time Note For Staff</label>
+            <textarea
+              style={styles.textarea}
+              value={inventoryPolicy.onboardingNote}
+              onChange={(e) => setInventoryPolicy((prev) => ({ ...prev, onboardingNote: e.target.value }))}
+              placeholder="Example: Stock in kg, sell by sheet and rmt, use sheet count for dispatch talk."
+            />
+          </div>
         </div>
       </section>
 
@@ -754,8 +947,10 @@ function AddProduct({ navigate }) {
                   </div>
 
                   <div style={styles.taxMeta}>
-                    <span>HSN: {tax.hsnCode}</span>
-                    <span>• Applicable on: {tax.applicableOn}</span>
+                    <span>Applicable on: {tax.applicableOn}</span>
+                    <span>
+                      WEF: {tax.effectiveFrom ? String(tax.effectiveFrom).slice(0, 10) : "Immediate"}
+                    </span>
                   </div>
 
                   <div style={styles.taxBadges}>
@@ -996,6 +1191,18 @@ const styles = {
     fontSize: "13px",
     color: "#64748b",
     fontWeight: "500",
+  },
+  infoBox: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "10px",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    background: "#fff",
+    border: "1px solid #e2e8f0",
+    color: "#475569",
+    fontSize: "13px",
+    lineHeight: 1.6,
   },
   grid: {
     display: "grid",

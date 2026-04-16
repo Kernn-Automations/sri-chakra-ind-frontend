@@ -23,6 +23,24 @@ export const STEEL_PACKAGE_UNITS = [
   "sheet",
 ];
 
+export const PRODUCT_FAMILIES = [
+  { value: "general", label: "General Item" },
+  { value: "roofing_sheet", label: "Roofing Sheet" },
+  { value: "coil", label: "Coil / Roll" },
+  { value: "crash_barrier", label: "Crash Barrier" },
+  { value: "raw_material", label: "Raw Material" },
+  { value: "accessory", label: "Accessory / Fastener" },
+];
+
+export const DEFAULT_STEEL_DENSITY = 7850;
+
+export const FIRST_TIME_PRODUCT_HELP = [
+  "Choose the product family first. That decides which dimensions matter for stock and selling.",
+  "Keep one stock-keeping unit only. For steel, kg is usually the cleanest inventory unit even if you sell by sheet, coil, or rmt.",
+  "Add selling units separately in Unit Prices, then define how each unit converts back to stock through Conversion Rules.",
+  "Use preferred stock views to tell the inventory screen what staff should see first, like sheet, coil, or rmt.",
+];
+
 export function getInventoryUnit(measurementType) {
   switch (measurementType) {
     case "weight":

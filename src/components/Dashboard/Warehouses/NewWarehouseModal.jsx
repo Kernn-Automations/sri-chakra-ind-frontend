@@ -227,6 +227,20 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
   return (
     <>
       <h3 className={`px-3 pb-3 mdl-title`}>Create Warehouse</h3>
+      <div
+        className="mx-4 mb-3"
+        style={{
+          padding: "14px 16px",
+          borderRadius: "16px",
+          background: "linear-gradient(135deg,#fff7ed,#eff6ff)",
+          border: "1px solid #dbeafe",
+          color: "#334155",
+          lineHeight: 1.7,
+          fontSize: "13px",
+        }}
+      >
+        <strong>Before entering opening stock:</strong> configure each product&apos;s stock unit, selling units, and steel dimensions in the product master. Opening stock should be entered in the product&apos;s stock unit so warehouse balance, ledger, and derived sheet or coil views stay correct from day one.
+      </div>
       {/* Basic Info */}
 
       <div className="row justify-content-center">
@@ -378,6 +392,7 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
             <thead>
               <tr>
                 <th>Product</th>
+                <th>Steel Setup</th>
                 <th>Quantity</th>
                 <th>Unit</th>
                 <th>Type</th>
@@ -388,9 +403,9 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
               {openingStock.map((row, index) => {
                 const product = products.find((p) => p.id == row.productId);
                 const displayUnit =
-                  product?.productType === "packed"
-                    ? "packets"
-                    : product?.unit || "--";
+                  product?.inventoryUnit ||
+                  (product?.productType === "packed" ? "packets" : product?.unit) ||
+                  "--";
                 const displayType =
                   product?.productType || row.productType || "--";
 
@@ -428,6 +443,22 @@ function NewWarehouseModal({ managers, products, onSuccess }) {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: "12px", lineHeight: 1.5, color: "#475569" }}>
+                        {[
+                          product?.productFamily?.replaceAll("_", " "),
+                          product?.steelConfig?.thicknessMm
+                            ? `${product.steelConfig.thicknessMm} mm`
+                            : null,
+                          product?.steelConfig?.widthMm
+                            ? `${product.steelConfig.widthMm} mm`
+                            : null,
+                          product?.steelConfig?.grade,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ") || "Use product setup for business views"}
+                      </div>
                     </td>
                     <td>
                       <input

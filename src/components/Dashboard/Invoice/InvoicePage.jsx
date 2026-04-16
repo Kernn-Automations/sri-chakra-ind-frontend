@@ -12,7 +12,7 @@ import axios from "axios";
 import Loading from "@/components/Loading";
 import CustomSearchDropdown from "@/utils/CustomSearchDropDown";
 
-function InvoicesPage({ navigate, setInvoiceId }) {
+function InvoicesPage({ navigate }) {
   const { axiosAPI } = useAuth();
 
   const defaultFrom = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -173,6 +173,8 @@ function InvoicesPage({ navigate, setInvoiceId }) {
       "Date",
       "Invoice Number",
       "Invoice Type",
+      "Document Type",
+      "Billing Company",
       "Sales Order Number",
       "Customer Name",
       "Customer Mobile",
@@ -190,6 +192,8 @@ function InvoicesPage({ navigate, setInvoiceId }) {
           : inv.type === "tax_invoice"
             ? "Tax Invoice"
             : inv.type,
+      "Document Type": inv.documentType?.replaceAll("_", " "),
+      "Billing Company": inv.billingCompany || "-",
       "Sales Order Number": inv.salesOrder?.orderNumber,
       "Customer Name": inv.customer?.name,
       "Customer Mobile": inv.customer?.mobile,
@@ -251,6 +255,14 @@ function InvoicesPage({ navigate, setInvoiceId }) {
           onSelect={setCustomer}
           options={customers?.map((c) => ({ value: c.id, label: c.name }))}
         />
+        <div className="col-3 d-flex align-items-end gap-2">
+          <button className="submitbtn" onClick={() => navigate("/invoices/new")}>
+            Create Invoice
+          </button>
+          <button className="cancelbtn" onClick={() => navigate("/invoices/setup")}>
+            Billing Setup
+          </button>
+        </div>
       </div>
 
       <div className="row m-0 p-3 justify-content-center">
@@ -327,6 +339,8 @@ function InvoicesPage({ navigate, setInvoiceId }) {
                   <th>Date</th>
                   <th>Invoice Number</th>
                   <th>Invoice Type</th>
+                  <th>Document Type</th>
+                  <th>Billing Company</th>
                   <th>Sales Order Number</th>
                   <th>Customer Name</th>
                   <th>Customer Mobile</th>
@@ -352,6 +366,10 @@ function InvoicesPage({ navigate, setInvoiceId }) {
                             ? "Tax Invoice"
                             : inv.type}
                       </td>
+                      <td style={{ textTransform: "capitalize" }}>
+                        {(inv.documentType || inv.type || "-").replaceAll("_", " ")}
+                      </td>
+                      <td>{inv.billingCompany || "-"}</td>
                       <td>{inv.salesOrder?.orderNumber}</td>
                       <td>{inv.customer?.name}</td>
                       <td>{inv.customer?.mobile}</td>
@@ -359,15 +377,24 @@ function InvoicesPage({ navigate, setInvoiceId }) {
 
                       {/* ✅ DC PDF View Button */}
                       <td>
-                        <button
-                          className=""
-                          onClick={() => {
-                            setInvoiceId(inv.id);
-                            navigate("/invoices/details");
-                          }}
-                        >
-                          View
-                        </button>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <button
+                            className=""
+                            onClick={() => {
+                              navigate(`/invoices/details/${inv.id}`);
+                            }}
+                          >
+                            View
+                          </button>
+                          <button
+                            className=""
+                            onClick={() => {
+                              navigate(`/invoices/details/${inv.id}?mode=edit`);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

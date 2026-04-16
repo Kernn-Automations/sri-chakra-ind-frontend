@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Loading from "@/components/Loading";
 import ErrorModal from "@/components/ErrorModal";
 import { useAuth } from "@/Auth";
@@ -14,6 +13,7 @@ function QuotationsList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
+  const [convertingId, setConvertingId] = useState(null);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -48,7 +48,8 @@ function QuotationsList() {
       data = data.filter(
         (q) =>
           q.quotationNumber?.toLowerCase().includes(search.toLowerCase()) ||
-          q.customerName?.toLowerCase().includes(search.toLowerCase()),
+          q.customerName?.toLowerCase().includes(search.toLowerCase()) ||
+          q.prospectCompany?.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
@@ -58,6 +59,47 @@ function QuotationsList() {
 
     setFiltered(data);
   }, [search, statusFilter, quotations]);
+
+  async function convertQuotation(quotationId) {
+    try {
+      setConvertingId(quotationId);
+      const res = await axiosAPI.post(`/quotations/${quotationId}/convert`);
+      const salesOrder = res.data?.salesOrder;
+      const customer = res.data?.customer;
+      setQuotations((prev) =>
+        prev.map((quotation) =>
+          quotation.id === quotationId
+            ? {
+                ...quotation,
+                status: "Converted",
+                convertedSalesOrderId: salesOrder?.id || quotation.convertedSalesOrderId,
+              }
+            : quotation,
+        ),
+      );
+      alert(
+        [
+          salesOrder?.orderNumber
+            ? `Converted to sales order ${salesOrder.orderNumber}.`
+            : "Quotation converted to sales order.",
+          customer?.createdFromQuotation
+            ? "A new customer was created from the quotation details."
+            : "",
+          customer?.profileNeedsCompletion
+            ? "Complete GSTIN, address, and state details before invoicing."
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      navigate("/sales/orders");
+    } catch (e) {
+      setError(e.response?.data?.message || "Failed to convert quotation");
+      setShowError(true);
+    } finally {
+      setConvertingId(null);
+    }
+  }
 
   /* -------------------------
    * STATUS BADGE
@@ -248,7 +290,7 @@ function QuotationsList() {
                   </td>
                   <td style={styles.td}>
                     <span style={styles.customerName}>
-                      {q.customerName || "—"}
+                      {q.customerName || q.prospectCompany || "—"}
                     </span>
                   </td>
                   <td style={styles.td}>
@@ -292,9 +334,7 @@ function QuotationsList() {
                           onMouseLeave={(e) =>
                             (e.target.style.background = "transparent")
                           }
-                          onClick={() =>
-                            navigate(`/sales/quotations/${q.id}?edit=true`)
-                          }
+                          onClick={() => navigate(`/sales/quotations/${q.id}`)}
                         >
                           Edit
                         </button>
@@ -309,11 +349,10 @@ function QuotationsList() {
                           onMouseLeave={(e) =>
                             (e.target.style.background = "#16a34a")
                           }
-                          onClick={() =>
-                            navigate(`/sales/quotations/${q.id}?convert=true`)
-                          }
+                          onClick={() => convertQuotation(q.id)}
+                          disabled={convertingId === q.id}
                         >
-                          Convert
+                          {convertingId === q.id ? "Converting..." : "Convert"}
                         </button>
                       )}
                     </div>

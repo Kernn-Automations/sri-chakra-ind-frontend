@@ -223,6 +223,16 @@ const styles = {
     lineHeight: 1.6,
     border: "1px dashed #cbd5e1",
   },
+  infoBox: {
+    padding: "14px 16px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #fff7ed, #eff6ff)",
+    color: "#475569",
+    fontSize: "13px",
+    lineHeight: 1.7,
+    border: "1px solid #dbeafe",
+    marginBottom: "16px",
+  },
 };
 
 function ManualStockIn({ navigate }) {
@@ -412,6 +422,9 @@ function ManualStockIn({ navigate }) {
           <Warehouse size={18} />
           Stock Entry Details
         </h2>
+        <div style={styles.infoBox}>
+          Use supplier-facing quantities here, but make sure the product has correct conversion rules first. If a roofing sheet is stocked in kg and sold by sheet or rmt, the product setup should define that once so stock and billing both stay correct.
+        </div>
 
         <div style={styles.grid}>
           <div style={styles.inputGroup}>

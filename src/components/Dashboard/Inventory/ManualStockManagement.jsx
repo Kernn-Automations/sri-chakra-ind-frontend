@@ -25,7 +25,8 @@ function ManualStockManagement({ navigate }) {
     productId: '',
     movementType: 'inward',
     quantity: '',
-    reason: ''
+    reason: '',
+    transactionDate: new Date().toISOString().slice(0, 16),
   });
   
   // Data arrays
@@ -163,7 +164,8 @@ function ManualStockManagement({ navigate }) {
         productId: parseInt(formData.productId),
         movementType: formData.movementType,
         quantity: parseFloat(formData.quantity),
-        reason: formData.reason
+        reason: formData.reason,
+        transactionDate: formData.transactionDate,
       });
 
       if (result.success) {
@@ -176,7 +178,8 @@ function ManualStockManagement({ navigate }) {
           productId: '',
           movementType: 'inward',
           quantity: '',
-          reason: ''
+          reason: '',
+          transactionDate: new Date().toISOString().slice(0, 16),
         });
         
         // Reload inventory
@@ -205,8 +208,13 @@ function ManualStockManagement({ navigate }) {
   };
 
   const getCurrentStock = (productId) => {
-    const item = inventory.find(item => item.id === parseInt(productId));
+    const item = inventory.find(item => item.productId === parseInt(productId));
     return item ? parseFloat(item.stockQuantity) : 0;
+  };
+
+  const getCurrentStockUnit = (productId) => {
+    const item = inventory.find(invItem => invItem.productId === parseInt(productId));
+    return item?.inventoryUnit || item?.unit || "kg";
   };
 
   const getProductName = (productId) => {
@@ -228,6 +236,12 @@ function ManualStockManagement({ navigate }) {
 
       <div className="row m-0 p-3">
         <h5 className={styles.head}>Stock Adjustment</h5>
+        <div className="col-12 mb-3">
+          <div className="alert alert-info">
+            Use stock adjustment only for direct correction entries. This updates inventory and
+            also records the same movement in the stock ledger using the selected transaction date.
+          </div>
+        </div>
         
         {/* Warehouse Selection */}
         <div className={`col-4 ${styles.longform}`}>
@@ -284,7 +298,7 @@ function ManualStockManagement({ navigate }) {
               fontWeight: '600',
               color: getCurrentStock(formData.productId) > 0 ? '#28a745' : '#dc3545'
             }}>
-              {getCurrentStock(formData.productId)}
+              {getCurrentStock(formData.productId)} {getCurrentStockUnit(formData.productId)}
             </span>
           </div>
         )}
@@ -303,6 +317,16 @@ function ManualStockManagement({ navigate }) {
           />
         </div>
 
+        <div className={`col-3 ${styles.longform}`}>
+          <label>Transaction Date & Time :</label>
+          <input
+            type="datetime-local"
+            value={formData.transactionDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, transactionDate: e.target.value }))}
+            required
+          />
+        </div>
+
         {/* Transaction Type */}
         <div className={`col-3 ${styles.longform}`}>
           <label>Transaction Type :</label>
@@ -317,7 +341,7 @@ function ManualStockManagement({ navigate }) {
         </div>
 
         {/* Reason */}
-        <div className={`col-6 ${styles.longform}`}>
+        <div className={`col-3 ${styles.longform}`}>
           <label>Reason :</label>
           <input
             type="text"
@@ -344,7 +368,8 @@ function ManualStockManagement({ navigate }) {
                   productId: '',
                   movementType: 'inward',
                   quantity: '',
-                  reason: ''
+                  reason: '',
+                  transactionDate: new Date().toISOString().slice(0, 16),
                 });
                 setInventory([]);
               }}
